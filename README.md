@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
   <img src="https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite" />
+  <img src="https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
 </div>
 
 <div align="center">
@@ -43,7 +43,7 @@
 │                 │    │                 │    │                 │
 │ • React.js      │    │ • Laravel 11    │    │ • PPOB Services │
 │ • Tailwind CSS  │    │ • Sanctum Auth  │    │ • Price List    │
-│ • Vite         │    │ • SQLite DB     │    │ • Transactions  │
+│ • Vite         │    │ • MySQL DB      │    │ • Transactions  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -54,6 +54,7 @@
 - **Node.js** (v18+)
 - **PHP** (v8.2+)
 - **Composer**
+- **MySQL** (v8.0+)
 - **Git**
 
 ### 🔧 Installation
@@ -72,6 +73,15 @@
    composer install
    cp .env.example .env
    php artisan key:generate
+
+   # Create MySQL database and update .env file
+   # DB_CONNECTION=mysql
+   # DB_HOST=127.0.0.1
+   # DB_PORT=3306
+   # DB_DATABASE=ppob_webapp
+   # DB_USERNAME=your_username
+   # DB_PASSWORD=your_password
+
    php artisan migrate --seed
    php artisan serve
    ```
@@ -86,7 +96,7 @@
 
 4. **Configure Environment**
    - Update `.env` dengan Digiflazz API credentials
-   - Set database connection
+   - Set MySQL database connection
    - Configure CORS settings
 
 ## 📁 Project Structure
