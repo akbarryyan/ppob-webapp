@@ -80,7 +80,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30 font-['Hanken_Grotesk'] flex">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30 font-['Hanken_Grotesk']">
       {/* Sidebar */}
       <DashboardSidebar
         activeTab={activeTab}
@@ -90,7 +90,7 @@ const Dashboard = () => {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
+      <div className="lg:ml-64 flex flex-col min-h-screen">
         {/* Top Navigation */}
         <DashboardHeader
           activeTab={activeTab}
@@ -136,20 +136,10 @@ const Dashboard = () => {
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
-            onClick={() => setSidebarOpen(false)}
-          ></div>
-          <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white/95 backdrop-blur-xl border-r border-gray-200/50 shadow-xl lg:hidden">
-            <DashboardSidebar
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              sidebarOpen={true}
-              setSidebarOpen={setSidebarOpen}
-            />
-          </div>
-        </>
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
       )}
     </div>
   );

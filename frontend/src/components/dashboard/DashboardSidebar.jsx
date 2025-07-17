@@ -26,9 +26,9 @@ const DashboardSidebar = ({
 
   return (
     <div
-      className={`w-64 bg-white/95 backdrop-blur-xl border-r border-gray-200/50 shadow-xl flex-shrink-0 flex flex-col h-screen ${
-        sidebarOpen ? "block" : "hidden"
-      } lg:block`}
+      className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/95 backdrop-blur-xl border-r border-gray-200/50 shadow-xl flex flex-col h-screen transform transition-transform duration-300 ease-in-out ${
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      } lg:translate-x-0`}
     >
       {/* Sidebar Header */}
       <div className="flex items-center justify-center h-16 px-6 border-b border-gray-100 flex-shrink-0">
@@ -41,7 +41,7 @@ const DashboardSidebar = ({
       </div>
 
       {/* Navigation Menu */}
-      <nav className="mt-8 px-4 space-y-1 flex-1 overflow-y-auto">
+      <nav className="mt-8 px-4 space-y-1 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
         {menuItems.map((item) => (
           <button
             key={item.key}
