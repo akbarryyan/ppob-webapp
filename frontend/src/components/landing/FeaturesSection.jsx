@@ -81,7 +81,7 @@ const FeaturesSection = () => {
                 Mengapa Ribuan Orang
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {" "}
-                  Memilih TopUp?
+                  Memilih Bayaraja?
                 </span>
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed">

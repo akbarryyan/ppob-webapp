@@ -138,7 +138,7 @@ const ServicesSection = () => {
         {/* Service Features */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 text-white">
           <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4">Mengapa Pilih TopUp?</h3>
+            <h3 className="text-3xl font-bold mb-4">Mengapa Pilih Bayaraja?</h3>
             <p className="text-blue-100 text-lg">
               Keunggulan yang membuat kami berbeda dari yang lain
             </p>

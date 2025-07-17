@@ -19,7 +19,7 @@ const TestimonialsSection = () => {
       avatar: "/api/placeholder/60/60",
       rating: 5,
       content:
-        "Platform TopUp telah mengubah cara saya mengelola pembayaran digital. Prosesnya sangat cepat dan aman, cocok untuk bisnis saya yang membutuhkan transaksi real-time.",
+        "Platform Bayaraja telah mengubah cara saya mengelola pembayaran digital. Prosesnya sangat cepat dan aman, cocok untuk bisnis saya yang membutuhkan transaksi real-time.",
       transaction: "500+ transaksi",
       highlight: "Sangat cepat dan aman",
     },
@@ -29,7 +29,7 @@ const TestimonialsSection = () => {
       avatar: "/api/placeholder/60/60",
       rating: 5,
       content:
-        "Sebagai ibu rumah tangga, saya butuh platform yang mudah dan terpercaya. TopUp memberikan cashback yang lumayan dan customer servicenya selalu helpful.",
+        "Sebagai ibu rumah tangga, saya butuh platform yang mudah dan terpercaya. Bayaraja memberikan cashback yang lumayan dan customer servicenya selalu helpful.",
       transaction: "200+ transaksi",
       highlight: "Mudah digunakan",
     },
@@ -49,7 +49,7 @@ const TestimonialsSection = () => {
       avatar: "/api/placeholder/60/60",
       rating: 5,
       content:
-        "Sebagai content creator, saya sering butuh top up game dan paket data. TopUp selalu reliable dan transaksinya instant, perfect untuk kebutuhan konten.",
+        "Sebagai content creator, saya sering butuh top up game dan paket data. Bayaraja selalu reliable dan transaksinya instant, perfect untuk kebutuhan konten.",
       transaction: "300+ transaksi",
       highlight: "Instant & reliable",
     },
@@ -123,8 +123,8 @@ const TestimonialsSection = () => {
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Ribuan pengguna telah merasakan kemudahan dan kepercayaan
-            bertransaksi dengan platform TopUp. Simak pengalaman mereka di bawah
-            ini.
+            bertransaksi dengan platform Bayaraja. Simak pengalaman mereka di
+            bawah ini.
           </p>
         </div>
 
@@ -211,7 +211,7 @@ const TestimonialsSection = () => {
                 <p className="text-lg text-gray-600 leading-relaxed">
                   Bergabunglah dengan ribuan pengguna yang telah merasakan
                   kemudahan, keamanan, dan kecepatan bertransaksi dengan
-                  platform TopUp.
+                  platform Bayaraja.
                 </p>
               </div>
 

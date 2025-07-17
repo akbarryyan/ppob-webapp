@@ -54,31 +54,31 @@ const Footer = () => {
   const socialLinks = [
     {
       name: "Facebook",
-      href: "https://facebook.com/topup",
+      href: "https://facebook.com/bayaraja",
       icon: "facebook",
       color: "hover:text-blue-600",
     },
     {
       name: "Twitter",
-      href: "https://twitter.com/topup",
+      href: "https://twitter.com/bayaraja",
       icon: "twitter",
       color: "hover:text-blue-400",
     },
     {
       name: "Instagram",
-      href: "https://instagram.com/topup",
+      href: "https://instagram.com/bayaraja",
       icon: "instagram",
       color: "hover:text-pink-600",
     },
     {
       name: "LinkedIn",
-      href: "https://linkedin.com/company/topup",
+      href: "https://linkedin.com/company/bayaraja",
       icon: "linkedin",
       color: "hover:text-blue-700",
     },
     {
       name: "YouTube",
-      href: "https://youtube.com/topup",
+      href: "https://youtube.com/bayaraja",
       icon: "youtube",
       color: "hover:text-red-600",
     },
@@ -94,7 +94,7 @@ const Footer = () => {
     {
       icon: EnvelopeIcon,
       label: "Email Support",
-      value: "support@topup.id",
+      value: "support@bayaraja.id",
       detail: "Response < 2 jam",
     },
     {
@@ -148,7 +148,7 @@ const Footer = () => {
                     <CreditCardIcon className="w-6 h-6 text-white" />
                   </div>
                   <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    TopUp
+                    Bayaraja
                   </span>
                 </Link>
                 <p className="text-gray-300 leading-relaxed mb-6">
@@ -358,7 +358,7 @@ const Footer = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
               <div className="text-sm text-gray-400">
-                © {currentYear} TopUp Indonesia. All rights reserved. |{" "}
+                © {currentYear} Bayaraja Indonesia. All rights reserved. |{" "}
                 <span className="text-blue-400">Made with ❤️ in Indonesia</span>
               </div>
               <div className="flex items-center space-x-6 text-sm text-gray-400">

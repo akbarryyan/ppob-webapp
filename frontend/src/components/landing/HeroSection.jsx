@@ -138,7 +138,7 @@ const HeroSection = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-xl font-bold text-gray-900">
-                        Dashboard TopUp
+                        Dashboard Bayaraja
                       </h3>
                       <p className="text-gray-500">
                         Kelola semua transaksi Anda

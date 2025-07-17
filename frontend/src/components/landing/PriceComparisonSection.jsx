@@ -64,7 +64,7 @@ const PriceComparisonSection = () => {
                     Operator
                   </th>
                   <th className="px-8 py-4 text-center font-semibold text-gray-900">
-                    Harga TopUp
+                    Harga Bayaraja
                   </th>
                   <th className="px-8 py-4 text-center font-semibold text-gray-900">
                     Harga Kompetitor
