@@ -5,6 +5,7 @@ export { default as QuickActions } from "./QuickActions";
 export { default as StatsSection } from "./StatsSection";
 export { default as LeaderboardSection } from "./LeaderboardSection";
 export { default as SettingsSection } from "./SettingsSection";
+export { default as TopUpSection } from "./TopUpSection";
 export { default as RecentTransactions } from "./RecentTransactions";
 export { default as TransactionsList } from "./TransactionsList";
 export { default as ProfileSection } from "./ProfileSection";

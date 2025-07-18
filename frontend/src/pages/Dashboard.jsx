@@ -8,6 +8,7 @@ import {
   Cog6ToothIcon,
   BellIcon,
   CurrencyDollarIcon,
+  BanknotesIcon,
 } from "@heroicons/react/24/outline";
 import {
   DashboardSidebar,
@@ -17,6 +18,7 @@ import {
   StatsSection,
   LeaderboardSection,
   SettingsSection,
+  TopUpSection,
   RecentTransactions,
   TransactionsList,
   ProfileSection,
@@ -79,6 +81,7 @@ const Dashboard = () => {
   const menuItems = [
     { icon: HomeIcon, label: "Overview", key: "overview" },
     { icon: CreditCardIcon, label: "Transaksi", key: "transactions" },
+    { icon: BanknotesIcon, label: "Top Up", key: "topup" },
     { icon: ChartBarIcon, label: "Leaderboard", key: "leaderboard" },
     { icon: BellIcon, label: "Notifikasi", key: "notifications" },
     { icon: CurrencyDollarIcon, label: "Daftar Harga", key: "prices" },
@@ -131,6 +134,8 @@ const Dashboard = () => {
             <TransactionsList recentTransactions={recentTransactions} />
           )}
 
+          {activeTab === "topup" && <TopUpSection userBalance={userBalance} />}
+
           {activeTab === "leaderboard" && <LeaderboardSection />}
 
           {activeTab === "notifications" && <Notifications />}
@@ -144,6 +149,7 @@ const Dashboard = () => {
           {/* Placeholder for other tabs */}
           {activeTab !== "overview" &&
             activeTab !== "transactions" &&
+            activeTab !== "topup" &&
             activeTab !== "leaderboard" &&
             activeTab !== "notifications" &&
             activeTab !== "prices" &&

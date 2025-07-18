@@ -10,6 +10,7 @@ import {
   XMarkIcon,
   BellIcon,
   CurrencyDollarIcon,
+  BanknotesIcon,
 } from "@heroicons/react/24/outline";
 
 const DashboardSidebar = ({
@@ -21,6 +22,7 @@ const DashboardSidebar = ({
   const menuItems = [
     { icon: HomeIcon, label: "Overview", key: "overview" },
     { icon: CreditCardIcon, label: "Transaksi", key: "transactions" },
+    { icon: BanknotesIcon, label: "Top Up", key: "topup" },
     { icon: ChartBarIcon, label: "Leaderboard", key: "leaderboard" },
     { icon: BellIcon, label: "Notifikasi", key: "notifications" },
     { icon: CurrencyDollarIcon, label: "Daftar Harga", key: "prices" },
