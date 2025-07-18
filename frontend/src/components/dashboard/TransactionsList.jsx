@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -26,6 +26,23 @@ const TransactionsList = ({ recentTransactions }) => {
   const [isTypeFilterOpen, setIsTypeFilterOpen] = useState(false);
   const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState("card"); // 'card' atau 'table'
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if click is outside any dropdown
+      if (!event.target.closest(".dropdown-container")) {
+        setIsFilterOpen(false);
+        setIsTypeFilterOpen(false);
+        setIsDateFilterOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const filterOptions = [
     {
@@ -228,7 +245,7 @@ const TransactionsList = ({ recentTransactions }) => {
       </div>
 
       {/* Enhanced Search and Filter Controls */}
-      <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-gray-200/50">
+      <div className="bg-white/80 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-gray-200/50 relative z-50">
         <div className="space-y-6">
           {/* Search Bar */}
           <div className="relative">
@@ -253,12 +270,17 @@ const TransactionsList = ({ recentTransactions }) => {
           </div>
 
           {/* Filter Controls */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 relative z-[100]">
             <div className="flex flex-col sm:flex-row gap-3 flex-1">
               {/* Status Filter */}
-              <div className="relative">
+              <div className="relative dropdown-container z-[200]">
                 <button
-                  onClick={() => setIsFilterOpen(!isFilterOpen)}
+                  onClick={() => {
+                    setIsFilterOpen(!isFilterOpen);
+                    // Close other dropdowns
+                    setIsTypeFilterOpen(false);
+                    setIsDateFilterOpen(false);
+                  }}
                   className="flex items-center justify-between w-full sm:w-auto px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 min-w-40 shadow-sm"
                 >
                   <div className="flex items-center">
@@ -278,7 +300,7 @@ const TransactionsList = ({ recentTransactions }) => {
                 </button>
 
                 {isFilterOpen && (
-                  <div className="absolute top-full mt-2 left-0 right-0 sm:right-auto sm:w-72 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute top-full mt-2 left-0 right-0 sm:right-auto sm:w-72 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-2xl z-[99999] py-2 animate-in fade-in slide-in-from-top-2 duration-200">
                     {filterOptions.map((option) => (
                       <button
                         key={option.value}
@@ -307,9 +329,14 @@ const TransactionsList = ({ recentTransactions }) => {
               </div>
 
               {/* Type Filter */}
-              <div className="relative">
+              <div className="relative dropdown-container z-[200]">
                 <button
-                  onClick={() => setIsTypeFilterOpen(!isTypeFilterOpen)}
+                  onClick={() => {
+                    setIsTypeFilterOpen(!isTypeFilterOpen);
+                    // Close other dropdowns
+                    setIsFilterOpen(false);
+                    setIsDateFilterOpen(false);
+                  }}
                   className="flex items-center justify-between w-full sm:w-auto px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 min-w-40 shadow-sm"
                 >
                   <div className="flex items-center">
@@ -326,7 +353,7 @@ const TransactionsList = ({ recentTransactions }) => {
                 </button>
 
                 {isTypeFilterOpen && (
-                  <div className="absolute top-full mt-2 left-0 right-0 sm:right-auto sm:w-64 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute top-full mt-2 left-0 right-0 sm:right-auto sm:w-64 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-2xl z-[99999] py-2 animate-in fade-in slide-in-from-top-2 duration-200">
                     {typeOptions.map((option) => (
                       <button
                         key={option.value}
@@ -348,9 +375,14 @@ const TransactionsList = ({ recentTransactions }) => {
               </div>
 
               {/* Date Filter */}
-              <div className="relative">
+              <div className="relative dropdown-container z-[200]">
                 <button
-                  onClick={() => setIsDateFilterOpen(!isDateFilterOpen)}
+                  onClick={() => {
+                    setIsDateFilterOpen(!isDateFilterOpen);
+                    // Close other dropdowns
+                    setIsFilterOpen(false);
+                    setIsTypeFilterOpen(false);
+                  }}
                   className="flex items-center justify-between w-full sm:w-auto px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 min-w-40 shadow-sm"
                 >
                   <div className="flex items-center">
@@ -367,7 +399,7 @@ const TransactionsList = ({ recentTransactions }) => {
                 </button>
 
                 {isDateFilterOpen && (
-                  <div className="absolute top-full mt-2 left-0 right-0 sm:right-auto sm:w-64 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-2xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute top-full mt-2 left-0 right-0 sm:right-auto sm:w-64 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-2xl z-[99999] py-2 animate-in fade-in slide-in-from-top-2 duration-200">
                     {dateOptions.map((option) => (
                       <button
                         key={option.value}
