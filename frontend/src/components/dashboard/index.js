@@ -8,3 +8,4 @@ export { default as TransactionsList } from "./TransactionsList";
 export { default as ProfileSection } from "./ProfileSection";
 export { default as PlaceholderTab } from "./PlaceholderTab";
 export { default as Notifications } from "./Notifications";
+export { default as PriceList } from "./PriceList";

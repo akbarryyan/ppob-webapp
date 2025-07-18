@@ -190,73 +190,75 @@ const Notifications = () => {
           Notifikasi Terbaru
         </h2>
 
-        <div className="space-y-3">
-          {notifications.map((notification) => (
-            <div
-              key={notification.id}
-              className={`relative p-4 rounded-2xl border transition-all duration-200 hover:shadow-md ${getNotificationBg(
-                notification.type,
-                notification.isRead
-              )}`}
-            >
-              {/* Unread indicator */}
-              {!notification.isRead && (
-                <div className="absolute top-4 right-4 w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-              )}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-4">
+          <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 space-y-3 pr-2">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`relative p-4 rounded-xl border transition-all duration-200 hover:shadow-md hover:scale-[1.01] ${getNotificationBg(
+                  notification.type,
+                  notification.isRead
+                )}`}
+              >
+                {/* Unread indicator */}
+                {!notification.isRead && (
+                  <div className="absolute top-3 right-3 w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                )}
 
-              <div className="flex items-start space-x-4">
-                {/* Icon */}
-                <div className="flex-shrink-0 mt-1">
-                  {getNotificationIcon(notification.type)}
-                </div>
+                <div className="flex items-start space-x-3">
+                  {/* Icon */}
+                  <div className="flex-shrink-0 mt-0.5">
+                    {getNotificationIcon(notification.type)}
+                  </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3
-                        className={`text-sm font-semibold ${
-                          notification.isRead
-                            ? "text-gray-700"
-                            : "text-gray-900"
-                        }`}
-                      >
-                        {notification.title}
-                      </h3>
-                      <p
-                        className={`text-sm mt-1 ${
-                          notification.isRead
-                            ? "text-gray-500"
-                            : "text-gray-700"
-                        }`}
-                      >
-                        {notification.message}
-                      </p>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 pr-2">
+                        <h3
+                          className={`text-sm font-semibold leading-5 ${
+                            notification.isRead
+                              ? "text-gray-700"
+                              : "text-gray-900"
+                          }`}
+                        >
+                          {notification.title}
+                        </h3>
+                        <p
+                          className={`text-sm mt-1 leading-5 ${
+                            notification.isRead
+                              ? "text-gray-500"
+                              : "text-gray-700"
+                          }`}
+                        >
+                          {notification.message}
+                        </p>
 
-                      {/* Time and Action */}
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center space-x-1 text-xs text-gray-500">
-                          <ClockIcon className="w-4 h-4" />
-                          <span>{notification.time}</span>
-                        </div>
+                        {/* Time and Action */}
+                        <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
+                          <div className="flex items-center space-x-1 text-xs text-gray-500">
+                            <ClockIcon className="w-4 h-4" />
+                            <span>{notification.time}</span>
+                          </div>
 
-                        <div className="flex items-center space-x-2">
-                          {!notification.isRead && (
-                            <button className="p-1 text-gray-500 hover:text-blue-500 transition-colors">
-                              <EyeIcon className="w-4 h-4" />
+                          <div className="flex items-center space-x-2">
+                            {!notification.isRead && (
+                              <button className="p-1.5 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                                <EyeIcon className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-blue-200 hover:border-blue-300">
+                              {notification.action}
                             </button>
-                          )}
-                          <button className="px-3 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
-                            {notification.action}
-                          </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 

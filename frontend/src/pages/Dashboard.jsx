@@ -7,6 +7,7 @@ import {
   GiftIcon,
   Cog6ToothIcon,
   BellIcon,
+  CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
 import {
   DashboardSidebar,
@@ -19,6 +20,7 @@ import {
   ProfileSection,
   PlaceholderTab,
   Notifications,
+  PriceList,
 } from "../components/dashboard";
 
 const Dashboard = () => {
@@ -77,6 +79,7 @@ const Dashboard = () => {
     { icon: CreditCardIcon, label: "Transaksi", key: "transactions" },
     { icon: ChartBarIcon, label: "Statistik", key: "statistics" },
     { icon: BellIcon, label: "Notifikasi", key: "notifications" },
+    { icon: CurrencyDollarIcon, label: "Daftar Harga", key: "prices" },
     { icon: GiftIcon, label: "Reward", key: "rewards" },
     { icon: UserIcon, label: "Profil", key: "profile" },
     { icon: Cog6ToothIcon, label: "Pengaturan", key: "settings" },
@@ -128,12 +131,15 @@ const Dashboard = () => {
 
           {activeTab === "notifications" && <Notifications />}
 
+          {activeTab === "prices" && <PriceList />}
+
           {activeTab === "profile" && <ProfileSection />}
 
           {/* Placeholder for other tabs */}
           {activeTab !== "overview" &&
             activeTab !== "transactions" &&
             activeTab !== "notifications" &&
+            activeTab !== "prices" &&
             activeTab !== "profile" && (
               <PlaceholderTab activeTab={activeTab} menuItems={menuItems} />
             )}
