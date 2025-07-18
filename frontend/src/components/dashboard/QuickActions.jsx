@@ -12,8 +12,10 @@ import {
   TruckIcon, // untuk Transportasi
   GiftIcon,
 } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 const QuickActions = () => {
+  const navigate = useNavigate();
   const quickActions = [
     {
       icon: PhoneIcon,
@@ -121,6 +123,11 @@ const QuickActions = () => {
           {popularActions.map((action, index) => (
             <button
               key={`popular-${index}`}
+              onClick={() =>
+                navigate("/new-transaction", {
+                  state: { selectedCategory: action.title.toLowerCase() },
+                })
+              }
               className="group relative bg-white p-3 sm:p-6 rounded-xl sm:rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200 hover:-translate-y-1 overflow-hidden"
             >
               {/* Popular Badge */}
@@ -183,6 +190,11 @@ const QuickActions = () => {
           {quickActions.map((action, index) => (
             <button
               key={`all-${index}`}
+              onClick={() =>
+                navigate("/new-transaction", {
+                  state: { selectedCategory: action.title.toLowerCase() },
+                })
+              }
               className="group bg-white p-2 sm:p-3 md:p-4 rounded-lg sm:rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-blue-200 hover:-translate-y-0.5"
             >
               <div
@@ -222,11 +234,17 @@ const QuickActions = () => {
 
       {/* Action Buttons - Mobile Optimized */}
       <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4 pt-2 sm:pt-4">
-        <button className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl">
+        <button
+          onClick={() => navigate("/new-transaction")}
+          className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+        >
           <PhoneIcon className="w-5 h-5 mr-2" />
           Mulai Transaksi
         </button>
-        <button className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 hover:bg-gray-50 transition-all duration-300 shadow-sm hover:shadow-md">
+        <button
+          onClick={() => navigate("/dashboard/transactions")}
+          className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 hover:bg-gray-50 transition-all duration-300 shadow-sm hover:shadow-md"
+        >
           <CreditCardIcon className="w-5 h-5 mr-2" />
           Riwayat Transaksi
         </button>
