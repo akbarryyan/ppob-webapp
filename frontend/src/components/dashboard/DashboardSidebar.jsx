@@ -4,7 +4,7 @@ import {
   CreditCardIcon,
   ChartBarIcon,
   UserIcon,
-  GiftIcon,
+  PhoneIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   XMarkIcon,
@@ -26,7 +26,7 @@ const DashboardSidebar = ({
     { icon: ChartBarIcon, label: "Leaderboard", key: "leaderboard" },
     { icon: BellIcon, label: "Notifikasi", key: "notifications" },
     { icon: CurrencyDollarIcon, label: "Daftar Harga", key: "prices" },
-    { icon: GiftIcon, label: "Reward", key: "rewards" },
+    { icon: PhoneIcon, label: "Contact", key: "contact" },
     { icon: UserIcon, label: "Profil", key: "profile" },
     { icon: Cog6ToothIcon, label: "Pengaturan", key: "settings" },
   ];

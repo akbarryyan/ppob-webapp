@@ -4,7 +4,7 @@ import {
   CreditCardIcon,
   ChartBarIcon,
   UserIcon,
-  GiftIcon,
+  PhoneIcon,
   Cog6ToothIcon,
   BellIcon,
   CurrencyDollarIcon,
@@ -19,6 +19,7 @@ import {
   LeaderboardSection,
   SettingsSection,
   TopUpSection,
+  ContactSection,
   RecentTransactions,
   TransactionsList,
   ProfileSection,
@@ -85,7 +86,7 @@ const Dashboard = () => {
     { icon: ChartBarIcon, label: "Leaderboard", key: "leaderboard" },
     { icon: BellIcon, label: "Notifikasi", key: "notifications" },
     { icon: CurrencyDollarIcon, label: "Daftar Harga", key: "prices" },
-    { icon: GiftIcon, label: "Reward", key: "rewards" },
+    { icon: PhoneIcon, label: "Contact", key: "contact" },
     { icon: UserIcon, label: "Profil", key: "profile" },
     { icon: Cog6ToothIcon, label: "Pengaturan", key: "settings" },
   ];
@@ -142,6 +143,8 @@ const Dashboard = () => {
 
           {activeTab === "prices" && <PriceList />}
 
+          {activeTab === "contact" && <ContactSection />}
+
           {activeTab === "profile" && <ProfileSection />}
 
           {activeTab === "settings" && <SettingsSection />}
@@ -153,6 +156,7 @@ const Dashboard = () => {
             activeTab !== "leaderboard" &&
             activeTab !== "notifications" &&
             activeTab !== "prices" &&
+            activeTab !== "contact" &&
             activeTab !== "profile" &&
             activeTab !== "settings" && (
               <PlaceholderTab activeTab={activeTab} menuItems={menuItems} />
