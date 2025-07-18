@@ -14,6 +14,7 @@ import {
   UserIcon,
   ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
+import "../../styles/scrollbar.css";
 
 const AdminTransactions = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -557,76 +558,48 @@ const AdminTransactions = () => {
 
       {/* Transactions Table */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Transaction
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Customer
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Product
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Amount
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Date
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
+        {/* Table Info Header */}
+        <div className="px-4 sm:px-6 py-3 bg-gray-50/50 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-700">
+              Showing{" "}
+              <span className="font-semibold">
+                {filteredTransactions.length}
+              </span>{" "}
+              transaction{filteredTransactions.length !== 1 ? "s" : ""}
+              {searchTerm && ` matching "${searchTerm}"`}
+              {filterStatus !== "all" && ` with ${filterStatus} status`}
+              {filterType !== "all" && ` of type ${filterType}`}
+            </p>
+            <div className="flex items-center space-x-2 text-xs text-gray-500">
+              <div className="hidden sm:flex items-center space-x-1">
+                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                <span>Scroll to view more</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="block lg:hidden">
+          <div className="p-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="space-y-4">
               {filteredTransactions.map((transaction) => (
-                <tr
+                <div
                   key={transaction.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200 hover:shadow-md transition-shadow"
                 >
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
+                  {/* Transaction Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 truncate text-sm">
                         {transaction.id}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs text-gray-600 mt-1">
                         {transaction.paymentChannel}
                       </p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {transaction.userName}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {transaction.userEmail}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        {transaction.productName}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {transaction.productCategory}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm font-semibold text-gray-900">
-                      {formatCurrency(transaction.totalAmount)}
-                    </p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 flex-shrink-0">
                       {React.createElement(
                         statusConfig[transaction.status].icon,
                         {
@@ -636,39 +609,194 @@ const AdminTransactions = () => {
                         }
                       )}
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold border ${
+                        className={`px-2 py-1 rounded-lg text-xs font-semibold border ${
                           statusConfig[transaction.status].color
                         }`}
                       >
                         {statusConfig[transaction.status].label}
                       </span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
+                  </div>
+
+                  {/* Customer & Product Info */}
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <UserIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-gray-900 text-sm truncate">
+                          {transaction.userName}
+                        </p>
+                        <p className="text-xs text-gray-600 truncate">
+                          {transaction.userEmail}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <ShoppingBagIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-gray-900 text-sm truncate">
+                          {transaction.productName}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {transaction.productCategory}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Transaction Details Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-gray-500 text-xs">Amount</p>
+                      <p className="font-semibold text-gray-900">
+                        {formatCurrency(transaction.totalAmount)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">Date</p>
+                      <p className="font-semibold text-gray-900 text-xs">
                         {formatDateTime(transaction.createdAt)}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-xs text-gray-500">
                         {getTimeAgo(transaction.createdAt)}
                       </p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end pt-2 border-t border-gray-200">
                     <button
                       onClick={() => {
                         setSelectedTransaction(transaction);
                         setShowTransactionModal(true);
                       }}
-                      className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      className="flex items-center space-x-2 px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors text-sm"
                     >
                       <EyeIcon className="w-4 h-4" />
+                      <span>View Details</span>
                     </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block">
+          <div className="overflow-x-auto overflow-y-auto max-h-[70vh] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <table className="w-full min-w-[1000px]">
+              <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[180px]">
+                    Transaction
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[180px]">
+                    Customer
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[200px]">
+                    Product
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                    Amount
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                    Status
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[150px]">
+                    Date
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[100px]">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredTransactions.map((transaction) => (
+                  <tr
+                    key={transaction.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-4 xl:px-6 py-4">
+                      <div>
+                        <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
+                          {transaction.id}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {transaction.paymentChannel}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div>
+                        <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
+                          {transaction.userName}
+                        </p>
+                        <p className="text-xs text-gray-600 truncate">
+                          {transaction.userEmail}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div>
+                        <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
+                          {transaction.productName}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          {transaction.productCategory}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <p className="text-xs xl:text-sm font-semibold text-gray-900 whitespace-nowrap">
+                        {formatCurrency(transaction.totalAmount)}
+                      </p>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        {React.createElement(
+                          statusConfig[transaction.status].icon,
+                          {
+                            className: `w-3.5 h-3.5 xl:w-4 xl:h-4 ${
+                              statusConfig[transaction.status].iconColor
+                            }`,
+                          }
+                        )}
+                        <span
+                          className={`px-2 xl:px-2 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${
+                            statusConfig[transaction.status].color
+                          }`}
+                        >
+                          {statusConfig[transaction.status].label}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div>
+                        <p className="text-xs xl:text-sm font-semibold text-gray-900 whitespace-nowrap">
+                          {formatDateTime(transaction.createdAt)}
+                        </p>
+                        <p className="text-xs text-gray-500 whitespace-nowrap">
+                          {getTimeAgo(transaction.createdAt)}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <button
+                        onClick={() => {
+                          setSelectedTransaction(transaction);
+                          setShowTransactionModal(true);
+                        }}
+                        className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      >
+                        <EyeIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* No Results */}
