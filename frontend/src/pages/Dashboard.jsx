@@ -46,12 +46,20 @@ const Dashboard = () => {
     } else {
       setActiveTab("overview");
     }
+    // Scroll to very top of page when tab changes with smooth animation
+    setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }, 50);
   }, [section]);
 
   // Custom setActiveTab that also updates URL
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     navigate(`/dashboard/${tab}`);
+    // Scroll to very top of page when tab changes with smooth animation
+    setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }, 50);
   };
 
   // Handle logout
@@ -224,7 +232,11 @@ const Dashboard = () => {
         />
 
         {/* Dashboard Content */}
-        <main className="flex-1 p-6 lg:p-8">
+        <main
+          id="main-content"
+          className="flex-1 p-6 lg:p-8"
+          style={{ scrollBehavior: "smooth" }}
+        >
           {activeTab === "overview" && (
             <div className="space-y-8">
               {/* Welcome Section & Balance */}
