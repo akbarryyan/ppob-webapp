@@ -15,8 +15,11 @@ import {
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AdminOverview = () => {
+  const navigate = useNavigate();
+
   const [stats] = useState({
     totalUsers: 12543,
     totalTransactions: 8765,
@@ -81,35 +84,50 @@ const AdminOverview = () => {
   const [quickActions] = useState([
     {
       title: "Add New Product",
-      description: "Add a new game or voucher",
+      description: "Add games, vouchers, or digital products to your catalog",
       icon: ShoppingBagIcon,
       color: "from-blue-500 to-cyan-500",
       action: "/admin/products",
     },
     {
-      title: "View Transactions",
-      description: "Monitor all transactions",
+      title: "Monitor Transactions",
+      description: "View real-time transactions and payment status",
       icon: CreditCardIcon,
       color: "from-green-500 to-emerald-500",
       action: "/admin/transactions",
     },
     {
-      title: "User Management",
-      description: "Manage user accounts",
+      title: "Manage Users",
+      description: "Handle user accounts, roles, and permissions",
       icon: UsersIcon,
       color: "from-purple-500 to-pink-500",
       action: "/admin/users",
     },
     {
-      title: "System Reports",
-      description: "View detailed analytics",
+      title: "Analytics & Reports",
+      description: "View detailed insights and performance metrics",
       icon: ChartBarIcon,
       color: "from-orange-500 to-red-500",
       action: "/admin/reports",
     },
+    {
+      title: "System Settings",
+      description: "Configure platform settings and integrations",
+      icon: ServerIcon,
+      color: "from-indigo-500 to-purple-500",
+      action: "/admin/settings",
+    },
+    {
+      title: "Notifications",
+      description: "Manage alerts, announcements, and system messages",
+      icon: ExclamationTriangleIcon,
+      color: "from-yellow-500 to-orange-500",
+      action: "/admin/notifications",
+    },
   ]);
 
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -119,16 +137,55 @@ const AdminOverview = () => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    handleResize(); // Check initial size
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const formatCurrency = (amount) => {
+    // For mobile, show shorter format
+    if (isMobile) {
+      if (amount >= 1000000000) {
+        return `Rp ${(amount / 1000000000).toFixed(1)}B`;
+      } else if (amount >= 1000000) {
+        return `Rp ${(amount / 1000000).toFixed(1)}M`;
+      } else if (amount >= 1000) {
+        return `Rp ${(amount / 1000).toFixed(1)}K`;
+      }
+    }
+
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
   const formatNumber = (num) => {
+    // For mobile, show shorter format
+    if (isMobile) {
+      if (num >= 1000000) {
+        return `${(num / 1000000).toFixed(1)}M`;
+      } else if (num >= 1000) {
+        return `${(num / 1000).toFixed(1)}K`;
+      }
+    }
+
     return new Intl.NumberFormat("id-ID").format(num);
+  };
+
+  const handleQuickAction = (actionPath) => {
+    // For now, we'll show an alert since the routes might not be fully implemented
+    // In a real app, you would use: navigate(actionPath);
+    const sectionName = actionPath.split("/").pop();
+    alert(`Navigating to ${sectionName} section... (Route: ${actionPath})`);
   };
 
   const StatCard = ({
@@ -140,33 +197,51 @@ const AdminOverview = () => {
     isAmount = false,
   }) => (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden hover:shadow-xl transition-all duration-300 group">
-      <div className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-600 mb-2">{title}</p>
-            <p className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-              {isAmount ? formatCurrency(value) : formatNumber(value)}
-            </p>
-            <div className="flex items-center space-x-1">
-              {growth > 0 ? (
-                <ArrowUpIcon className="w-4 h-4 text-green-500" />
-              ) : (
-                <ArrowDownIcon className="w-4 h-4 text-red-500" />
-              )}
-              <span
-                className={`text-sm font-semibold ${
-                  growth > 0 ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {Math.abs(growth)}%
-              </span>
-              <span className="text-sm text-gray-500">vs last month</span>
+      <div className="p-4 sm:p-5 lg:p-6">
+        <div className="flex flex-col space-y-4">
+          {/* Header with icon */}
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">
+                {title}
+              </p>
+            </div>
+            <div
+              className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 ${color} rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}
+            >
+              <Icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white" />
             </div>
           </div>
-          <div
-            className={`w-16 h-16 ${color} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
-          >
-            <Icon className="w-8 h-8 text-white" />
+
+          {/* Value */}
+          <div className="space-y-2">
+            <p className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
+              {isAmount ? formatCurrency(value) : formatNumber(value)}
+            </p>
+
+            {/* Growth indicator */}
+            <div className="flex items-center space-x-2">
+              <div
+                className={`flex items-center space-x-1 px-2 py-1 rounded-lg ${
+                  growth > 0
+                    ? "bg-green-50 text-green-700"
+                    : "bg-red-50 text-red-700"
+                }`}
+              >
+                {growth > 0 ? (
+                  <ArrowUpIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                ) : (
+                  <ArrowDownIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                )}
+                <span className="text-xs sm:text-sm font-semibold">
+                  {Math.abs(growth)}%
+                </span>
+              </div>
+              <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">
+                vs last month
+              </span>
+              <span className="text-xs text-gray-500 sm:hidden">vs prev</span>
+            </div>
           </div>
         </div>
       </div>
@@ -205,7 +280,7 @@ const AdminOverview = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
         <StatCard
           title="Total Users"
           value={stats.totalUsers}
@@ -310,45 +385,45 @@ const AdminOverview = () => {
             <h3 className="text-lg font-bold text-gray-900 mb-6">
               Quick Actions
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {quickActions.map((action, index) => (
-                <button
+                <div
                   key={index}
-                  className="group p-4 rounded-xl border-2 border-gray-200 hover:border-transparent hover:shadow-lg transition-all duration-300 text-left"
-                  style={{
-                    background: `linear-gradient(135deg, white 0%, white 100%)`,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = `linear-gradient(135deg, ${action.color
-                      .replace("from-", "")
-                      .replace("to-", "")
-                      .split(" ")
-                      .map((c) => c.replace("-500", ""))
-                      .join(", ")})`;
-                    e.target.style.color = "white";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background =
-                      "linear-gradient(135deg, white 0%, white 100%)";
-                    e.target.style.color = "inherit";
-                  }}
+                  className="group relative overflow-hidden rounded-xl border-2 border-gray-200 hover:border-transparent hover:shadow-xl transition-all duration-100"
                 >
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div
-                      className={`w-10 h-10 bg-gradient-to-tr ${action.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
-                    >
-                      <action.icon className="w-5 h-5 text-white" />
+                  {/* Background gradient overlay - hidden by default, visible on hover */}
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${action.color} opacity-0 group-hover:opacity-100 transition-opacity duration-100`}
+                  ></div>
+
+                  {/* Content */}
+                  <button
+                    className="relative w-full p-6 text-left bg-white group-hover:bg-transparent transition-colors duration-100"
+                    onClick={() => handleQuickAction(action.action)}
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div
+                        className={`w-12 h-12 bg-gradient-to-tr ${action.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-100`}
+                      >
+                        <action.icon className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-lg font-bold text-gray-900 group-hover:text-white transition-colors duration-100 mb-2">
+                          {action.title}
+                        </h4>
+                        <p className="text-sm text-gray-600 group-hover:text-white/90 transition-colors duration-100 leading-relaxed">
+                          {action.description}
+                        </p>
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-100">
+                        <ArrowUpIcon className="w-5 h-5 text-white transform rotate-45" />
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 group-hover:text-white transition-colors">
-                        {action.title}
-                      </h4>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600 group-hover:text-white/90 transition-colors">
-                    {action.description}
-                  </p>
-                </button>
+
+                    {/* Hover effect indicator */}
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-white/20 to-white/40 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"></div>
+                  </button>
+                </div>
               ))}
             </div>
           </div>
