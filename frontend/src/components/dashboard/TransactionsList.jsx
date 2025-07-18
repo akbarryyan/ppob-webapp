@@ -203,56 +203,63 @@ const TransactionsList = ({ recentTransactions }) => {
       </div>
 
       {/* Transactions List */}
-      <div className="space-y-4">
-        {filteredTransactions.length === 0 ? (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-12 text-center border border-gray-200/50">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MagnifyingGlassIcon className="w-8 h-8 text-gray-400" />
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 shadow-lg">
+        <div className="p-4 border-b border-gray-200/50">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Daftar Transaksi ({filteredTransactions.length})
+          </h3>
+        </div>
+
+        <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          {filteredTransactions.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MagnifyingGlassIcon className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Tidak ada transaksi ditemukan
+              </h3>
+              <p className="text-gray-500">
+                Coba ubah kata kunci pencarian atau filter yang dipilih
+              </p>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Tidak ada transaksi ditemukan
-            </h3>
-            <p className="text-gray-500">
-              Coba ubah kata kunci pencarian atau filter yang dipilih
-            </p>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {filteredTransactions.map((transaction, index) => {
-              const StatusIcon = getStatusIcon(transaction.status);
-              return (
-                <div
-                  key={index}
-                  className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-200/50 hover:shadow-lg transition-all duration-300 hover:scale-[1.01] group"
-                >
-                  {/* Desktop Layout */}
-                  <div className="hidden lg:block p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-5">
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {filteredTransactions.map((transaction, index) => {
+                const StatusIcon = getStatusIcon(transaction.status);
+                return (
+                  <div
+                    key={index}
+                    className="p-4 hover:bg-gray-50/50 transition-all duration-200 group"
+                  >
+                    {/* Desktop Layout */}
+                    <div className="hidden lg:flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
                         <div
-                          className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ${getStatusIconBg(
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${getStatusIconBg(
                             transaction.status
                           )}`}
                         >
-                          <StatusIcon className="w-8 h-8 text-white" />
+                          <StatusIcon className="w-6 h-6 text-white" />
                         </div>
-                        <div>
-                          <div className="font-bold text-gray-900 text-lg mb-1 group-hover:text-blue-600 transition-colors">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-gray-900 text-sm group-hover:text-blue-600 transition-colors truncate">
                             {transaction.type}
                           </div>
-                          <div className="text-gray-600 mb-1 font-medium">
+                          <div className="text-gray-600 text-sm truncate">
                             {transaction.target}
                           </div>
-                          <div className="text-sm text-gray-500 flex items-center">
-                            <CalendarDaysIcon className="w-4 h-4 mr-1" />
+                          <div className="text-xs text-gray-500 flex items-center mt-1">
+                            <CalendarDaysIcon className="w-3 h-3 mr-1" />
                             {transaction.date}
                           </div>
                         </div>
                       </div>
-                      <div className="text-right flex items-center space-x-6">
-                        <div>
+
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
                           <div
-                            className={`font-bold text-2xl mb-2 ${
+                            className={`font-bold text-lg ${
                               transaction.amount > 0
                                 ? "text-emerald-600"
                                 : "text-gray-900"
@@ -261,11 +268,14 @@ const TransactionsList = ({ recentTransactions }) => {
                             {transaction.amount > 0 ? "+" : ""}Rp{" "}
                             {Math.abs(transaction.amount).toLocaleString()}
                           </div>
-                          <div className="text-sm text-gray-500 mb-2 font-mono">
-                            ID: {transaction.id}
+                          <div className="text-xs text-gray-500 font-mono">
+                            {transaction.id}
                           </div>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
                           <div
-                            className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getStatusColor(
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(
                               transaction.status
                             )}`}
                           >
@@ -275,37 +285,37 @@ const TransactionsList = ({ recentTransactions }) => {
                               ? "⏳ Pending"
                               : "✗ Gagal"}
                           </div>
+
+                          <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                            <EyeIcon className="w-4 h-4" />
+                          </button>
                         </div>
-                        <button className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200">
-                          <EyeIcon className="w-5 h-5" />
-                        </button>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Mobile Layout */}
-                  <div className="block lg:hidden p-4">
-                    <div className="flex items-start space-x-4">
+                    {/* Mobile Layout */}
+                    <div className="flex lg:hidden items-start space-x-3">
                       <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${getStatusIconBg(
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${getStatusIconBg(
                           transaction.status
                         )}`}
                       >
-                        <StatusIcon className="w-6 h-6 text-white" />
+                        <StatusIcon className="w-5 h-5 text-white" />
                       </div>
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 text-base mb-1 truncate">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-900 text-sm truncate">
                               {transaction.type}
-                            </h3>
-                            <p className="text-gray-600 text-sm truncate">
+                            </h4>
+                            <p className="text-gray-600 text-xs truncate">
                               {transaction.target}
                             </p>
                           </div>
-                          <div className="text-right ml-4">
+                          <div className="text-right ml-3">
                             <div
-                              className={`font-bold text-lg ${
+                              className={`font-bold text-sm ${
                                 transaction.amount > 0
                                   ? "text-emerald-600"
                                   : "text-gray-900"
@@ -318,46 +328,55 @@ const TransactionsList = ({ recentTransactions }) => {
                         </div>
 
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2">
                             <div
-                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(
                                 transaction.status
                               )}`}
                             >
                               {transaction.status === "success"
-                                ? "✓ Berhasil"
+                                ? "✓"
                                 : transaction.status === "pending"
-                                ? "⏳ Pending"
-                                : "✗ Gagal"}
+                                ? "⏳"
+                                : "✗"}
                             </div>
                             <span className="text-xs text-gray-500 font-mono">
                               {transaction.id}
                             </span>
                           </div>
-                          <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
-                            <EyeIcon className="w-4 h-4" />
+                          <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-200">
+                            <EyeIcon className="w-3.5 h-3.5" />
                           </button>
                         </div>
 
-                        <div className="mt-2 text-xs text-gray-500 flex items-center">
+                        <div className="mt-1 text-xs text-gray-500 flex items-center">
                           <CalendarDaysIcon className="w-3 h-3 mr-1" />
                           {transaction.date}
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Scroll Indicator */}
+        {filteredTransactions.length > 6 && (
+          <div className="p-3 bg-gray-50/50 border-t border-gray-200/50 text-center">
+            <p className="text-xs text-gray-500">
+              Scroll untuk melihat lebih banyak transaksi
+            </p>
           </div>
         )}
       </div>
 
       {/* Load More Button */}
-      {filteredTransactions.length > 0 && (
+      {filteredTransactions.length > 10 && (
         <div className="flex justify-center">
-          <button className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-2xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover:scale-105 shadow-lg">
-            Muat Lebih Banyak
+          <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover:scale-105 shadow-md text-sm">
+            Muat Lebih Banyak Transaksi
           </button>
         </div>
       )}
