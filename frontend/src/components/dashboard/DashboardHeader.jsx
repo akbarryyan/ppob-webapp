@@ -252,19 +252,27 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
 
               {/* Status indicators */}
               <div className="flex items-center space-x-2">
-                {/* Live status */}
-                <div className="flex items-center space-x-1.5 px-2.5 py-1 bg-green-50 border border-green-200 rounded-full">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs font-medium text-green-700 hidden sm:inline">
-                    Live
+                {/* Real-time status */}
+                <div className="flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full hover:bg-emerald-100 transition-colors duration-200">
+                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-semibold text-emerald-700 hidden sm:inline">
+                    Real-time
                   </span>
                 </div>
 
-                {/* Server status */}
-                <div className="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-full">
+                {/* Transaction count */}
+                <div className="hidden md:flex items-center space-x-1.5 px-3 py-1 bg-blue-50 border border-blue-200 rounded-full hover:bg-blue-100 transition-colors duration-200">
                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                  <span className="text-xs font-medium text-blue-700">
-                    Server OK
+                  <span className="text-xs font-semibold text-blue-700">
+                    {notifications.length} Transaksi
+                  </span>
+                </div>
+
+                {/* System health */}
+                <div className="hidden lg:flex items-center space-x-1.5 px-3 py-1 bg-purple-50 border border-purple-200 rounded-full hover:bg-purple-100 transition-colors duration-200">
+                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-semibold text-purple-700">
+                    System Optimal
                   </span>
                 </div>
               </div>
