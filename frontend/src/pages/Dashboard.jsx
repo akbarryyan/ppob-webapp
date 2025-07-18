@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   HomeIcon,
   CreditCardIcon,
@@ -29,8 +30,25 @@ import {
 } from "../components/dashboard";
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview");
+  const { section } = useParams();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState(section || "overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Update activeTab when URL changes
+  useEffect(() => {
+    if (section) {
+      setActiveTab(section);
+    } else {
+      setActiveTab("overview");
+    }
+  }, [section]);
+
+  // Custom setActiveTab that also updates URL
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    navigate(`/dashboard/${tab}`);
+  };
 
   // Sample data
   const userBalance = 2850000;
@@ -96,7 +114,7 @@ const Dashboard = () => {
       {/* Sidebar */}
       <DashboardSidebar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
       />
@@ -117,7 +135,7 @@ const Dashboard = () => {
               {/* Welcome Section & Balance */}
               <WelcomeCard
                 userBalance={userBalance}
-                setActiveTab={setActiveTab}
+                setActiveTab={handleTabChange}
               />
 
               {/* Quick Actions - Product Categories */}
@@ -129,7 +147,7 @@ const Dashboard = () => {
               {/* Recent Transactions */}
               <RecentTransactions
                 recentTransactions={recentTransactions}
-                setActiveTab={setActiveTab}
+                setActiveTab={handleTabChange}
               />
             </div>
           )}

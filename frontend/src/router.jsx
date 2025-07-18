@@ -24,6 +24,10 @@ const router = createBrowserRouter([
     element: <Dashboard />,
   },
   {
+    path: "/dashboard/:section",
+    element: <Dashboard />,
+  },
+  {
     path: "/payment",
     element: <Payment />,
   },
