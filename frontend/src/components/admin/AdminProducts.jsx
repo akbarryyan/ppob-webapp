@@ -11,6 +11,7 @@ import {
   CurrencyDollarIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
+import "../../styles/scrollbar.css";
 
 const AdminProducts = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -374,200 +375,224 @@ const AdminProducts = () => {
 
       {/* Products Table */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
-        {/* Mobile Card View */}
-        <div className="block lg:hidden">
-          <div className="p-4 space-y-4">
-            {filteredProducts.map((product) => (
-              <div
-                key={product.id}
-                className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200"
-              >
-                {/* Product Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    <div className="w-12 h-12 bg-gradient-to-tr from-purple-500 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <Square3Stack3DIcon className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">
-                        {product.name}
-                      </p>
-                      <p className="text-sm text-gray-600 truncate">
-                        {product.provider}
-                      </p>
-                    </div>
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded-lg text-xs font-semibold border ${
-                      statusColors[product.status]
-                    } flex-shrink-0`}
-                  >
-                    {product.status.charAt(0).toUpperCase() +
-                      product.status.slice(1)}
-                  </span>
-                </div>
-
-                {/* Product Details Grid */}
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-gray-500 text-xs">Category</p>
-                    <span className="inline-block px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 mt-1">
-                      {product.category}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs">Price</p>
-                    <p className="font-semibold text-gray-900">
-                      {formatCurrency(product.price)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs">Stock</p>
-                    <p
-                      className={`font-semibold ${
-                        product.stock > 0 ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {product.stock}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs">Sold</p>
-                    <p className="font-semibold text-gray-900">
-                      {product.sold}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-200">
-                  <button
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      setShowProductModal(true);
-                    }}
-                    className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                  >
-                    <EyeIcon className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                    <PencilIcon className="w-4 h-4" />
-                  </button>
-                  <button className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
-                </div>
+        {/* Table Info Header */}
+        <div className="px-4 sm:px-6 py-3 bg-gray-50/50 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-700">
+              Showing{" "}
+              <span className="font-semibold">{filteredProducts.length}</span>{" "}
+              product{filteredProducts.length !== 1 ? "s" : ""}
+              {searchTerm && ` matching "${searchTerm}"`}
+              {filterCategory !== "all" && ` in ${filterCategory}`}
+              {filterStatus !== "all" && ` with ${filterStatus} status`}
+            </p>
+            <div className="flex items-center space-x-2 text-xs text-gray-500">
+              <div className="hidden sm:flex items-center space-x-1">
+                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                <span>Scroll to view more</span>
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
-        {/* Desktop Table View */}
-        <div className="hidden lg:block overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
-                  Product
-                </th>
-                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
-                  Category
-                </th>
-                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
-                  Price
-                </th>
-                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
-                  Stock
-                </th>
-                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
-                  Sold
-                </th>
-                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
-                  Status
-                </th>
-                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
+        {/* Mobile Card View */}
+        <div className="block lg:hidden">
+          <div className="p-4 max-h-[70vh] overflow-y-auto table-scroll">
+            <div className="space-y-4">
               {filteredProducts.map((product) => (
-                <tr
+                <div
                   key={product.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200 hover:shadow-md transition-shadow"
                 >
-                  <td className="px-4 xl:px-6 py-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 xl:w-10 xl:h-10 bg-gradient-to-tr from-purple-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Square3Stack3DIcon className="w-4 h-4 xl:w-5 xl:h-5 text-white" />
+                  {/* Product Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      <div className="w-12 h-12 bg-gradient-to-tr from-purple-500 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Square3Stack3DIcon className="w-6 h-6 text-white" />
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">
                           {product.name}
                         </p>
-                        <p className="text-xs text-gray-600 truncate">
+                        <p className="text-sm text-gray-600 truncate">
                           {product.provider}
                         </p>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-4 xl:px-6 py-4">
-                    <span className="px-2 xl:px-3 py-1 rounded-full text-xs font-semibold border bg-blue-100 text-blue-800 border-blue-200">
-                      {product.category}
-                    </span>
-                  </td>
-                  <td className="px-4 xl:px-6 py-4">
-                    <span className="text-xs xl:text-sm font-semibold text-gray-900">
-                      {formatCurrency(product.price)}
-                    </span>
-                  </td>
-                  <td className="px-4 xl:px-6 py-4">
                     <span
-                      className={`text-xs xl:text-sm font-semibold ${
-                        product.stock > 0 ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td className="px-4 xl:px-6 py-4">
-                    <span className="text-xs xl:text-sm font-semibold text-gray-900">
-                      {product.sold}
-                    </span>
-                  </td>
-                  <td className="px-4 xl:px-6 py-4">
-                    <span
-                      className={`px-2 xl:px-3 py-1 rounded-full text-xs font-semibold border ${
+                      className={`px-2 py-1 rounded-lg text-xs font-semibold border ${
                         statusColors[product.status]
-                      }`}
+                      } flex-shrink-0`}
                     >
                       {product.status.charAt(0).toUpperCase() +
                         product.status.slice(1)}
                     </span>
-                  </td>
-                  <td className="px-4 xl:px-6 py-4">
-                    <div className="flex items-center space-x-1 xl:space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedProduct(product);
-                          setShowProductModal(true);
-                        }}
-                        className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                      >
-                        <EyeIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
-                      </button>
-                      <button className="p-1.5 xl:p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                        <PencilIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
-                      </button>
-                      <button className="p-1.5 xl:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                        <TrashIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
-                      </button>
+                  </div>
+
+                  {/* Product Details Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-gray-500 text-xs">Category</p>
+                      <span className="inline-block px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 mt-1">
+                        {product.category}
+                      </span>
                     </div>
-                  </td>
-                </tr>
+                    <div>
+                      <p className="text-gray-500 text-xs">Price</p>
+                      <p className="font-semibold text-gray-900">
+                        {formatCurrency(product.price)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">Stock</p>
+                      <p
+                        className={`font-semibold ${
+                          product.stock > 0 ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {product.stock}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">Sold</p>
+                      <p className="font-semibold text-gray-900">
+                        {product.sold}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-200">
+                    <button
+                      onClick={() => {
+                        setSelectedProduct(product);
+                        setShowProductModal(true);
+                      }}
+                      className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                    >
+                      <EyeIcon className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                      <PencilIcon className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block">
+          <div className="overflow-x-auto overflow-y-auto max-h-[70vh] table-scroll">
+            <table className="w-full min-w-[800px]">
+              <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[250px]">
+                    Product
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                    Category
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                    Price
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[80px]">
+                    Stock
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[80px]">
+                    Sold
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[100px]">
+                    Status
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredProducts.map((product) => (
+                  <tr
+                    key={product.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-4 xl:px-6 py-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 xl:w-10 xl:h-10 bg-gradient-to-tr from-purple-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Square3Stack3DIcon className="w-4 h-4 xl:w-5 xl:h-5 text-white" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
+                            {product.name}
+                          </p>
+                          <p className="text-xs text-gray-600 truncate">
+                            {product.provider}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <span className="px-2 xl:px-3 py-1 rounded-full text-xs font-semibold border bg-blue-100 text-blue-800 border-blue-200 whitespace-nowrap">
+                        {product.category}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <span className="text-xs xl:text-sm font-semibold text-gray-900 whitespace-nowrap">
+                        {formatCurrency(product.price)}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <span
+                        className={`text-xs xl:text-sm font-semibold whitespace-nowrap ${
+                          product.stock > 0 ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {product.stock}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <span className="text-xs xl:text-sm font-semibold text-gray-900 whitespace-nowrap">
+                        {product.sold}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <span
+                        className={`px-2 xl:px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${
+                          statusColors[product.status]
+                        }`}
+                      >
+                        {product.status.charAt(0).toUpperCase() +
+                          product.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div className="flex items-center space-x-1 xl:space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setShowProductModal(true);
+                          }}
+                          className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        >
+                          <EyeIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                        </button>
+                        <button className="p-1.5 xl:p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          <PencilIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                        </button>
+                        <button className="p-1.5 xl:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                          <TrashIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {filteredProducts.length === 0 && (
