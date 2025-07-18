@@ -11,6 +11,7 @@ import {
   BellIcon,
   CurrencyDollarIcon,
   BanknotesIcon,
+  CodeBracketIcon,
 } from "@heroicons/react/24/outline";
 
 const DashboardSidebar = ({
@@ -26,9 +27,8 @@ const DashboardSidebar = ({
     { icon: ChartBarIcon, label: "Leaderboard", key: "leaderboard" },
     { icon: BellIcon, label: "Notifikasi", key: "notifications" },
     { icon: CurrencyDollarIcon, label: "Daftar Harga", key: "prices" },
+    { icon: CodeBracketIcon, label: "API Docs", key: "api-docs" },
     { icon: PhoneIcon, label: "Contact", key: "contact" },
-    { icon: UserIcon, label: "Profil", key: "profile" },
-    { icon: Cog6ToothIcon, label: "Pengaturan", key: "settings" },
   ];
 
   return (

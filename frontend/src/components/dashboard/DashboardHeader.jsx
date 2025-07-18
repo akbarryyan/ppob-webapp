@@ -7,6 +7,7 @@ import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 
 const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -172,12 +173,6 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
   const handleLogout = () => {
     // In real app, this would handle logout logic
     console.log("Logout clicked");
-    closeUserMenu();
-  };
-
-  const handleProfileClick = () => {
-    // In real app, this would navigate to profile page
-    console.log("Profile clicked");
     closeUserMenu();
   };
 
@@ -466,8 +461,9 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
 
                 {/* Menu Items */}
                 <div className="py-2">
-                  <button
-                    onClick={handleProfileClick}
+                  <Link
+                    to="/dashboard/profile"
+                    onClick={closeUserMenu}
                     className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 transition-all duration-200 group"
                   >
                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
@@ -480,10 +476,11 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
                       </p>
                     </div>
                     <ArrowRightOnRectangleIcon className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors transform group-hover:translate-x-1" />
-                  </button>
+                  </Link>
 
-                  <button
-                    onClick={() => closeUserMenu()}
+                  <Link
+                    to="/dashboard/settings"
+                    onClick={closeUserMenu}
                     className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:text-gray-600 transition-all duration-200 group"
                   >
                     <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-gray-200 transition-colors">
@@ -496,7 +493,7 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
                       </p>
                     </div>
                     <ArrowRightOnRectangleIcon className="w-4 h-4 text-gray-400 group-hover:text-gray-500 transition-colors transform group-hover:translate-x-1" />
-                  </button>
+                  </Link>
 
                   <div className="border-t border-gray-100 mt-2 pt-2">
                     <button
