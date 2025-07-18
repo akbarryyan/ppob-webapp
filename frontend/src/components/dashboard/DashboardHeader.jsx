@@ -1,16 +1,16 @@
 import { BellIcon, UserIcon } from "@heroicons/react/24/outline";
 
 const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
-  const currentTime = new Date().toLocaleTimeString('id-ID', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
+  const currentTime = new Date().toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
-  
-  const currentDate = new Date().toLocaleDateString('id-ID', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
+
+  const currentDate = new Date().toLocaleDateString("id-ID", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
   return (
@@ -37,12 +37,13 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
               />
             </svg>
           </button>
-          
+
           {/* Page Title & Description */}
           <div className="flex flex-col">
             <div className="flex items-center space-x-3">
               <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
-                {menuItems.find((item) => item.key === activeTab)?.label || "Dashboard"}
+                {menuItems.find((item) => item.key === activeTab)?.label ||
+                  "Dashboard"}
               </h1>
               <div className="hidden sm:flex items-center space-x-2 text-xs text-gray-500">
                 <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
@@ -65,7 +66,7 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
             </span>
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-400 rounded-full animate-ping opacity-20"></span>
           </button>
-          
+
           {/* User Profile */}
           <div className="flex items-center space-x-3">
             <div className="hidden sm:block text-right">
