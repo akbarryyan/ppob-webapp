@@ -113,31 +113,53 @@ const Notifications = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl">
-            <BellIcon className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Notifikasi</h1>
-            <p className="text-gray-500 text-sm">
-              {unreadCount > 0
-                ? `${unreadCount} notifikasi belum dibaca`
-                : "Semua notifikasi sudah dibaca"}
-            </p>
-          </div>
-        </div>
+      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-gray-200/50 overflow-hidden">
+        <div className="p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            {/* Left Side - Title & Info */}
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <BellIcon className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
+                  Notifikasi
+                </h1>
+                <p className="text-gray-600 text-sm mt-1">
+                  {unreadCount > 0
+                    ? `${unreadCount} notifikasi belum dibaca`
+                    : "Semua notifikasi sudah dibaca"}
+                </p>
+              </div>
+            </div>
 
-        {/* Actions */}
-        <div className="flex items-center space-x-3">
+            {/* Right Side - Actions */}
+            <div className="flex items-center justify-between sm:justify-end space-x-3">
+              {unreadCount > 0 && (
+                <button className="flex items-center space-x-2 px-4 py-2.5 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-2xl transition-all duration-200 hover:scale-105 shadow-sm">
+                  <CheckCircleIcon className="w-4 h-4" />
+                  <span className="hidden sm:inline">Tandai Semua Dibaca</span>
+                  <span className="sm:hidden">Tandai Dibaca</span>
+                </button>
+              )}
+              <button className="flex items-center justify-center w-10 h-10 text-gray-500 hover:text-red-500 bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 rounded-2xl transition-all duration-200 hover:scale-105 shadow-sm">
+                <TrashIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Additional Info Bar */}
           {unreadCount > 0 && (
-            <button className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-colors">
-              Tandai Semua Dibaca
-            </button>
+            <div className="mt-4 p-3 bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200/50 rounded-2xl">
+              <div className="flex items-center space-x-2 text-sm">
+                <ExclamationTriangleIcon className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                <span className="text-orange-700 font-medium">
+                  Anda memiliki {unreadCount} notifikasi penting yang belum
+                  dibaca
+                </span>
+              </div>
+            </div>
           )}
-          <button className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
-            <TrashIcon className="w-5 h-5" />
-          </button>
         </div>
       </div>
 

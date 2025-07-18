@@ -115,7 +115,10 @@ const Dashboard = () => {
           {activeTab === "overview" && (
             <div className="space-y-8">
               {/* Welcome Section & Balance */}
-              <WelcomeCard userBalance={userBalance} />
+              <WelcomeCard
+                userBalance={userBalance}
+                setActiveTab={setActiveTab}
+              />
 
               {/* Quick Actions - Product Categories */}
               <QuickActions />

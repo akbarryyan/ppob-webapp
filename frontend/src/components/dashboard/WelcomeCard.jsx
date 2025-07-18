@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PlusIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
-const WelcomeCard = ({ userBalance }) => {
+const WelcomeCard = ({ userBalance, setActiveTab }) => {
   const [showBalance, setShowBalance] = useState(true);
 
   return (
@@ -50,7 +50,10 @@ const WelcomeCard = ({ userBalance }) => {
           <p className="text-gray-500 text-sm mb-6">
             Isi saldo untuk transaksi
           </p>
-          <button className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-200">
+          <button
+            onClick={() => setActiveTab("topup")}
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 rounded-2xl font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
+          >
             Top Up Sekarang
           </button>
         </div>
