@@ -3,6 +3,7 @@ import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import NewTransaction from "./pages/NewTransaction";
 
 const router = createBrowserRouter([
@@ -25,6 +26,14 @@ const router = createBrowserRouter([
   {
     path: "/dashboard/:section",
     element: <Dashboard />,
+  },
+  {
+    path: "/admin",
+    element: <AdminDashboard />,
+  },
+  {
+    path: "/admin/:section",
+    element: <AdminDashboard />,
   },
   {
     path: "/new-transaction",
