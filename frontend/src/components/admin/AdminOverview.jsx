@@ -16,6 +16,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import "../../styles/scrollbar.css";
 
 const AdminOverview = () => {
   const navigate = useNavigate();
@@ -432,48 +433,74 @@ const AdminOverview = () => {
 
       {/* Recent Activity */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
+        <div className="p-4 sm:p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-gray-900">Recent Activity</h3>
             <button className="flex items-center space-x-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
               <EyeIcon className="w-4 h-4" />
-              <span>View All</span>
+              <span className="hidden sm:inline">View All</span>
+              <span className="sm:hidden">All</span>
             </button>
+          </div>
+          {/* Activity count and scroll hint */}
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-sm text-gray-600">
+              <span className="font-semibold">{recentActivity.length}</span>{" "}
+              recent activities
+            </p>
+            <div className="flex items-center space-x-2 text-xs text-gray-500">
+              <div className="hidden sm:flex items-center space-x-1">
+                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                <span>Scroll to view more</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="divide-y divide-gray-100">
-          {recentActivity.map((activity) => (
-            <div
-              key={activity.id}
-              className="p-6 hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-start space-x-4">
-                <div
-                  className={`w-10 h-10 ${activity.iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}
-                >
-                  <activity.icon className={`w-5 h-5 ${activity.iconColor}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">
-                    {activity.title}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {activity.description}
-                  </p>
-                  <div className="flex items-center mt-2 space-x-2">
-                    <CalendarIcon className="w-4 h-4 text-gray-400" />
-                    <span className="text-xs text-gray-500">
-                      {activity.time}
-                    </span>
+        {/* Scrollable activity list */}
+        <div className="max-h-[400px] sm:max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <div className="divide-y divide-gray-100">
+            {recentActivity.map((activity) => (
+              <div
+                key={activity.id}
+                className="p-4 sm:p-6 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-start space-x-3 sm:space-x-4">
+                  <div
+                    className={`w-8 h-8 sm:w-10 sm:h-10 ${activity.iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}
+                  >
+                    <activity.icon
+                      className={`w-4 h-4 sm:w-5 sm:h-5 ${activity.iconColor}`}
+                    />
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 leading-tight">
+                      {activity.title}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                      {activity.description}
+                    </p>
+                    <div className="flex items-center mt-2 space-x-2">
+                      <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-xs text-gray-500 truncate">
+                        {activity.time}
+                      </span>
+                    </div>
+                  </div>
+                  <button className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0">
+                    <DocumentTextIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </button>
                 </div>
-                <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                  <DocumentTextIcon className="w-4 h-4" />
-                </button>
               </div>
+            ))}
+
+            {/* Load more placeholder - for future implementation */}
+            <div className="p-4 sm:p-6 text-center border-t border-gray-100 bg-gray-50">
+              <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
+                Load More Activities
+              </button>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </div>
