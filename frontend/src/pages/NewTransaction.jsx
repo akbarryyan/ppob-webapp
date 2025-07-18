@@ -215,7 +215,8 @@ const NewTransaction = () => {
     setIsLoading(false);
   };
 
-  const handlePhoneNumberChange = async (value) => {
+  const handlePhoneChange = async (e) => {
+    const value = e.target.value;
     setPhoneNumber(value);
     setPhoneError("");
 
