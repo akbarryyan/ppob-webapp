@@ -14,6 +14,7 @@ import {
   UserIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
+import "../../styles/scrollbar.css";
 
 const AdminNotifications = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -451,144 +452,297 @@ const AdminNotifications = () => {
 
       {/* Notifications Table */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-left">
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedNotifications.length ===
-                        filteredNotifications.length &&
-                      filteredNotifications.length > 0
-                    }
-                    onChange={handleSelectAll}
-                    className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                  />
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Notification
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Type
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Recipients
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Created
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
+        {/* Table Info Header */}
+        <div className="px-4 sm:px-6 py-3 bg-gray-50/50 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-700">
+              Showing{" "}
+              <span className="font-semibold">
+                {filteredNotifications.length}
+              </span>{" "}
+              notification{filteredNotifications.length !== 1 ? "s" : ""}
+              {searchTerm && ` matching "${searchTerm}"`}
+              {filterType !== "all" && ` of type ${filterType}`}
+              {filterStatus !== "all" && ` with ${filterStatus} status`}
+            </p>
+            <div className="flex items-center space-x-2 text-xs text-gray-500">
+              <div className="hidden sm:flex items-center space-x-1">
+                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                <span>Scroll to view more</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="block lg:hidden">
+          <div className="p-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="space-y-4">
               {filteredNotifications.map((notification) => (
-                <tr
+                <div
                   key={notification.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200 hover:shadow-md transition-shadow"
                 >
-                  <td className="px-6 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedNotifications.includes(notification.id)}
-                      onChange={() => handleSelectNotification(notification.id)}
-                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="max-w-xs">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
-                        {notification.title}
-                      </p>
-                      <p className="text-sm text-gray-600 truncate">
-                        {notification.message}
-                      </p>
-                      <div className="flex items-center mt-1 space-x-2">
-                        <span
-                          className={`text-xs font-semibold ${
-                            priorityConfig[notification.priority].color
-                          }`}
-                        >
-                          {priorityConfig[notification.priority].label}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          by {notification.createdBy}
-                        </span>
+                  {/* Notification Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3 flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={selectedNotifications.includes(
+                          notification.id
+                        )}
+                        onChange={() =>
+                          handleSelectNotification(notification.id)
+                        }
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mt-1 flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate text-sm">
+                          {notification.title}
+                        </p>
+                        <p className="text-xs text-gray-600 line-clamp-2 mt-1">
+                          {notification.message}
+                        </p>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 flex-shrink-0">
                       {React.createElement(typeConfig[notification.type].icon, {
                         className: `w-4 h-4 ${
                           typeConfig[notification.type].iconColor
                         }`,
                       })}
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold border ${
+                        className={`px-2 py-1 rounded-lg text-xs font-semibold border ${
+                          statusConfig[notification.status].color
+                        }`}
+                      >
+                        {statusConfig[notification.status].label}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Notification Details Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-gray-500 text-xs">Type</p>
+                      <span
+                        className={`inline-block px-2 py-1 rounded-md text-xs font-medium border mt-1 ${
                           typeConfig[notification.type].color
                         }`}
                       >
                         {typeConfig[notification.type].label}
                       </span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                        statusConfig[notification.status].color
-                      }`}
-                    >
-                      {statusConfig[notification.status].label}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-gray-500 text-xs">Recipients</p>
+                      <p className="font-semibold text-gray-900">
                         {notification.recipientCount.toLocaleString()}
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs text-gray-600">
                         {notification.recipients.replace("_", " ")}
                       </p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-gray-500 text-xs">Priority</p>
+                      <span
+                        className={`text-xs font-semibold ${
+                          priorityConfig[notification.priority].color
+                        }`}
+                      >
+                        {priorityConfig[notification.priority].label}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">Created</p>
+                      <p className="font-semibold text-gray-900 text-xs">
                         {formatDateTime(notification.createdAt)}
                       </p>
-                      {notification.sentAt && (
-                        <p className="text-sm text-green-600">
-                          Sent: {formatDateTime(notification.sentAt)}
-                        </p>
-                      )}
-                      {notification.scheduledAt && (
-                        <p className="text-sm text-blue-600">
-                          Scheduled: {formatDateTime(notification.scheduledAt)}
-                        </p>
-                      )}
+                      <p className="text-xs text-gray-600">
+                        by {notification.createdBy}
+                      </p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                        <EyeIcon className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
+                  </div>
+
+                  {/* Status Info */}
+                  {notification.sentAt && (
+                    <div className="text-xs">
+                      <span className="text-green-600 font-medium">
+                        Sent: {formatDateTime(notification.sentAt)}
+                      </span>
                     </div>
-                  </td>
-                </tr>
+                  )}
+                  {notification.scheduledAt && (
+                    <div className="text-xs">
+                      <span className="text-blue-600 font-medium">
+                        Scheduled: {formatDateTime(notification.scheduledAt)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-200">
+                    <button className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                      <EyeIcon className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block">
+          <div className="overflow-x-auto overflow-y-auto max-h-[70vh] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <table className="w-full min-w-[900px]">
+              <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 xl:px-6 py-4 text-left min-w-[50px]">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedNotifications.length ===
+                          filteredNotifications.length &&
+                        filteredNotifications.length > 0
+                      }
+                      onChange={handleSelectAll}
+                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    />
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[250px]">
+                    Notification
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                    Type
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[100px]">
+                    Status
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                    Recipients
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[150px]">
+                    Created
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredNotifications.map((notification) => (
+                  <tr
+                    key={notification.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-4 xl:px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedNotifications.includes(
+                          notification.id
+                        )}
+                        onChange={() =>
+                          handleSelectNotification(notification.id)
+                        }
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      />
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div className="max-w-xs">
+                        <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
+                          {notification.title}
+                        </p>
+                        <p className="text-xs text-gray-600 truncate">
+                          {notification.message}
+                        </p>
+                        <div className="flex items-center mt-1 space-x-2">
+                          <span
+                            className={`text-xs font-semibold ${
+                              priorityConfig[notification.priority].color
+                            }`}
+                          >
+                            {priorityConfig[notification.priority].label}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            by {notification.createdBy}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        {React.createElement(
+                          typeConfig[notification.type].icon,
+                          {
+                            className: `w-4 h-4 ${
+                              typeConfig[notification.type].iconColor
+                            }`,
+                          }
+                        )}
+                        <span
+                          className={`px-2 xl:px-2 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${
+                            typeConfig[notification.type].color
+                          }`}
+                        >
+                          {typeConfig[notification.type].label}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <span
+                        className={`px-2 xl:px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${
+                          statusConfig[notification.status].color
+                        }`}
+                      >
+                        {statusConfig[notification.status].label}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div>
+                        <p className="text-xs xl:text-sm font-semibold text-gray-900 whitespace-nowrap">
+                          {notification.recipientCount.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-gray-600 whitespace-nowrap">
+                          {notification.recipients.replace("_", " ")}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div>
+                        <p className="text-xs xl:text-sm font-semibold text-gray-900 whitespace-nowrap">
+                          {formatDateTime(notification.createdAt)}
+                        </p>
+                        {notification.sentAt && (
+                          <p className="text-xs text-green-600 whitespace-nowrap">
+                            Sent: {formatDateTime(notification.sentAt)}
+                          </p>
+                        )}
+                        {notification.scheduledAt && (
+                          <p className="text-xs text-blue-600 whitespace-nowrap">
+                            Scheduled:{" "}
+                            {formatDateTime(notification.scheduledAt)}
+                          </p>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div className="flex items-center space-x-1 xl:space-x-2">
+                        <button className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                          <EyeIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                        </button>
+                        <button className="p-1.5 xl:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                          <TrashIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {filteredNotifications.length === 0 && (

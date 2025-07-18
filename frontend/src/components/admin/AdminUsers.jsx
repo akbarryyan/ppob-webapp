@@ -15,6 +15,7 @@ import {
   UserIcon,
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import "../../styles/scrollbar.css";
 
 const AdminUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -350,128 +351,257 @@ const AdminUsers = () => {
 
       {/* Users Table */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-left">
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedUsers.length === filteredUsers.length &&
-                      filteredUsers.length > 0
-                    }
-                    onChange={handleSelectAll}
-                    className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                  />
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  User
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Role
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Balance
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Transactions
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Last Active
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
+        {/* Table Info Header */}
+        <div className="px-4 sm:px-6 py-3 bg-gray-50/50 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-700">
+              Showing{" "}
+              <span className="font-semibold">{filteredUsers.length}</span> user
+              {filteredUsers.length !== 1 ? "s" : ""}
+              {searchTerm && ` matching "${searchTerm}"`}
+              {filterStatus !== "all" && ` with ${filterStatus} status`}
+              {filterRole !== "all" && ` in ${filterRole} role`}
+            </p>
+            <div className="flex items-center space-x-2 text-xs text-gray-500">
+              <div className="hidden sm:flex items-center space-x-1">
+                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                <span>Scroll to view more</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="block lg:hidden">
+          <div className="p-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="space-y-4">
               {filteredUsers.map((user) => (
-                <tr
+                <div
                   key={user.id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200 hover:shadow-md transition-shadow"
                 >
-                  <td className="px-6 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(user.id)}
-                      onChange={() => handleSelectUser(user.id)}
-                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  {/* User Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3 flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.id)}
+                        onChange={() => handleSelectUser(user.id)}
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mt-1 flex-shrink-0"
+                      />
+                      <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
                         <UserIcon className="w-5 h-5 text-white" />
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 truncate text-sm">
                           {user.name}
                         </p>
-                        <p className="text-sm text-gray-600">{user.email}</p>
+                        <p className="text-xs text-gray-600 truncate">
+                          {user.email}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {user.phone}
+                        </p>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                        statusColors[user.status]
-                      }`}
-                    >
-                      {user.status.charAt(0).toUpperCase() +
-                        user.status.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                        roleColors[user.role]
-                      }`}
-                    >
-                      {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-gray-900">
-                      {formatCurrency(user.balance)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-gray-900">
-                      {user.totalTransactions}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-gray-600">
-                      {getTimeAgo(user.lastActive)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setShowUserModal(true);
-                        }}
-                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                    <div className="flex items-center space-x-2 flex-shrink-0">
+                      <span
+                        className={`px-2 py-1 rounded-lg text-xs font-semibold border ${
+                          statusColors[user.status]
+                        }`}
                       >
-                        <EyeIcon className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                        <PencilIcon className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                        <TrashIcon className="w-4 h-4" />
-                      </button>
+                        {user.status.charAt(0).toUpperCase() +
+                          user.status.slice(1)}
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded-lg text-xs font-semibold border ${
+                          roleColors[user.role]
+                        }`}
+                      >
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      </span>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+
+                  {/* User Details Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-gray-500 text-xs">Balance</p>
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {formatCurrency(user.balance)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">Transactions</p>
+                      <p className="font-semibold text-gray-900">
+                        {user.totalTransactions}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">Join Date</p>
+                      <p className="font-semibold text-gray-900 text-xs">
+                        {formatDate(user.joinDate)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 text-xs">Last Active</p>
+                      <p className="font-semibold text-gray-900 text-xs">
+                        {getTimeAgo(user.lastActive)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-200">
+                    <button
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setShowUserModal(true);
+                      }}
+                      className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                    >
+                      <EyeIcon className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                      <PencilIcon className="w-4 h-4" />
+                    </button>
+                    <button className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block">
+          <div className="overflow-x-auto overflow-y-auto max-h-[70vh] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <table className="w-full min-w-[900px]">
+              <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 xl:px-6 py-4 text-left min-w-[50px]">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedUsers.length === filteredUsers.length &&
+                        filteredUsers.length > 0
+                      }
+                      onChange={handleSelectAll}
+                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    />
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[200px]">
+                    User
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[100px]">
+                    Status
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[80px]">
+                    Role
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                    Balance
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[100px]">
+                    Transactions
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                    Last Active
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredUsers.map((user) => (
+                  <tr
+                    key={user.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-4 xl:px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.id)}
+                        onChange={() => handleSelectUser(user.id)}
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      />
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 xl:w-10 xl:h-10 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <UserIcon className="w-4 h-4 xl:w-5 xl:h-5 text-white" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
+                            {user.name}
+                          </p>
+                          <p className="text-xs text-gray-600 truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <span
+                        className={`px-2 xl:px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${
+                          statusColors[user.status]
+                        }`}
+                      >
+                        {user.status.charAt(0).toUpperCase() +
+                          user.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <span
+                        className={`px-2 xl:px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${
+                          roleColors[user.role]
+                        }`}
+                      >
+                        {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <span className="text-xs xl:text-sm font-semibold text-gray-900 whitespace-nowrap">
+                        {formatCurrency(user.balance)}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <span className="text-xs xl:text-sm font-semibold text-gray-900">
+                        {user.totalTransactions}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <span className="text-xs xl:text-sm text-gray-600 whitespace-nowrap">
+                        {getTimeAgo(user.lastActive)}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
+                      <div className="flex items-center space-x-1 xl:space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowUserModal(true);
+                          }}
+                          className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        >
+                          <EyeIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                        </button>
+                        <button className="p-1.5 xl:p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          <PencilIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                        </button>
+                        <button className="p-1.5 xl:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                          <TrashIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* No Results */}
