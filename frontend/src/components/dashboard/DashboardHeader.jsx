@@ -1,10 +1,19 @@
-import { BellIcon, UserIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  BellIcon,
+  UserIcon,
+  XMarkIcon,
+  UserCircleIcon,
+  ArrowRightOnRectangleIcon,
+  Cog6ToothIcon,
+} from "@heroicons/react/24/outline";
 import { useState, useEffect, useRef } from "react";
 
 const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const notificationRef = useRef(null);
+  const userMenuRef = useRef(null);
   const currentTime = new Date().toLocaleTimeString("id-ID", {
     hour: "2-digit",
     minute: "2-digit",
@@ -77,6 +86,9 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
       ) {
         setShowNotifications(false);
       }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -121,6 +133,18 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
       internet: "🌐",
     };
     return iconMap[type] || "💳";
+  };
+
+  const handleLogout = () => {
+    // In real app, this would handle logout logic
+    console.log("Logout clicked");
+    setShowUserMenu(false);
+  };
+
+  const handleProfileClick = () => {
+    // In real app, this would navigate to profile page
+    console.log("Profile clicked");
+    setShowUserMenu(false);
   };
 
   return (
@@ -273,17 +297,103 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
           </div>
 
           {/* User Profile */}
-          <div className="flex items-center space-x-3">
-            <div className="hidden sm:block text-right">
-              <p className="text-sm font-semibold text-gray-900">John Doe</p>
-              <p className="text-xs text-gray-500">Administrator</p>
-            </div>
-            <div className="relative group">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 hover:rotate-3">
-                <UserIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          <div className="relative" ref={userMenuRef}>
+            <div className="flex items-center space-x-3">
+              <div className="hidden sm:block text-right">
+                <p className="text-sm font-semibold text-gray-900">John Doe</p>
+                <p className="text-xs text-gray-500">Administrator</p>
               </div>
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+              <div className="relative group">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 hover:rotate-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  <UserIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                </button>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+              </div>
             </div>
+
+            {/* User Menu Dropdown */}
+            {showUserMenu && (
+              <div className="fixed sm:absolute top-16 sm:top-auto right-4 sm:right-0 sm:mt-2 w-64 sm:w-72 bg-white rounded-2xl shadow-2xl border border-gray-200/50 backdrop-blur-xl z-50 overflow-hidden animate-dropdown-in">
+                {/* User Info Header */}
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <UserIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900">
+                        John Doe
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        john.doe@admin.com
+                      </p>
+                      <div className="flex items-center mt-1">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                        <span className="text-xs text-green-600 font-medium">
+                          Online
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Menu Items */}
+                <div className="py-2">
+                  <button
+                    onClick={handleProfileClick}
+                    className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 transition-all duration-200 group"
+                  >
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200 transition-colors">
+                      <UserCircleIcon className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-medium">Profil Saya</p>
+                      <p className="text-xs text-gray-500">
+                        Kelola informasi akun
+                      </p>
+                    </div>
+                    <ArrowRightOnRectangleIcon className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors transform group-hover:translate-x-1" />
+                  </button>
+
+                  <button
+                    onClick={() => setShowUserMenu(false)}
+                    className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:text-gray-600 transition-all duration-200 group"
+                  >
+                    <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-gray-200 transition-colors">
+                      <Cog6ToothIcon className="w-4 h-4 text-gray-600" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-medium">Pengaturan</p>
+                      <p className="text-xs text-gray-500">
+                        Atur preferensi aplikasi
+                      </p>
+                    </div>
+                    <ArrowRightOnRectangleIcon className="w-4 h-4 text-gray-400 group-hover:text-gray-500 transition-colors transform group-hover:translate-x-1" />
+                  </button>
+
+                  <div className="border-t border-gray-100 mt-2 pt-2">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center px-4 py-3 text-sm text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 hover:text-red-700 transition-all duration-200 group"
+                    >
+                      <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-red-200 transition-colors">
+                        <ArrowRightOnRectangleIcon className="w-4 h-4 text-red-600" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-medium">Keluar</p>
+                        <p className="text-xs text-red-400">Logout dari akun</p>
+                      </div>
+                      <div className="w-4 h-4 text-red-400 group-hover:text-red-600 transition-colors transform group-hover:translate-x-1">
+                        →
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
