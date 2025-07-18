@@ -430,21 +430,23 @@ const TransactionsList = ({ recentTransactions }) => {
 
       {/* Enhanced Transactions List */}
       <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-gray-200/50 shadow-xl">
-        <div className="p-6 border-b border-gray-200/50">
-          <div className="flex items-center justify-between">
+        <div className="p-4 sm:p-6 border-b border-gray-200/50">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
             <div>
-              <h3 className="text-xl font-bold text-gray-900">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900">
                 Daftar Transaksi
               </h3>
-              <p className="text-gray-500 text-sm mt-1">
+              <p className="text-gray-500 text-xs sm:text-sm mt-1">
                 Menampilkan {filteredTransactions.length} dari{" "}
                 {recentTransactions.length} transaksi
               </p>
             </div>
             {filteredTransactions.length > 0 && (
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">Urut berdasarkan:</span>
-                <select className="text-sm border border-gray-200 rounded-lg px-3 py-1 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">
+                  Urut berdasarkan:
+                </span>
+                <select className="text-xs sm:text-sm border border-gray-200 rounded-lg px-2 sm:px-3 py-1 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full sm:w-auto">
                   <option>Tanggal Terbaru</option>
                   <option>Tanggal Terlama</option>
                   <option>Jumlah Terbesar</option>
@@ -473,16 +475,16 @@ const TransactionsList = ({ recentTransactions }) => {
           }
         `}</style>
 
-        <div className="max-h-96 overflow-y-auto custom-scrollbar">
+        <div className="max-h-80 sm:max-h-96 overflow-y-auto custom-scrollbar">
           {filteredTransactions.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <MagnifyingGlassIcon className="w-10 h-10 text-blue-500" />
+            <div className="p-8 sm:p-12 text-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg">
+                <MagnifyingGlassIcon className="w-8 h-8 sm:w-10 sm:h-10 text-blue-500" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
                 Tidak ada transaksi ditemukan
               </h3>
-              <p className="text-gray-500 mb-6 max-w-md mx-auto">
+              <p className="text-gray-500 mb-4 sm:mb-6 max-w-md mx-auto text-sm sm:text-base px-4">
                 Coba ubah kata kunci pencarian atau filter yang dipilih untuk
                 menemukan transaksi yang Anda cari
               </p>
@@ -493,7 +495,7 @@ const TransactionsList = ({ recentTransactions }) => {
                   setFilterType("all");
                   setDateRange("all");
                 }}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg sm:rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
               >
                 Reset Filter
               </button>
@@ -510,7 +512,7 @@ const TransactionsList = ({ recentTransactions }) => {
                   return (
                     <div
                       key={index}
-                      className="p-6 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 group cursor-pointer"
+                      className="p-4 sm:p-6 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 transition-all duration-300 group cursor-pointer"
                     >
                       {/* Desktop Card Layout */}
                       <div className="hidden lg:flex items-center justify-between">
@@ -581,35 +583,36 @@ const TransactionsList = ({ recentTransactions }) => {
                         </div>
                       </div>
 
-                      {/* Mobile Card Layout */}
+                      {/* Enhanced Mobile Card Layout */}
                       <div className="lg:hidden">
-                        <div className="flex items-start space-x-4">
-                          <div className="relative">
+                        <div className="flex items-start space-x-3">
+                          <div className="relative flex-shrink-0">
                             <div
-                              className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${getStatusIconBg(
+                              className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-md ${getStatusIconBg(
                                 transaction.status
                               )}`}
                             >
-                              <StatusIcon className="w-6 h-6 text-white" />
+                              <StatusIcon className="w-5 h-5 text-white" />
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm">
-                              <TransactionIcon className="w-2.5 h-2.5 text-gray-600" />
+                            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100">
+                              <TransactionIcon className="w-2 h-2 text-gray-600" />
                             </div>
                           </div>
 
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-bold text-gray-900 text-base truncate mb-1">
+                          <div className="flex-1 min-w-0 space-y-3">
+                            {/* Header Row */}
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0 pr-3">
+                                <h4 className="font-bold text-gray-900 text-sm leading-tight truncate">
                                   {transaction.type}
                                 </h4>
-                                <p className="text-gray-600 text-sm truncate">
+                                <p className="text-gray-600 text-xs mt-0.5 truncate">
                                   {transaction.target}
                                 </p>
                               </div>
-                              <div className="text-right ml-4">
+                              <div className="text-right flex-shrink-0">
                                 <div
-                                  className={`font-bold text-lg ${
+                                  className={`font-bold text-base leading-tight ${
                                     transaction.amount > 0
                                       ? "text-emerald-600"
                                       : "text-gray-900"
@@ -620,11 +623,15 @@ const TransactionsList = ({ recentTransactions }) => {
                                     transaction.amount
                                   ).toLocaleString()}
                                 </div>
+                                <div className="text-xs text-gray-500 mt-0.5">
+                                  {transaction.amount > 0 ? "Masuk" : "Keluar"}
+                                </div>
                               </div>
                             </div>
 
+                            {/* Status and ID Row */}
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
+                              <div className="flex items-center space-x-2">
                                 <div
                                   className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
                                     transaction.status
@@ -635,19 +642,29 @@ const TransactionsList = ({ recentTransactions }) => {
                                     : transaction.status === "pending"
                                     ? "⏳"
                                     : "✗"}
+                                  <span className="ml-1 hidden sm:inline">
+                                    {transaction.status === "success"
+                                      ? "Berhasil"
+                                      : transaction.status === "pending"
+                                      ? "Pending"
+                                      : "Gagal"}
+                                  </span>
                                 </div>
-                                <span className="text-xs text-gray-500 font-mono">
+                                <span className="text-xs text-gray-500 font-mono bg-gray-50 px-1.5 py-0.5 rounded">
                                   {transaction.id}
                                 </span>
                               </div>
-                              <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                              <button className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 flex-shrink-0">
                                 <EyeIcon className="w-4 h-4" />
                               </button>
                             </div>
 
-                            <div className="mt-2 text-xs text-gray-500 flex items-center">
-                              <CalendarDaysIcon className="w-3 h-3 mr-1" />
-                              {transaction.date}
+                            {/* Date Row */}
+                            <div className="flex items-center text-xs text-gray-500">
+                              <CalendarDaysIcon className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                              <span className="truncate">
+                                {transaction.date}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -656,28 +673,28 @@ const TransactionsList = ({ recentTransactions }) => {
                   );
                 })
               ) : (
-                // Table View
-                <div className="p-6">
+                // Enhanced Table View with Mobile Responsiveness
+                <div className="p-3 sm:p-6">
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full min-w-full">
                       <thead>
                         <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">
                             Transaksi
                           </th>
-                          <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm hidden sm:table-cell">
                             Target
                           </th>
-                          <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                          <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm hidden md:table-cell">
                             Tanggal
                           </th>
-                          <th className="text-right py-3 px-4 font-semibold text-gray-700">
+                          <th className="text-right py-2 sm:py-3 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">
                             Jumlah
                           </th>
-                          <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm">
                             Status
                           </th>
-                          <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                          <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-semibold text-gray-700 text-xs sm:text-sm hidden sm:table-cell">
                             Aksi
                           </th>
                         </tr>
@@ -690,34 +707,44 @@ const TransactionsList = ({ recentTransactions }) => {
                               key={index}
                               className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                             >
-                              <td className="py-4 px-4">
-                                <div className="flex items-center space-x-3">
+                              <td className="py-3 sm:py-4 px-2 sm:px-4">
+                                <div className="flex items-center space-x-2 sm:space-x-3">
                                   <div
-                                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${getStatusIconBg(
+                                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${getStatusIconBg(
                                       transaction.status
                                     )}`}
                                   >
-                                    <StatusIcon className="w-5 h-5 text-white" />
+                                    <StatusIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                                   </div>
-                                  <div>
-                                    <div className="font-semibold text-gray-900">
+                                  <div className="min-w-0">
+                                    <div className="font-semibold text-gray-900 text-xs sm:text-sm truncate">
                                       {transaction.type}
                                     </div>
-                                    <div className="text-xs text-gray-500 font-mono">
+                                    <div className="text-xs text-gray-500 font-mono truncate">
                                       {transaction.id}
+                                    </div>
+                                    {/* Show target on mobile */}
+                                    <div className="text-xs text-gray-600 truncate sm:hidden mt-0.5">
+                                      {transaction.target}
+                                    </div>
+                                    {/* Show date on mobile */}
+                                    <div className="text-xs text-gray-500 truncate md:hidden mt-0.5">
+                                      {transaction.date}
                                     </div>
                                   </div>
                                 </div>
                               </td>
-                              <td className="py-4 px-4 text-gray-600">
-                                {transaction.target}
+                              <td className="py-3 sm:py-4 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm hidden sm:table-cell">
+                                <div className="truncate max-w-32">
+                                  {transaction.target}
+                                </div>
                               </td>
-                              <td className="py-4 px-4 text-gray-600 text-sm">
+                              <td className="py-3 sm:py-4 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm hidden md:table-cell">
                                 {transaction.date}
                               </td>
-                              <td className="py-4 px-4 text-right">
+                              <td className="py-3 sm:py-4 px-2 sm:px-4 text-right">
                                 <span
-                                  className={`font-bold ${
+                                  className={`font-bold text-xs sm:text-sm ${
                                     transaction.amount > 0
                                       ? "text-emerald-600"
                                       : "text-gray-900"
@@ -729,22 +756,29 @@ const TransactionsList = ({ recentTransactions }) => {
                                   ).toLocaleString()}
                                 </span>
                               </td>
-                              <td className="py-4 px-4 text-center">
+                              <td className="py-3 sm:py-4 px-2 sm:px-4 text-center">
                                 <div
-                                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                                  className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium border ${getStatusColor(
                                     transaction.status
                                   )}`}
                                 >
                                   {transaction.status === "success"
-                                    ? "✓ Berhasil"
+                                    ? "✓"
                                     : transaction.status === "pending"
-                                    ? "⏳ Pending"
-                                    : "✗ Gagal"}
+                                    ? "⏳"
+                                    : "✗"}
+                                  <span className="ml-1 hidden sm:inline">
+                                    {transaction.status === "success"
+                                      ? "Berhasil"
+                                      : transaction.status === "pending"
+                                      ? "Pending"
+                                      : "Gagal"}
+                                  </span>
                                 </div>
                               </td>
-                              <td className="py-4 px-4 text-center">
-                                <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
-                                  <EyeIcon className="w-4 h-4" />
+                              <td className="py-3 sm:py-4 px-2 sm:px-4 text-center hidden sm:table-cell">
+                                <button className="p-1.5 sm:p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                                  <EyeIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 </button>
                               </td>
                             </tr>
@@ -759,11 +793,11 @@ const TransactionsList = ({ recentTransactions }) => {
           )}
         </div>
 
-        {/* Footer with pagination info */}
+        {/* Enhanced Footer with pagination info */}
         {filteredTransactions.length > 0 && (
-          <div className="p-6 bg-gray-50/50 border-t border-gray-200/50 rounded-b-3xl">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">
+          <div className="p-4 sm:p-6 bg-gray-50/50 border-t border-gray-200/50 rounded-b-3xl">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="text-xs sm:text-sm text-gray-600">
                 Menampilkan{" "}
                 <span className="font-semibold">
                   {filteredTransactions.length}
@@ -771,11 +805,11 @@ const TransactionsList = ({ recentTransactions }) => {
                 transaksi
                 {searchTerm && <span> untuk "{searchTerm}"</span>}
               </div>
-              <div className="flex items-center space-x-2">
-                <button className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <div className="flex items-center justify-center sm:justify-end space-x-2">
+                <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   Sebelumnya
                 </button>
-                <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
                   Selanjutnya
                 </button>
               </div>
@@ -784,27 +818,27 @@ const TransactionsList = ({ recentTransactions }) => {
         )}
       </div>
 
-      {/* Enhanced Load More Section */}
+      {/* Enhanced Load More Section - Mobile Optimized */}
       {filteredTransactions.length > 10 && (
-        <div className="text-center">
-          <div className="inline-flex flex-col items-center space-y-4 bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-lg border border-gray-200/50">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
-              <ChartBarSquareIcon className="w-8 h-8 text-white" />
+        <div className="text-center px-4">
+          <div className="inline-flex flex-col items-center space-y-3 sm:space-y-4 bg-white/80 backdrop-blur-xl p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-lg border border-gray-200/50 max-w-md mx-auto">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
+              <ChartBarSquareIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
             <div className="text-center">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2">
                 Ada Lebih Banyak Transaksi
               </h3>
-              <p className="text-gray-600 text-sm mb-6 max-w-md">
+              <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-6 max-w-xs sm:max-w-md px-2">
                 Muat lebih banyak transaksi untuk melihat riwayat lengkap
                 aktivitas akun Anda
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl">
+            <div className="flex flex-col w-full sm:flex-row gap-2 sm:gap-3">
+              <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg sm:rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl text-sm sm:text-base">
                 Muat Lebih Banyak
               </button>
-              <button className="px-8 py-4 bg-white text-gray-700 font-bold rounded-xl border border-gray-200 hover:bg-gray-50 transition-all duration-300 shadow-sm hover:shadow-md">
+              <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-gray-700 font-bold rounded-lg sm:rounded-xl border border-gray-200 hover:bg-gray-50 transition-all duration-300 shadow-sm hover:shadow-md text-sm sm:text-base">
                 Export Semua
               </button>
             </div>
