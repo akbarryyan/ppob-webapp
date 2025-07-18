@@ -50,7 +50,7 @@ const DashboardSidebar = ({
         }}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100 flex-shrink-0">
+        <div className="flex items-center justify-between lg:justify-center h-16 px-6 border-b border-gray-100 flex-shrink-0">
           <Link to="/" className="flex items-center space-x-3 group">
             <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
               <CreditCardIcon className="w-5 h-5 text-white" />
