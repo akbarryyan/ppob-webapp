@@ -15,6 +15,7 @@ import {
   WelcomeCard,
   QuickActions,
   StatsSection,
+  LeaderboardSection,
   RecentTransactions,
   TransactionsList,
   ProfileSection,
@@ -77,7 +78,7 @@ const Dashboard = () => {
   const menuItems = [
     { icon: HomeIcon, label: "Overview", key: "overview" },
     { icon: CreditCardIcon, label: "Transaksi", key: "transactions" },
-    { icon: ChartBarIcon, label: "Statistik", key: "statistics" },
+    { icon: ChartBarIcon, label: "Leaderboard", key: "leaderboard" },
     { icon: BellIcon, label: "Notifikasi", key: "notifications" },
     { icon: CurrencyDollarIcon, label: "Daftar Harga", key: "prices" },
     { icon: GiftIcon, label: "Reward", key: "rewards" },
@@ -129,6 +130,8 @@ const Dashboard = () => {
             <TransactionsList recentTransactions={recentTransactions} />
           )}
 
+          {activeTab === "leaderboard" && <LeaderboardSection />}
+
           {activeTab === "notifications" && <Notifications />}
 
           {activeTab === "prices" && <PriceList />}
@@ -138,6 +141,7 @@ const Dashboard = () => {
           {/* Placeholder for other tabs */}
           {activeTab !== "overview" &&
             activeTab !== "transactions" &&
+            activeTab !== "leaderboard" &&
             activeTab !== "notifications" &&
             activeTab !== "prices" &&
             activeTab !== "profile" && (

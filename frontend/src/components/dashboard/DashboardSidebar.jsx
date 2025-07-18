@@ -21,7 +21,7 @@ const DashboardSidebar = ({
   const menuItems = [
     { icon: HomeIcon, label: "Overview", key: "overview" },
     { icon: CreditCardIcon, label: "Transaksi", key: "transactions" },
-    { icon: ChartBarIcon, label: "Statistik", key: "statistics" },
+    { icon: ChartBarIcon, label: "Leaderboard", key: "leaderboard" },
     { icon: BellIcon, label: "Notifikasi", key: "notifications" },
     { icon: CurrencyDollarIcon, label: "Daftar Harga", key: "prices" },
     { icon: GiftIcon, label: "Reward", key: "rewards" },

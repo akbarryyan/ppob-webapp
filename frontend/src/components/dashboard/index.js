@@ -3,6 +3,7 @@ export { default as DashboardHeader } from "./DashboardHeader";
 export { default as WelcomeCard } from "./WelcomeCard";
 export { default as QuickActions } from "./QuickActions";
 export { default as StatsSection } from "./StatsSection";
+export { default as LeaderboardSection } from "./LeaderboardSection";
 export { default as RecentTransactions } from "./RecentTransactions";
 export { default as TransactionsList } from "./TransactionsList";
 export { default as ProfileSection } from "./ProfileSection";
