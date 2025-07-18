@@ -446,53 +446,150 @@ const TopUpSection = ({ userBalance }) => {
           <div className="space-y-6">
             {/* Transaction Summary */}
             <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-gray-200/50 overflow-hidden">
-              <div className="p-6 border-b border-gray-200/50">
+              <div className="p-6 border-b border-gray-200/50 bg-gradient-to-r from-purple-50 to-pink-50">
                 <h3 className="text-xl font-bold text-gray-900 flex items-center">
                   <SparklesIcon className="w-6 h-6 mr-3 text-purple-600" />
-                  Ringkasan
+                  Ringkasan Transaksi
                 </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Periksa detail transaksi sebelum melanjutkan
+                </p>
               </div>
 
-              <div className="p-6 space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Nominal Top Up</span>
-                    <span className="font-semibold text-gray-900">
-                      {getSelectedAmountValue()
-                        ? formatCurrency(getSelectedAmountValue())
-                        : "-"}
-                    </span>
+              <div className="p-6">
+                {/* Amount Display */}
+                {getSelectedAmountValue() ? (
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 mb-6 border border-green-200/50">
+                    <div className="text-center">
+                      <div className="text-sm text-green-700 font-medium mb-1">
+                        Nominal yang dipilih
+                      </div>
+                      <div className="text-3xl font-bold text-green-600">
+                        {formatCurrency(getSelectedAmountValue())}
+                      </div>
+                      {customAmount && (
+                        <div className="text-xs text-green-600 mt-1 bg-green-100 px-2 py-1 rounded-full inline-block">
+                          Nominal Custom
+                        </div>
+                      )}
+                    </div>
                   </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-200/50">
+                    <div className="text-center text-gray-500">
+                      <BanknotesIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p className="font-medium">Pilih nominal top up</p>
+                      <p className="text-sm">Minimal Rp 10.000</p>
+                    </div>
+                  </div>
+                )}
 
-                  {selectedMethod && (
-                    <>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Biaya Admin</span>
-                        <span className="font-semibold text-gray-900">
-                          {paymentMethods.find((m) => m.id === selectedMethod)
-                            ?.fee === 0
-                            ? "Gratis"
-                            : formatCurrency(
-                                paymentMethods.find(
-                                  (m) => m.id === selectedMethod
-                                )?.fee || 0
-                              )}
-                        </span>
+                {/* Payment Method Display */}
+                {selectedMethod ? (
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-4 mb-6 border border-blue-200/50">
+                    <div className="flex items-center space-x-3">
+                      {(() => {
+                        const method = paymentMethods.find(
+                          (m) => m.id === selectedMethod
+                        );
+                        return (
+                          <>
+                            <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                              <method.icon className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-blue-900">
+                                {method.name}
+                              </h4>
+                              <p className="text-sm text-blue-700">
+                                {method.description}
+                              </p>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                                  {method.time}
+                                </span>
+                                {method.popular && (
+                                  <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">
+                                    Populer
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-200/50">
+                    <div className="text-center text-gray-500">
+                      <CreditCardIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p className="font-medium">Pilih metode pembayaran</p>
+                      <p className="text-sm">Tersedia berbagai pilihan</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Cost Breakdown */}
+                {getSelectedAmountValue() && selectedMethod && (
+                  <div className="space-y-4 mb-6">
+                    <div className="bg-white rounded-2xl p-4 border border-gray-200/50 shadow-sm">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                        <SparklesIcon className="w-4 h-4 mr-2 text-purple-500" />
+                        Rincian Biaya
+                      </h4>
+
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 flex items-center">
+                            <BanknotesIcon className="w-4 h-4 mr-2 text-green-500" />
+                            Nominal Top Up
+                          </span>
+                          <span className="font-semibold text-gray-900">
+                            {formatCurrency(getSelectedAmountValue())}
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 flex items-center">
+                            <CreditCardIcon className="w-4 h-4 mr-2 text-blue-500" />
+                            Biaya Admin
+                          </span>
+                          <span
+                            className={`font-semibold ${
+                              paymentMethods.find(
+                                (m) => m.id === selectedMethod
+                              )?.fee === 0
+                                ? "text-green-600"
+                                : "text-gray-900"
+                            }`}
+                          >
+                            {paymentMethods.find((m) => m.id === selectedMethod)
+                              ?.fee === 0
+                              ? "GRATIS"
+                              : formatCurrency(
+                                  paymentMethods.find(
+                                    (m) => m.id === selectedMethod
+                                  )?.fee || 0
+                                )}
+                          </span>
+                        </div>
+
+                        <hr className="border-gray-200" />
+
+                        <div className="flex justify-between items-center bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-xl">
+                          <span className="text-lg font-bold text-green-900 flex items-center">
+                            <CheckIcon className="w-5 h-5 mr-2 text-green-600" />
+                            Total Pembayaran
+                          </span>
+                          <span className="text-xl font-bold text-green-600">
+                            {formatCurrency(getTotalAmount())}
+                          </span>
+                        </div>
                       </div>
-                      <hr className="border-gray-200" />
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg font-semibold text-gray-900">
-                          Total Bayar
-                        </span>
-                        <span className="text-xl font-bold text-green-600">
-                          {getSelectedAmountValue()
-                            ? formatCurrency(getTotalAmount())
-                            : "-"}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Action Button */}
                 <button
@@ -504,23 +601,51 @@ const TopUpSection = ({ userBalance }) => {
                     !getSelectedAmountValue() || !selectedMethod
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                       : isProcessing
-                      ? "bg-orange-500 text-white"
-                      : "bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 hover:scale-[1.02] shadow-lg"
+                      ? "bg-orange-500 text-white shadow-lg"
+                      : "bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600 hover:scale-[1.02] shadow-lg hover:shadow-xl"
                   }`}
                 >
                   {isProcessing ? (
                     <>
                       <ClockIcon className="w-5 h-5 animate-spin" />
-                      <span>Memproses...</span>
+                      <span>Memproses Transaksi...</span>
+                    </>
+                  ) : !getSelectedAmountValue() ? (
+                    <>
+                      <ExclamationTriangleIcon className="w-5 h-5" />
+                      <span>Pilih Nominal</span>
+                    </>
+                  ) : !selectedMethod ? (
+                    <>
+                      <ExclamationTriangleIcon className="w-5 h-5" />
+                      <span>Pilih Metode Pembayaran</span>
                     </>
                   ) : (
                     <>
                       <PlusIcon className="w-5 h-5" />
-                      <span>Top Up Sekarang</span>
+                      <span>Lanjutkan Pembayaran</span>
                       <ArrowRightIcon className="w-5 h-5" />
                     </>
                   )}
                 </button>
+
+                {/* Additional Info */}
+                {getSelectedAmountValue() && selectedMethod && (
+                  <div className="mt-4 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200/50">
+                    <div className="flex items-start space-x-2">
+                      <ShieldCheckIcon className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-xs text-indigo-700">
+                        <p className="font-medium">
+                          Saldo akan masuk dalam{" "}
+                          {paymentMethods
+                            .find((m) => m.id === selectedMethod)
+                            ?.time.toLowerCase()}
+                        </p>
+                        <p>Transaksi aman dan terlindungi SSL</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
