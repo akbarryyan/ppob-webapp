@@ -11,6 +11,8 @@ import { useState, useEffect, useRef } from "react";
 const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isNotificationClosing, setIsNotificationClosing] = useState(false);
+  const [isUserMenuClosing, setIsUserMenuClosing] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const notificationRef = useRef(null);
   const userMenuRef = useRef(null);
@@ -84,10 +86,10 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
         notificationRef.current &&
         !notificationRef.current.contains(event.target)
       ) {
-        setShowNotifications(false);
+        closeNotifications();
       }
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setShowUserMenu(false);
+        closeUserMenu();
       }
     };
 
@@ -96,6 +98,38 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const closeNotifications = () => {
+    setIsNotificationClosing(true);
+    setTimeout(() => {
+      setShowNotifications(false);
+      setIsNotificationClosing(false);
+    }, 200); // Match the animation duration
+  };
+
+  const closeUserMenu = () => {
+    setIsUserMenuClosing(true);
+    setTimeout(() => {
+      setShowUserMenu(false);
+      setIsUserMenuClosing(false);
+    }, 200); // Match the animation duration
+  };
+
+  const toggleNotifications = () => {
+    if (showNotifications) {
+      closeNotifications();
+    } else {
+      setShowNotifications(true);
+    }
+  };
+
+  const toggleUserMenu = () => {
+    if (showUserMenu) {
+      closeUserMenu();
+    } else {
+      setShowUserMenu(true);
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -138,13 +172,13 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
   const handleLogout = () => {
     // In real app, this would handle logout logic
     console.log("Logout clicked");
-    setShowUserMenu(false);
+    closeUserMenu();
   };
 
   const handleProfileClick = () => {
     // In real app, this would navigate to profile page
     console.log("Profile clicked");
-    setShowUserMenu(false);
+    closeUserMenu();
   };
 
   return (
@@ -195,7 +229,7 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
           {/* Notification Button */}
           <div className="relative" ref={notificationRef}>
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={toggleNotifications}
               className="relative p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:shadow-md group"
             >
               <BellIcon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -213,14 +247,20 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
 
             {/* Notifications Dropdown */}
             {showNotifications && (
-              <div className="fixed sm:absolute top-16 sm:top-auto right-4 sm:right-0 sm:mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200/50 backdrop-blur-xl z-50 max-h-96 overflow-hidden animate-dropdown-in">
+              <div
+                className={`fixed sm:absolute top-16 sm:top-auto right-4 sm:right-0 sm:mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200/50 backdrop-blur-xl z-50 max-h-96 overflow-hidden ${
+                  isNotificationClosing
+                    ? "animate-dropdown-out"
+                    : "animate-dropdown-in"
+                }`}
+              >
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-100">
                   <h3 className="text-lg font-semibold text-gray-900">
                     Notifikasi Transaksi
                   </h3>
                   <button
-                    onClick={() => setShowNotifications(false)}
+                    onClick={closeNotifications}
                     className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     <XMarkIcon className="w-5 h-5" />
@@ -243,16 +283,20 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
                       {notifications.map((notification, index) => (
                         <div
                           key={notification.id}
-                          className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer animate-slide-stagger opacity-0 ${
-                            index === 0
-                              ? ""
-                              : index === 1
-                              ? "animate-delay-75"
-                              : index === 2
-                              ? "animate-delay-150"
-                              : index === 3
-                              ? "animate-delay-225"
-                              : "animate-delay-300"
+                          className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
+                            isNotificationClosing
+                              ? "animate-slide-out-stagger opacity-100"
+                              : `animate-slide-stagger opacity-0 ${
+                                  index === 0
+                                    ? ""
+                                    : index === 1
+                                    ? "animate-delay-75"
+                                    : index === 2
+                                    ? "animate-delay-150"
+                                    : index === 3
+                                    ? "animate-delay-225"
+                                    : "animate-delay-300"
+                                }`
                           }`}
                           style={{ animationFillMode: "forwards" }}
                         >
@@ -298,7 +342,11 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
                 {/* Footer */}
                 {notifications.length > 0 && (
                   <div
-                    className="p-4 border-t border-gray-100 bg-gray-50 animate-slide-stagger opacity-0 animate-delay-300"
+                    className={`p-4 border-t border-gray-100 bg-gray-50 ${
+                      isNotificationClosing
+                        ? "animate-slide-out-stagger opacity-100"
+                        : "animate-slide-stagger opacity-0 animate-delay-300"
+                    }`}
                     style={{ animationFillMode: "forwards" }}
                   >
                     <button className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-all duration-200 hover:bg-blue-50 rounded-lg py-2">
@@ -319,7 +367,7 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
               </div>
               <div className="relative group">
                 <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  onClick={toggleUserMenu}
                   className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 hover:rotate-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <UserIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -330,7 +378,13 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
 
             {/* User Menu Dropdown */}
             {showUserMenu && (
-              <div className="fixed sm:absolute top-16 sm:top-auto right-4 sm:right-0 sm:mt-2 w-64 sm:w-72 bg-white rounded-2xl shadow-2xl border border-gray-200/50 backdrop-blur-xl z-50 overflow-hidden animate-dropdown-in">
+              <div
+                className={`fixed sm:absolute top-16 sm:top-auto right-4 sm:right-0 sm:mt-2 w-64 sm:w-72 bg-white rounded-2xl shadow-2xl border border-gray-200/50 backdrop-blur-xl z-50 overflow-hidden ${
+                  isUserMenuClosing
+                    ? "animate-dropdown-out"
+                    : "animate-dropdown-in"
+                }`}
+              >
                 {/* User Info Header */}
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-100">
                   <div className="flex items-center space-x-3">
@@ -373,7 +427,7 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
                   </button>
 
                   <button
-                    onClick={() => setShowUserMenu(false)}
+                    onClick={() => closeUserMenu()}
                     className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:text-gray-600 transition-all duration-200 group"
                   >
                     <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-gray-200 transition-colors">

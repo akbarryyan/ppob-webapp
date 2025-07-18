@@ -186,6 +186,17 @@ html {
   }
 }
 
+@keyframes dropdownOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+}
+
 @keyframes slideInStagger {
   0% {
     opacity: 0;
@@ -194,6 +205,17 @@ html {
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slideOutStagger {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
   }
 }
 
@@ -209,8 +231,16 @@ html {
   animation: dropdownIn 0.2s ease-out forwards;
 }
 
+.animate-dropdown-out {
+  animation: dropdownOut 0.2s ease-out forwards;
+}
+
 .animate-slide-stagger {
   animation: slideInStagger 0.3s ease-out forwards;
+}
+
+.animate-slide-out-stagger {
+  animation: slideOutStagger 0.2s ease-out forwards;
 }
 
 .animate-delay-75 {
