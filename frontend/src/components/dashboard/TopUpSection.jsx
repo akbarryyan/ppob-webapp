@@ -11,6 +11,8 @@ import {
   ArrowRightIcon,
   ShieldCheckIcon,
   SparklesIcon,
+  CalendarDaysIcon,
+  ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 import {
   CreditCardIcon as CreditCardIconSolid,
@@ -23,6 +25,106 @@ const TopUpSection = ({ userBalance }) => {
   const [customAmount, setCustomAmount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Sample transaction history data
+  const topUpHistory = [
+    {
+      id: 1,
+      amount: 500000,
+      method: "Transfer Bank",
+      methodIcon: BuildingLibraryIcon,
+      bank: "BCA",
+      fee: 0,
+      status: "completed",
+      date: "2025-01-18T10:30:00",
+      transactionId: "TU2501180001",
+    },
+    {
+      id: 2,
+      amount: 200000,
+      method: "E-Wallet",
+      methodIcon: DevicePhoneMobileIcon,
+      bank: "GoPay",
+      fee: 0,
+      status: "completed",
+      date: "2025-01-17T14:15:00",
+      transactionId: "TU2501170001",
+    },
+    {
+      id: 3,
+      amount: 100000,
+      method: "Virtual Account",
+      methodIcon: CreditCardIcon,
+      bank: "VA Mandiri",
+      fee: 4000,
+      status: "completed",
+      date: "2025-01-16T09:45:00",
+      transactionId: "TU2501160001",
+    },
+    {
+      id: 4,
+      amount: 300000,
+      method: "QRIS",
+      methodIcon: QrCodeIcon,
+      bank: "QRIS",
+      fee: 0,
+      status: "pending",
+      date: "2025-01-15T16:20:00",
+      transactionId: "TU2501150001",
+    },
+    {
+      id: 5,
+      amount: 1000000,
+      method: "Transfer Bank",
+      methodIcon: BuildingLibraryIcon,
+      bank: "BRI",
+      fee: 0,
+      status: "completed",
+      date: "2025-01-14T11:00:00",
+      transactionId: "TU2501140001",
+    },
+  ];
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      completed: {
+        bg: "bg-green-100",
+        text: "text-green-700",
+        label: "Berhasil",
+      },
+      pending: {
+        bg: "bg-yellow-100",
+        text: "text-yellow-700",
+        label: "Pending",
+      },
+      failed: {
+        bg: "bg-red-100",
+        text: "text-red-700",
+        label: "Gagal",
+      },
+    };
+
+    const config = statusConfig[status] || statusConfig.pending;
+
+    return (
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-semibold ${config.bg} ${config.text}`}
+      >
+        {config.label}
+      </span>
+    );
+  };
 
   const quickAmounts = [
     { value: 50000, label: "50K", popular: false },
@@ -418,6 +520,123 @@ const TopUpSection = ({ userBalance }) => {
                   <li>• Saldo masuk maksimal 5 menit</li>
                   <li>• Hubungi CS jika ada kendala</li>
                 </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Top Up History Section */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-gray-200/50 overflow-hidden">
+        <div className="p-6 border-b border-gray-200/50">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center">
+              <CalendarDaysIcon className="w-6 h-6 mr-3 text-indigo-600" />
+              Riwayat Top Up
+            </h3>
+            <button className="flex items-center space-x-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl transition-colors duration-200">
+              <ArrowDownTrayIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">Export</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="space-y-4">
+            {topUpHistory.map((transaction) => (
+              <div
+                key={transaction.id}
+                className="flex items-center justify-between p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors duration-200"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <transaction.methodIcon className="w-6 h-6 text-indigo-600" />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center space-x-3">
+                      <h4 className="font-semibold text-gray-900">
+                        {formatCurrency(transaction.amount)}
+                      </h4>
+                      {getStatusBadge(transaction.status)}
+                    </div>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <p className="text-sm text-gray-600">
+                        {transaction.method} - {transaction.bank}
+                      </p>
+                      {transaction.fee > 0 && (
+                        <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                          Biaya: {formatCurrency(transaction.fee)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      ID: {transaction.transactionId}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">
+                    {formatDate(transaction.date)}
+                  </p>
+                  <button className="text-xs text-indigo-600 hover:text-indigo-700 mt-1">
+                    Detail
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Show More Button */}
+          <div className="mt-6 text-center">
+            <button className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl font-medium hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 hover:scale-105 shadow-lg">
+              Lihat Semua Riwayat
+            </button>
+          </div>
+
+          {/* Summary Stats */}
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200/50">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {topUpHistory.filter((t) => t.status === "completed").length}
+                </div>
+                <div className="text-sm text-green-700 font-medium">
+                  Transaksi Berhasil
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-4 border border-blue-200/50">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {formatCurrency(
+                    topUpHistory
+                      .filter((t) => t.status === "completed")
+                      .reduce((sum, t) => sum + t.amount, 0)
+                  )}
+                </div>
+                <div className="text-sm text-blue-700 font-medium">
+                  Total Top Up
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 border border-purple-200/50">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {Math.round(
+                    topUpHistory
+                      .filter((t) => t.status === "completed")
+                      .reduce((sum, t) => sum + t.amount, 0) /
+                      topUpHistory.filter((t) => t.status === "completed")
+                        .length || 1
+                  )}
+                </div>
+                <div className="text-sm text-purple-700 font-medium">
+                  Rata-rata
+                </div>
               </div>
             </div>
           </div>
