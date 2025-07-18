@@ -1,5 +1,8 @@
 export { default as AdminSidebar } from "./AdminSidebar";
 export { default as AdminHeader } from "./AdminHeader";
+export { default as AdminLogin } from "./AdminLogin";
+export { default as AdminForgotPassword } from "./AdminForgotPassword";
+export { default as AdminAuthGuard } from "./AdminAuthGuard";
 export { default as AdminOverview } from "./AdminOverview";
 export { default as AdminUsers } from "./AdminUsers";
 export { default as AdminTransactions } from "./AdminTransactions";

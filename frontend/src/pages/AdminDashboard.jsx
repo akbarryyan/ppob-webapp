@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   AdminSidebar,
   AdminHeader,
+  AdminAuthGuard,
   AdminOverview,
   AdminUsers,
   AdminTransactions,
@@ -54,11 +55,13 @@ const AdminDashboard = () => {
 
   const confirmLogout = () => {
     // Clear auth data (localStorage, sessionStorage, etc.)
-    localStorage.removeItem("authToken");
+    localStorage.removeItem("adminAuthToken");
+    localStorage.removeItem("adminEmail");
+    localStorage.removeItem("adminUser");
     sessionStorage.clear();
 
     // Redirect to login
-    navigate("/login");
+    navigate("/admin/login");
     setShowLogoutModal(false);
   };
 
@@ -84,40 +87,42 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
-      {/* Sidebar */}
-      <AdminSidebar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        menuItems={menuItems}
-        onLogout={handleLogout}
-      />
-
-      {/* Main Content */}
-      <div className="lg:pl-64">
-        {/* Header */}
-        <AdminHeader
+    <AdminAuthGuard>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+        {/* Sidebar */}
+        <AdminSidebar
           activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           menuItems={menuItems}
           onLogout={handleLogout}
         />
 
-        {/* Page Content */}
-        <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          {renderContent()}
-        </main>
-      </div>
+        {/* Main Content */}
+        <div className="lg:pl-64">
+          {/* Header */}
+          <AdminHeader
+            activeTab={activeTab}
+            setSidebarOpen={setSidebarOpen}
+            menuItems={menuItems}
+            onLogout={handleLogout}
+          />
 
-      {/* Logout Modal */}
-      <LogoutModal
-        isOpen={showLogoutModal}
-        onClose={() => setShowLogoutModal(false)}
-        onConfirm={confirmLogout}
-      />
-    </div>
+          {/* Page Content */}
+          <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+            {renderContent()}
+          </main>
+        </div>
+
+        {/* Logout Modal */}
+        <LogoutModal
+          isOpen={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onConfirm={confirmLogout}
+        />
+      </div>
+    </AdminAuthGuard>
   );
 };
 

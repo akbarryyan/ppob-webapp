@@ -4,6 +4,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import LoginAdmin from "./pages/LoginAdmin";
+import ForgotPasswordAdmin from "./pages/ForgotPasswordAdmin";
 import NewTransaction from "./pages/NewTransaction";
 
 const router = createBrowserRouter([
@@ -26,6 +28,14 @@ const router = createBrowserRouter([
   {
     path: "/dashboard/:section",
     element: <Dashboard />,
+  },
+  {
+    path: "/admin/login",
+    element: <LoginAdmin />,
+  },
+  {
+    path: "/admin/forgot-password",
+    element: <ForgotPasswordAdmin />,
   },
   {
     path: "/admin",
