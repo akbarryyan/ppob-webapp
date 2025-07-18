@@ -16,7 +16,7 @@ const LeaderboardSection = () => {
       id: 1,
       name: "Ahmad Rizki",
       transactions: 847,
-      points: 12450,
+      totalAmount: 125000000, // 125 juta
       badge: "Diamond",
       avatar: "AR",
       rank: 1,
@@ -27,7 +27,7 @@ const LeaderboardSection = () => {
       id: 2,
       name: "Siti Nurhaliza",
       transactions: 756,
-      points: 11280,
+      totalAmount: 98500000, // 98.5 juta
       badge: "Platinum",
       avatar: "SN",
       rank: 2,
@@ -38,7 +38,7 @@ const LeaderboardSection = () => {
       id: 3,
       name: "Budi Santoso",
       transactions: 692,
-      points: 10150,
+      totalAmount: 87200000, // 87.2 juta
       badge: "Gold",
       avatar: "BS",
       rank: 3,
@@ -52,7 +52,7 @@ const LeaderboardSection = () => {
       id: 4,
       name: "Maya Puspita",
       transactions: 543,
-      points: 8420,
+      totalAmount: 65800000, // 65.8 juta
       badge: "Silver",
       avatar: "MP",
       rank: 4,
@@ -62,7 +62,7 @@ const LeaderboardSection = () => {
       id: 5,
       name: "Andi Wijaya",
       transactions: 487,
-      points: 7650,
+      totalAmount: 58900000, // 58.9 juta
       badge: "Silver",
       avatar: "AW",
       rank: 5,
@@ -72,7 +72,7 @@ const LeaderboardSection = () => {
       id: 6,
       name: "Lina Marlina",
       transactions: 421,
-      points: 6890,
+      totalAmount: 47300000, // 47.3 juta
       badge: "Bronze",
       avatar: "LM",
       rank: 6,
@@ -82,7 +82,7 @@ const LeaderboardSection = () => {
       id: 7,
       name: "Deni Kurniawan",
       transactions: 398,
-      points: 6234,
+      totalAmount: 42100000, // 42.1 juta
       badge: "Bronze",
       avatar: "DK",
       rank: 7,
@@ -92,7 +92,7 @@ const LeaderboardSection = () => {
       id: 8,
       name: "Rina Fatmawati",
       transactions: 356,
-      points: 5678,
+      totalAmount: 35600000, // 35.6 juta
       badge: "Bronze",
       avatar: "RF",
       rank: 8,
@@ -114,6 +114,18 @@ const LeaderboardSection = () => {
         return "from-orange-400 to-orange-600";
       default:
         return "from-gray-100 to-gray-300";
+    }
+  };
+
+  const formatCurrency = (amount) => {
+    if (amount >= 1000000000) {
+      return `Rp ${(amount / 1000000000).toFixed(1)}M`;
+    } else if (amount >= 1000000) {
+      return `Rp ${(amount / 1000000).toFixed(1)}Jt`;
+    } else if (amount >= 1000) {
+      return `Rp ${(amount / 1000).toFixed(0)}K`;
+    } else {
+      return `Rp ${amount.toLocaleString()}`;
     }
   };
 
@@ -225,17 +237,16 @@ const LeaderboardSection = () => {
               {/* Stats */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-gray-50/80 rounded-xl">
-                  <span className="text-sm text-gray-600">Transaksi</span>
+                  <span className="text-sm text-gray-600">Jumlah</span>
                   <span className="font-bold text-gray-900">
-                    {user.transactions}
+                    {user.transactions}x
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl">
-                  <span className="text-sm text-gray-600">Poin</span>
+                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl">
+                  <span className="text-sm text-gray-600">Total Nilai</span>
                   <div className="flex items-center space-x-1">
-                    <StarIconSolid className="w-4 h-4 text-yellow-500" />
-                    <span className="font-bold text-gray-900">
-                      {user.points.toLocaleString()}
+                    <span className="font-bold text-green-600">
+                      {formatCurrency(user.totalAmount)}
                     </span>
                   </div>
                 </div>
@@ -291,10 +302,11 @@ const LeaderboardSection = () => {
                       {user.name}
                     </h4>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span>{user.transactions} transaksi</span>
-                      <span className="flex items-center space-x-1">
-                        <StarIconSolid className="w-3 h-3 text-yellow-500" />
-                        <span>{user.points.toLocaleString()}</span>
+                      <span>{user.transactions}x transaksi</span>
+                      <span className="flex items-center space-x-1 text-green-600">
+                        <span className="font-semibold">
+                          {formatCurrency(user.totalAmount)}
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -332,12 +344,14 @@ const LeaderboardSection = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="text-center sm:text-left">
-                <div className="text-2xl font-bold text-white">156</div>
+                <div className="text-2xl font-bold text-white">156x</div>
                 <div className="text-blue-100 text-sm">Transaksi</div>
               </div>
               <div className="text-center sm:text-left">
-                <div className="text-2xl font-bold text-emerald-300">4,250</div>
-                <div className="text-blue-100 text-sm">Poin Reward</div>
+                <div className="text-2xl font-bold text-emerald-300">
+                  Rp 28.5Jt
+                </div>
+                <div className="text-blue-100 text-sm">Total Nilai</div>
               </div>
               <div className="text-center sm:text-left">
                 <div className="text-2xl font-bold text-yellow-300">Bronze</div>
@@ -347,8 +361,8 @@ const LeaderboardSection = () => {
 
             <div className="mt-6 p-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
               <p className="text-white text-sm">
-                💡 <strong>Tips:</strong> Lakukan 44 transaksi lagi untuk naik
-                ke peringkat Silver dan dapatkan bonus poin 500!
+                💡 <strong>Tips:</strong> Lakukan transaksi senilai Rp 16.5Jt
+                lagi untuk naik ke peringkat Silver dan dapatkan cashback 2%!
               </p>
             </div>
           </div>
