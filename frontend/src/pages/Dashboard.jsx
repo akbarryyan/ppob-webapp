@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useAuth } from "../contexts/AuthContext";
 import {
   HomeIcon,
   CreditCardIcon,
@@ -35,6 +37,7 @@ import {
 const Dashboard = () => {
   const { section } = useParams();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState(section || "overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -63,11 +66,31 @@ const Dashboard = () => {
   };
 
   // Handle logout
-  const handleLogout = () => {
-    // In real app, this would handle logout logic
-    console.log("User logged out");
-    setShowLogoutModal(false);
-    // Add your logout logic here (e.g., clear tokens, redirect to login)
+  const handleLogout = async () => {
+    try {
+      await logout();
+
+      toast.success("Berhasil logout. Sampai jumpa!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+
+      setShowLogoutModal(false);
+
+      // Navigate to home page
+      setTimeout(() => {
+        navigate("/");
+      }, 500);
+    } catch (error) {
+      toast.error("Gagal logout. Silakan coba lagi.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
   };
 
   // Sample data

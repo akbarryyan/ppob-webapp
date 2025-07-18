@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   HomeIcon,
   CreditCardIcon,
@@ -21,6 +22,7 @@ const DashboardSidebar = ({
   setSidebarOpen,
   onLogout,
 }) => {
+  const { user } = useAuth();
   const menuItems = [
     { icon: HomeIcon, label: "Overview", key: "overview" },
     { icon: CreditCardIcon, label: "Transaksi", key: "transactions" },
@@ -112,10 +114,10 @@ const DashboardSidebar = ({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold text-gray-900 truncate">
-                  Admin User
+                  {user?.name || "User"}
                 </div>
                 <div className="text-xs text-gray-500 truncate">
-                  admin@bayaraja.com
+                  {user?.email || "user@example.com"}
                 </div>
               </div>
             </div>

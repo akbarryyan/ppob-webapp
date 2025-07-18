@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -17,10 +18,13 @@ import {
   BoltIcon,
   FireIcon,
 } from "@heroicons/react/24/outline";
+import { authService } from "../../services/authService";
 
 const RegisterForm = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -29,6 +33,7 @@ const RegisterForm = () => {
     confirmPassword: "",
     agreeToTerms: false,
     agreeToPromo: false,
+    referralCode: "",
   });
 
   const handleInputChange = (e) => {
@@ -39,10 +44,70 @@ const RegisterForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle registration logic here
-    console.log("Registration data:", formData);
+    setLoading(true);
+
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Konfirmasi password tidak cocok");
+      setLoading(false);
+      return;
+    }
+
+    // Validate terms agreement
+    if (!formData.agreeToTerms) {
+      toast.error("Harap setujui syarat dan ketentuan");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await authService.register({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        password_confirmation: formData.confirmPassword,
+        referral_code: formData.referralCode || undefined,
+      });
+
+      if (response.success) {
+        // Store auth data
+        authService.setToken(response.data.token, true);
+        authService.setUser(response.data.user, true);
+
+        // Show success toast
+        toast.success(
+          `Selamat datang, ${response.data.user.name}! Akun Anda berhasil dibuat.`,
+          {
+            position: "top-right",
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
+
+        // Navigate to dashboard with slight delay
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 500);
+      }
+    } catch (err) {
+      // Show error toast
+      toast.error(err.message || "Registrasi gagal. Silakan coba lagi.", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const benefits = [
