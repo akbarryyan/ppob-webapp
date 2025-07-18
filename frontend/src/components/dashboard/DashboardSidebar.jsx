@@ -8,6 +8,7 @@ import {
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   XMarkIcon,
+  BellIcon,
 } from "@heroicons/react/24/outline";
 
 const DashboardSidebar = ({
@@ -20,6 +21,7 @@ const DashboardSidebar = ({
     { icon: HomeIcon, label: "Overview", key: "overview" },
     { icon: CreditCardIcon, label: "Transaksi", key: "transactions" },
     { icon: ChartBarIcon, label: "Statistik", key: "statistics" },
+    { icon: BellIcon, label: "Notifikasi", key: "notifications" },
     { icon: GiftIcon, label: "Reward", key: "rewards" },
     { icon: UserIcon, label: "Profil", key: "profile" },
     { icon: Cog6ToothIcon, label: "Pengaturan", key: "settings" },
