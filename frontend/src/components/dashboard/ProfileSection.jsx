@@ -175,46 +175,98 @@ const ProfileSection = () => {
               Aktivitas Terbaru
             </h3>
 
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/50">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900 text-sm">
-                    Top Up Berhasil
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Rp 100.000 • 2 jam lalu
-                  </p>
+            <div className="max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
+              <div className="space-y-3 pr-2">
+                <div className="flex items-center space-x-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-100/80 transition-colors duration-200">
+                  <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm">
+                      Top Up Berhasil
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      Rp 100.000 • 2 jam lalu
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-100/80 transition-colors duration-200">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm">
+                      Pulsa Indosat
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      Rp 25.000 • 5 jam lalu
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-100/80 transition-colors duration-200">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm">
+                      Token PLN
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      Rp 50.000 • 1 hari lalu
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-100/80 transition-colors duration-200">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm">
+                      BPJS Kesehatan
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      Rp 42.000 • 1 hari lalu
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-100/80 transition-colors duration-200">
+                  <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm">
+                      Game Mobile Legends
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      Rp 85.000 • 2 hari lalu
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-100/80 transition-colors duration-200">
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm">
+                      Paket Data XL
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      Rp 55.000 • 3 hari lalu
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/50 hover:bg-gray-100/80 transition-colors duration-200">
+                  <div className="w-2 h-2 bg-teal-500 rounded-full flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm">
+                      Top Up Saldo
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      Rp 200.000 • 3 hari lalu
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/50">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900 text-sm">
-                    Pulsa Indosat
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Rp 25.000 • 5 jam lalu
-                  </p>
-                </div>
+              <div className="sticky bottom-0 pt-4 bg-gradient-to-t from-white/80 to-transparent">
+                <button className="w-full text-center text-blue-600 hover:text-blue-700 font-medium text-sm p-2 hover:bg-blue-50/50 rounded-lg transition-all duration-200 bg-white/60 backdrop-blur-sm border border-blue-200/50">
+                  Lihat Semua Aktivitas
+                </button>
               </div>
-
-              <div className="flex items-center space-x-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/50">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-900 text-sm">
-                    Token PLN
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Rp 50.000 • 1 hari lalu
-                  </p>
-                </div>
-              </div>
-
-              <button className="w-full text-center text-blue-600 hover:text-blue-700 font-medium text-sm mt-4 p-2 hover:bg-blue-50/50 rounded-lg transition-all duration-200">
-                Lihat Semua Aktivitas
-              </button>
             </div>
           </div>
 
