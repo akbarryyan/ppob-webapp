@@ -213,7 +213,7 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
 
             {/* Notifications Dropdown */}
             {showNotifications && (
-              <div className="fixed sm:absolute top-16 sm:top-auto right-4 sm:right-0 sm:mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200/50 backdrop-blur-xl z-50 max-h-96 overflow-hidden">
+              <div className="fixed sm:absolute top-16 sm:top-auto right-4 sm:right-0 sm:mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200/50 backdrop-blur-xl z-50 max-h-96 overflow-hidden animate-dropdown-in">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-gray-100">
                   <h3 className="text-lg font-semibold text-gray-900">
@@ -240,14 +240,25 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
                     </div>
                   ) : (
                     <div className="divide-y divide-gray-100">
-                      {notifications.map((notification) => (
+                      {notifications.map((notification, index) => (
                         <div
                           key={notification.id}
-                          className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                          className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer animate-slide-stagger opacity-0 ${
+                            index === 0
+                              ? ""
+                              : index === 1
+                              ? "animate-delay-75"
+                              : index === 2
+                              ? "animate-delay-150"
+                              : index === 3
+                              ? "animate-delay-225"
+                              : "animate-delay-300"
+                          }`}
+                          style={{ animationFillMode: "forwards" }}
                         >
                           <div className="flex items-start space-x-3">
                             {/* Transaction Icon */}
-                            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-lg">
+                            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-lg transform transition-transform duration-200 hover:scale-110">
                               {getTypeIcon(notification.type)}
                             </div>
 
@@ -286,8 +297,11 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
 
                 {/* Footer */}
                 {notifications.length > 0 && (
-                  <div className="p-4 border-t border-gray-100 bg-gray-50">
-                    <button className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                  <div
+                    className="p-4 border-t border-gray-100 bg-gray-50 animate-slide-stagger opacity-0 animate-delay-300"
+                    style={{ animationFillMode: "forwards" }}
+                  >
+                    <button className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-all duration-200 hover:bg-blue-50 rounded-lg py-2">
                       Lihat Semua Notifikasi
                     </button>
                   </div>
