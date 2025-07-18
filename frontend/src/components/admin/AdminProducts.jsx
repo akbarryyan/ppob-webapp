@@ -98,10 +98,20 @@ const AdminProducts = () => {
   };
 
   const formatCurrency = (amount) => {
+    // For mobile, show shorter format
+    if (window.innerWidth < 640) {
+      if (amount >= 1000000) {
+        return `Rp ${(amount / 1000000).toFixed(1)}M`;
+      } else if (amount >= 1000) {
+        return `Rp ${(amount / 1000).toFixed(0)}K`;
+      }
+    }
+
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -256,93 +266,93 @@ const AdminProducts = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-4 sm:p-5 lg:p-6">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1 truncate">
                 Total Products
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {products.length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-              <Square3Stack3DIcon className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Square3Stack3DIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-4 sm:p-5 lg:p-6">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1 truncate">
                 Active Products
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {products.filter((p) => p.status === "active").length}
               </p>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-tr from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-              <ShoppingBagIcon className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
+              <ShoppingBagIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-4 sm:p-5 lg:p-6">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1 truncate">
                 Total Sales
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {products.reduce((sum, p) => sum + p.sold, 0)}
               </p>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
-              <TagIcon className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center flex-shrink-0">
+              <TagIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-4 sm:p-5 lg:p-6">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1 truncate">
                 Total Revenue
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
                 {formatCurrency(
                   products.reduce((sum, p) => sum + p.sold * p.price, 0)
                 )}
               </p>
             </div>
-            <div className="w-12 h-12 bg-gradient-to-tr from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
-              <CurrencyDollarIcon className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+              <CurrencyDollarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6">
-        <div className="flex flex-col lg:flex-row gap-4">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-4 sm:p-5 lg:p-6">
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
           <div className="flex-1 relative">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search products by name or provider..."
+              placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm"
             />
           </div>
 
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="px-3 sm:px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm min-w-0 sm:min-w-[160px]"
             >
               <option value="all">All Categories</option>
               <option value="Game Top Up">Game Top Up</option>
@@ -352,7 +362,7 @@ const AdminProducts = () => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="px-3 sm:px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm min-w-0 sm:min-w-[140px]"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -364,29 +374,118 @@ const AdminProducts = () => {
 
       {/* Products Table */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile Card View */}
+        <div className="block lg:hidden">
+          <div className="p-4 space-y-4">
+            {filteredProducts.map((product) => (
+              <div
+                key={product.id}
+                className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200"
+              >
+                {/* Product Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="w-12 h-12 bg-gradient-to-tr from-purple-500 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Square3Stack3DIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">
+                        {product.name}
+                      </p>
+                      <p className="text-sm text-gray-600 truncate">
+                        {product.provider}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-2 py-1 rounded-lg text-xs font-semibold border ${
+                      statusColors[product.status]
+                    } flex-shrink-0`}
+                  >
+                    {product.status.charAt(0).toUpperCase() +
+                      product.status.slice(1)}
+                  </span>
+                </div>
+
+                {/* Product Details Grid */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-gray-500 text-xs">Category</p>
+                    <span className="inline-block px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 mt-1">
+                      {product.category}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Price</p>
+                    <p className="font-semibold text-gray-900">
+                      {formatCurrency(product.price)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Stock</p>
+                    <p
+                      className={`font-semibold ${
+                        product.stock > 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {product.stock}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Sold</p>
+                    <p className="font-semibold text-gray-900">
+                      {product.sold}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setShowProductModal(true);
+                    }}
+                    className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                  >
+                    <EyeIcon className="w-4 h-4" />
+                  </button>
+                  <button className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                    <PencilIcon className="w-4 h-4" />
+                  </button>
+                  <button className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <TrashIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
                   Product
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
                   Category
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
                   Price
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
                   Stock
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
                   Sold
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
                   Status
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900">
                   Actions
                 </th>
               </tr>
@@ -397,48 +496,48 @@ const AdminProducts = () => {
                   key={product.id}
                   className="hover:bg-gray-50 transition-colors"
                 >
-                  <td className="px-6 py-4">
+                  <td className="px-4 xl:px-6 py-4">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-tr from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                        <Square3Stack3DIcon className="w-5 h-5 text-white" />
+                      <div className="w-8 h-8 xl:w-10 xl:h-10 bg-gradient-to-tr from-purple-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Square3Stack3DIcon className="w-4 h-4 xl:w-5 xl:h-5 text-white" />
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
                           {product.name}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs text-gray-600 truncate">
                           {product.provider}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-blue-100 text-blue-800 border-blue-200">
+                  <td className="px-4 xl:px-6 py-4">
+                    <span className="px-2 xl:px-3 py-1 rounded-full text-xs font-semibold border bg-blue-100 text-blue-800 border-blue-200">
                       {product.category}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-gray-900">
+                  <td className="px-4 xl:px-6 py-4">
+                    <span className="text-xs xl:text-sm font-semibold text-gray-900">
                       {formatCurrency(product.price)}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 xl:px-6 py-4">
                     <span
-                      className={`text-sm font-semibold ${
+                      className={`text-xs xl:text-sm font-semibold ${
                         product.stock > 0 ? "text-green-600" : "text-red-600"
                       }`}
                     >
                       {product.stock}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-gray-900">
+                  <td className="px-4 xl:px-6 py-4">
+                    <span className="text-xs xl:text-sm font-semibold text-gray-900">
                       {product.sold}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 xl:px-6 py-4">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                      className={`px-2 xl:px-3 py-1 rounded-full text-xs font-semibold border ${
                         statusColors[product.status]
                       }`}
                     >
@@ -446,22 +545,22 @@ const AdminProducts = () => {
                         product.status.slice(1)}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
+                  <td className="px-4 xl:px-6 py-4">
+                    <div className="flex items-center space-x-1 xl:space-x-2">
                       <button
                         onClick={() => {
                           setSelectedProduct(product);
                           setShowProductModal(true);
                         }}
-                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                       >
-                        <EyeIcon className="w-4 h-4" />
+                        <EyeIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                       </button>
-                      <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                        <PencilIcon className="w-4 h-4" />
+                      <button className="p-1.5 xl:p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                        <PencilIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                       </button>
-                      <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                        <TrashIcon className="w-4 h-4" />
+                      <button className="p-1.5 xl:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <TrashIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                       </button>
                     </div>
                   </td>
