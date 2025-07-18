@@ -10,6 +10,7 @@ import {
   BellIcon,
   CurrencyDollarIcon,
   BanknotesIcon,
+  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import {
   DashboardSidebar,
@@ -27,6 +28,7 @@ import {
   PlaceholderTab,
   Notifications,
   PriceList,
+  APIDocs,
 } from "../components/dashboard";
 
 const Dashboard = () => {
@@ -184,6 +186,7 @@ const Dashboard = () => {
     { icon: ChartBarIcon, label: "Leaderboard", key: "leaderboard" },
     { icon: BellIcon, label: "Notifikasi", key: "notifications" },
     { icon: CurrencyDollarIcon, label: "Daftar Harga", key: "prices" },
+    { icon: DocumentTextIcon, label: "API Docs", key: "api-docs" },
     { icon: PhoneIcon, label: "Contact", key: "contact" },
     { icon: UserIcon, label: "Profil", key: "profile" },
     { icon: Cog6ToothIcon, label: "Pengaturan", key: "settings" },
@@ -244,6 +247,8 @@ const Dashboard = () => {
 
           {activeTab === "prices" && <PriceList />}
 
+          {activeTab === "api-docs" && <APIDocs />}
+
           {activeTab === "contact" && <ContactSection />}
 
           {activeTab === "profile" && <ProfileSection />}
@@ -257,6 +262,7 @@ const Dashboard = () => {
             activeTab !== "leaderboard" &&
             activeTab !== "notifications" &&
             activeTab !== "prices" &&
+            activeTab !== "api-docs" &&
             activeTab !== "contact" &&
             activeTab !== "profile" &&
             activeTab !== "settings" && (
