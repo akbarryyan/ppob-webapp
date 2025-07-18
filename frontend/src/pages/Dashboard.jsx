@@ -16,6 +16,7 @@ import {
   QuickActions,
   StatsSection,
   LeaderboardSection,
+  SettingsSection,
   RecentTransactions,
   TransactionsList,
   ProfileSection,
@@ -138,13 +139,16 @@ const Dashboard = () => {
 
           {activeTab === "profile" && <ProfileSection />}
 
+          {activeTab === "settings" && <SettingsSection />}
+
           {/* Placeholder for other tabs */}
           {activeTab !== "overview" &&
             activeTab !== "transactions" &&
             activeTab !== "leaderboard" &&
             activeTab !== "notifications" &&
             activeTab !== "prices" &&
-            activeTab !== "profile" && (
+            activeTab !== "profile" &&
+            activeTab !== "settings" && (
               <PlaceholderTab activeTab={activeTab} menuItems={menuItems} />
             )}
         </main>
