@@ -208,19 +208,67 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
 
           {/* Page Title & Description */}
           <div className="flex flex-col">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
-                {menuItems.find((item) => item.key === activeTab)?.label ||
-                  "Dashboard"}
-              </h1>
-              <div className="hidden sm:flex items-center space-x-2 text-xs text-gray-500">
-                <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                <span>{currentTime}</span>
+            <div className="flex items-center space-x-4">
+              {/* Clean icon accent */}
+              <div className="hidden sm:flex w-10 h-10 bg-blue-500 rounded-xl items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200">
+                <div className="w-5 h-5 bg-white rounded-md opacity-90"></div>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent relative group cursor-pointer hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transition-all duration-300">
+                  {menuItems.find((item) => item.key === activeTab)?.label ||
+                    "Dashboard"}
+                  {/* Subtle underline */}
+                  <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 rounded-full group-hover:w-full transition-all duration-300"></div>
+                </h1>
+
+                {/* Clean time display */}
+                <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-700">
+                    {currentTime}
+                  </span>
+                </div>
               </div>
             </div>
-            <p className="text-gray-600 text-sm mt-1 hidden sm:block">
-              {currentDate} • Kelola transaksi digital Anda dengan mudah
-            </p>
+
+            <div className="mt-3 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <p className="text-gray-600 text-sm hidden sm:block pl-14">
+                  <span className="font-semibold text-gray-800">
+                    {currentDate}
+                  </span>
+                  <span className="mx-3 text-gray-300">|</span>
+                  <span className="text-gray-500">
+                    Kelola transaksi digital Anda dengan mudah
+                  </span>
+                </p>
+
+                {/* Mobile description */}
+                <p className="text-gray-500 text-xs sm:hidden">
+                  Transaksi Digital
+                </p>
+              </div>
+
+              {/* Status indicators */}
+              <div className="flex items-center space-x-2">
+                {/* Live status */}
+                <div className="flex items-center space-x-1.5 px-2.5 py-1 bg-green-50 border border-green-200 rounded-full">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-green-700 hidden sm:inline">
+                    Live
+                  </span>
+                </div>
+
+                {/* Server status */}
+                <div className="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-full">
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                  <span className="text-xs font-medium text-blue-700">
+                    Server OK
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
