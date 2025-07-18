@@ -29,6 +29,7 @@ import {
   Notifications,
   PriceList,
   APIDocs,
+  LogoutModal,
 } from "../components/dashboard";
 
 const Dashboard = () => {
@@ -36,6 +37,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(section || "overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Update activeTab when URL changes
   useEffect(() => {
@@ -50,6 +52,14 @@ const Dashboard = () => {
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     navigate(`/dashboard/${tab}`);
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    // In real app, this would handle logout logic
+    console.log("User logged out");
+    setShowLogoutModal(false);
+    // Add your logout logic here (e.g., clear tokens, redirect to login)
   };
 
   // Sample data
@@ -200,6 +210,7 @@ const Dashboard = () => {
         setActiveTab={handleTabChange}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        onLogout={() => setShowLogoutModal(true)}
       />
 
       {/* Main Content */}
@@ -209,6 +220,7 @@ const Dashboard = () => {
           activeTab={activeTab}
           setSidebarOpen={setSidebarOpen}
           menuItems={menuItems}
+          onLogout={() => setShowLogoutModal(true)}
         />
 
         {/* Dashboard Content */}
@@ -278,6 +290,13 @@ const Dashboard = () => {
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
+
+      {/* Logout Modal */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 };

@@ -9,7 +9,12 @@ import {
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
-const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
+const DashboardHeader = ({
+  activeTab,
+  setSidebarOpen,
+  menuItems,
+  onLogout,
+}) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isNotificationClosing, setIsNotificationClosing] = useState(false);
@@ -171,9 +176,9 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
   };
 
   const handleLogout = () => {
-    // In real app, this would handle logout logic
-    console.log("Logout clicked");
+    // Close user menu and trigger logout
     closeUserMenu();
+    onLogout();
   };
 
   return (

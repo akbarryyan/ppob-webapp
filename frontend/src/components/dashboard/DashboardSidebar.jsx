@@ -19,6 +19,7 @@ const DashboardSidebar = ({
   setActiveTab,
   sidebarOpen,
   setSidebarOpen,
+  onLogout,
 }) => {
   const menuItems = [
     { icon: HomeIcon, label: "Overview", key: "overview" },
@@ -121,7 +122,10 @@ const DashboardSidebar = ({
           </div>
 
           {/* Logout Button */}
-          <button className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-200 group">
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-200 group"
+          >
             <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3" />
             Keluar
           </button>
