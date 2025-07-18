@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   CurrencyDollarIcon,
   ChevronDownIcon,
@@ -17,6 +17,21 @@ const PriceList = () => {
   const [selectedCategory, setSelectedCategory] = useState("pulsa");
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const categories = [
     { key: "pulsa", label: "Pulsa & Paket Data", icon: SignalIcon },
@@ -193,7 +208,7 @@ const PriceList = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="flex items-center space-x-3">
           <div className="p-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl">
             <CurrencyDollarIcon className="w-6 h-6 text-white" />
@@ -207,19 +222,21 @@ const PriceList = () => {
         </div>
 
         {/* Category Dropdown */}
-        <div className="relative">
+        <div className="relative w-full lg:w-auto" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center space-x-2 px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 min-w-48"
+            className="w-full lg:w-auto flex items-center justify-between lg:justify-center space-x-3 px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 lg:min-w-64"
           >
-            {selectedCategoryData && (
-              <>
-                <selectedCategoryData.icon className="w-5 h-5 text-gray-600" />
-                <span className="font-medium text-gray-900">
-                  {selectedCategoryData.label}
-                </span>
-              </>
-            )}
+            <div className="flex items-center space-x-3">
+              {selectedCategoryData && (
+                <>
+                  <selectedCategoryData.icon className="w-5 h-5 text-gray-600" />
+                  <span className="font-medium text-gray-900">
+                    {selectedCategoryData.label}
+                  </span>
+                </>
+              )}
+            </div>
             <ChevronDownIcon
               className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
                 isDropdownOpen ? "rotate-180" : ""
@@ -228,25 +245,27 @@ const PriceList = () => {
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute top-full mt-2 right-0 w-64 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-xl z-50 py-2">
-              {categories.map((category) => (
-                <button
-                  key={category.key}
-                  onClick={() => {
-                    setSelectedCategory(category.key);
-                    setIsDropdownOpen(false);
-                    setSearchTerm("");
-                  }}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                    selectedCategory === category.key
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-gray-700"
-                  }`}
-                >
-                  <category.icon className="w-5 h-5" />
-                  <span className="font-medium">{category.label}</span>
-                </button>
-              ))}
+            <div className="absolute top-full mt-2 left-0 right-0 lg:left-auto lg:right-0 lg:w-80 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-xl z-50 py-2">
+              <div className="grid grid-cols-1 gap-1">
+                {categories.map((category) => (
+                  <button
+                    key={category.key}
+                    onClick={() => {
+                      setSelectedCategory(category.key);
+                      setIsDropdownOpen(false);
+                      setSearchTerm("");
+                    }}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors rounded-xl mx-2 ${
+                      selectedCategory === category.key
+                        ? "bg-blue-50 text-blue-700 border border-blue-200"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    <category.icon className="w-5 h-5 flex-shrink-0" />
+                    <span className="font-medium">{category.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -265,14 +284,14 @@ const PriceList = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/50">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/50 hover:shadow-md transition-shadow">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-blue-100 rounded-xl">
               <CurrencyDollarIcon className="w-5 h-5 text-blue-600" />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <p className="text-2xl font-bold text-gray-900 truncate">
                 {filteredData.reduce(
                   (total, provider) => total + provider.products.length,
                   0
@@ -283,13 +302,13 @@ const PriceList = () => {
           </div>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/50">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/50 hover:shadow-md transition-shadow">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-green-100 rounded-xl">
               <BoltIcon className="w-5 h-5 text-green-600" />
             </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <p className="text-2xl font-bold text-gray-900 truncate">
                 {filteredData.length}
               </p>
               <p className="text-sm text-gray-500">Provider Aktif</p>
@@ -297,15 +316,15 @@ const PriceList = () => {
           </div>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/50">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/50 hover:shadow-md transition-shadow sm:col-span-2 lg:col-span-1">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-purple-100 rounded-xl">
               {selectedCategoryData && (
                 <selectedCategoryData.icon className="w-5 h-5 text-purple-600" />
               )}
             </div>
-            <div>
-              <p className="text-lg font-bold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <p className="text-lg font-bold text-gray-900 truncate">
                 {selectedCategoryData?.label}
               </p>
               <p className="text-sm text-gray-500">Kategori Aktif</p>
@@ -332,19 +351,65 @@ const PriceList = () => {
           searchedData.map((provider, index) => (
             <div
               key={provider.provider}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 overflow-hidden"
+              className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="bg-gradient-to-r from-gray-50 to-blue-50/30 px-6 py-4 border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-900">
-                  {provider.provider}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {provider.products.length} produk tersedia
-                </p>
+              <div className="bg-gradient-to-r from-gray-50 to-blue-50/30 px-4 sm:px-6 py-4 border-b border-gray-100">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      {provider.provider}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {provider.products.length} produk tersedia
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="px-3 py-1 bg-white/80 text-xs font-medium text-gray-700 rounded-full border">
+                      {selectedCategoryData?.label}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="p-6">
-                <div className="overflow-x-auto">
+              <div className="p-4 sm:p-6">
+                {/* Mobile Card Layout */}
+                <div className="block lg:hidden space-y-3">
+                  {provider.products.map((product, productIndex) => (
+                    <div
+                      key={productIndex}
+                      className="bg-gray-50/50 rounded-xl p-4 hover:bg-gray-100/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 text-sm">
+                            {product.name}
+                          </h4>
+                          <p className="text-lg font-bold text-gray-900 mt-1">
+                            {formatPrice(product.price)}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end space-y-2">
+                          {getStatusBadge(product.status)}
+                        </div>
+                      </div>
+                      <button
+                        disabled={product.status !== "available"}
+                        className={`w-full px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
+                          product.status === "available"
+                            ? "bg-blue-600 text-white hover:bg-blue-700 active:scale-95"
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        }`}
+                      >
+                        {product.status === "available"
+                          ? "Beli Sekarang"
+                          : "Tidak Tersedia"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop Table Layout */}
+                <div className="hidden lg:block overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-gray-200">
