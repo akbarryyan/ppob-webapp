@@ -1,6 +1,10 @@
-import { BellIcon, UserIcon } from "@heroicons/react/24/outline";
+import { BellIcon, UserIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect, useRef } from "react";
 
 const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const notificationRef = useRef(null);
   const currentTime = new Date().toLocaleTimeString("id-ID", {
     hour: "2-digit",
     minute: "2-digit",
@@ -12,6 +16,112 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
     month: "long",
     day: "numeric",
   });
+
+  // Mock notifications data - in real app, this would come from API
+  useEffect(() => {
+    setNotifications([
+      {
+        id: 1,
+        user: "Ahmad Rizki",
+        transaction: "Pulsa Telkomsel 50k",
+        amount: "Rp 52.500",
+        time: "2 menit yang lalu",
+        status: "success",
+        type: "pulsa",
+      },
+      {
+        id: 2,
+        user: "Siti Nurhaliza",
+        transaction: "Token PLN 100k",
+        amount: "Rp 103.000",
+        time: "5 menit yang lalu",
+        status: "success",
+        type: "listrik",
+      },
+      {
+        id: 3,
+        user: "Budi Santoso",
+        transaction: "BPJS Kesehatan",
+        amount: "Rp 80.000",
+        time: "8 menit yang lalu",
+        status: "pending",
+        type: "bpjs",
+      },
+      {
+        id: 4,
+        user: "Maya Indira",
+        transaction: "Paket Data XL 10GB",
+        amount: "Rp 65.000",
+        time: "12 menit yang lalu",
+        status: "success",
+        type: "data",
+      },
+      {
+        id: 5,
+        user: "Andi Pratama",
+        transaction: "Air PDAM Jakarta",
+        amount: "Rp 120.500",
+        time: "15 menit yang lalu",
+        status: "failed",
+        type: "air",
+      },
+    ]);
+  }, []);
+
+  // Close notifications when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "success":
+        return "text-green-600 bg-green-50";
+      case "pending":
+        return "text-yellow-600 bg-yellow-50";
+      case "failed":
+        return "text-red-600 bg-red-50";
+      default:
+        return "text-gray-600 bg-gray-50";
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case "success":
+        return "Berhasil";
+      case "pending":
+        return "Pending";
+      case "failed":
+        return "Gagal";
+      default:
+        return "Unknown";
+    }
+  };
+
+  const getTypeIcon = (type) => {
+    const iconMap = {
+      pulsa: "📱",
+      data: "📶",
+      listrik: "⚡",
+      air: "💧",
+      bpjs: "🏥",
+      internet: "🌐",
+    };
+    return iconMap[type] || "💳";
+  };
 
   return (
     <header className="bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-200/50 sticky top-0 z-40">
@@ -59,13 +169,108 @@ const DashboardHeader = ({ activeTab, setSidebarOpen, menuItems }) => {
         {/* Right Section */}
         <div className="flex items-center space-x-2 sm:space-x-4">
           {/* Notification Button */}
-          <button className="relative p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:shadow-md group">
-            <BellIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
-              <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-            </span>
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-400 rounded-full animate-ping opacity-20"></span>
-          </button>
+          <div className="relative" ref={notificationRef}>
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:shadow-md group"
+            >
+              <BellIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+              {notifications.length > 0 && (
+                <>
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">
+                      {notifications.length}
+                    </span>
+                  </span>
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-400 rounded-full animate-ping opacity-20"></span>
+                </>
+              )}
+            </button>
+
+            {/* Notifications Dropdown */}
+            {showNotifications && (
+              <div className="fixed sm:absolute top-16 sm:top-auto right-4 sm:right-0 sm:mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200/50 backdrop-blur-xl z-50 max-h-96 overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Notifikasi Transaksi
+                  </h3>
+                  <button
+                    onClick={() => setShowNotifications(false)}
+                    className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <XMarkIcon className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Notifications List */}
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-8 text-center">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <BellIcon className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <p className="text-gray-500 text-sm">
+                        Tidak ada notifikasi baru
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-100">
+                      {notifications.map((notification) => (
+                        <div
+                          key={notification.id}
+                          className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-start space-x-3">
+                            {/* Transaction Icon */}
+                            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-lg">
+                              {getTypeIcon(notification.type)}
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm font-semibold text-gray-900 truncate">
+                                  {notification.user}
+                                </p>
+                                <span
+                                  className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                                    notification.status
+                                  )}`}
+                                >
+                                  {getStatusText(notification.status)}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {notification.transaction}
+                              </p>
+                              <div className="flex items-center justify-between mt-2">
+                                <p className="text-sm font-semibold text-gray-900">
+                                  {notification.amount}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {notification.time}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                {notifications.length > 0 && (
+                  <div className="p-4 border-t border-gray-100 bg-gray-50">
+                    <button className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                      Lihat Semua Notifikasi
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* User Profile */}
           <div className="flex items-center space-x-3">
