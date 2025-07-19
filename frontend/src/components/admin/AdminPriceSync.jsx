@@ -7,11 +7,16 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
   ArrowPathIcon,
+  CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
 
 const AdminPriceSync = () => {
   const [loading, setLoading] = useState(false);
   const [syncStats, setSyncStats] = useState(null);
+  const [profitMargin, setProfitMargin] = useState(8); // Default 8% profit margin
+  const [fixedProfit, setFixedProfit] = useState(0); // Fixed profit amount
+  const [profitType, setProfitType] = useState("percentage"); // 'percentage' or 'fixed'
+  const [showProfitSettings, setShowProfitSettings] = useState(false);
 
   const getAuthToken = () => {
     // Use the same token key as AdminAuthService
@@ -45,6 +50,12 @@ const AdminPriceSync = () => {
         throw new Error("Authentication token not found");
       }
 
+      const requestBody = {
+        profit_type: profitType,
+        profit_margin: profitType === "percentage" ? profitMargin : null,
+        fixed_profit: profitType === "fixed" ? fixedProfit : null,
+      };
+
       const response = await fetch(
         "http://localhost:8000/api/digiflazz/sync-prepaid-price-list",
         {
@@ -54,6 +65,7 @@ const AdminPriceSync = () => {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
+          body: JSON.stringify(requestBody),
         }
       );
 
@@ -99,6 +111,183 @@ const AdminPriceSync = () => {
             Sinkronisasi daftar harga dari Digiflazz ke database
           </p>
         </div>
+      </div>
+
+      {/* Profit Settings Card */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
+        <div
+          className="px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50/30 border-b border-gray-100 cursor-pointer"
+          onClick={() => setShowProfitSettings(!showProfitSettings)}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-100 rounded-xl">
+                <CurrencyDollarIcon className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Pengaturan Keuntungan
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Atur margin keuntungan untuk harga jual
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-gray-600">
+                {profitType === "percentage"
+                  ? `+${profitMargin}%`
+                  : `+Rp ${fixedProfit.toLocaleString()}`}
+              </span>
+              <svg
+                className={`w-5 h-5 text-gray-500 transition-transform ${
+                  showProfitSettings ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {showProfitSettings && (
+          <div className="p-6 space-y-6">
+            {/* Profit Type Selection */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-3 block">
+                Tipe Keuntungan
+              </label>
+              <div className="flex space-x-4">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="profitType"
+                    value="percentage"
+                    checked={profitType === "percentage"}
+                    onChange={(e) => setProfitType(e.target.value)}
+                    className="text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm text-gray-700">Persentase (%)</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="profitType"
+                    value="fixed"
+                    checked={profitType === "fixed"}
+                    onChange={(e) => setProfitType(e.target.value)}
+                    className="text-green-600 focus:ring-green-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Nominal Tetap (Rp)
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            {/* Profit Input */}
+            <div>
+              {profitType === "percentage" ? (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Margin Keuntungan (%)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={profitMargin}
+                      onChange={(e) =>
+                        setProfitMargin(parseFloat(e.target.value) || 0)
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Contoh: 8"
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                      %
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Contoh: 8% artinya harga Rp 10.130 menjadi Rp{" "}
+                    {(10130 * (1 + profitMargin / 100)).toLocaleString("id-ID")}
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Keuntungan Tetap (Rp)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                      Rp
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="100"
+                      value={fixedProfit}
+                      onChange={(e) =>
+                        setFixedProfit(parseInt(e.target.value) || 0)
+                      }
+                      className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Contoh: 1000"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Contoh: Rp 1.000 artinya harga Rp 10.130 menjadi Rp{" "}
+                    {(10130 + fixedProfit).toLocaleString("id-ID")}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Preview Calculation */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <h4 className="text-sm font-semibold text-gray-800 mb-2">
+                Preview Kalkulasi
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Harga Asli Digiflazz:</span>
+                  <span className="font-medium">Rp 10.130</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Keuntungan:</span>
+                  <span className="font-medium text-green-600">
+                    {profitType === "percentage"
+                      ? `+${profitMargin}% (Rp ${Math.round(
+                          (10130 * profitMargin) / 100
+                        ).toLocaleString("id-ID")})`
+                      : `+Rp ${fixedProfit.toLocaleString("id-ID")}`}
+                  </span>
+                </div>
+                <div className="flex justify-between border-t pt-2 mt-2">
+                  <span className="text-gray-800 font-semibold">
+                    Harga Jual Final:
+                  </span>
+                  <span className="font-bold text-green-600">
+                    Rp{" "}
+                    {profitType === "percentage"
+                      ? Math.round(
+                          10130 * (1 + profitMargin / 100)
+                        ).toLocaleString("id-ID")
+                      : (10130 + fixedProfit).toLocaleString("id-ID")}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Sync Cards */}

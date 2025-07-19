@@ -14,6 +14,7 @@ class PriceList extends Model
         'brand',
         'product_name',
         'price',
+        'original_price',
         'buyer_product_status',
         'seller_product_status',
         'buyer_sku_code',
@@ -28,6 +29,9 @@ class PriceList extends Model
         'admin',
         'commission',
         'product_type',
+        'profit_type',
+        'profit_margin',
+        'fixed_profit',
         'last_updated',
     ];
 

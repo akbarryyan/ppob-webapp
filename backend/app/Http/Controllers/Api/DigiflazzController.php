@@ -82,6 +82,17 @@ class DigiflazzController extends Controller
     public function syncPrepaidPriceList(Request $request)
     {
         try {
+            // Validate profit settings
+            $request->validate([
+                'profit_type' => 'required|in:percentage,fixed',
+                'profit_margin' => 'nullable|numeric|min:0|max:100',
+                'fixed_profit' => 'nullable|integer|min:0',
+            ]);
+
+            $profitType = $request->profit_type;
+            $profitMargin = $request->profit_margin;
+            $fixedProfit = $request->fixed_profit;
+
             $requestBody = [
                 'cmd' => 'prepaid',
                 'username' => $this->username,
@@ -127,6 +138,16 @@ class DigiflazzController extends Controller
                 $startCutOff = (!empty($item['start_cut_off']) && $item['start_cut_off'] !== '') ? $item['start_cut_off'] : null;
                 $endCutOff = (!empty($item['end_cut_off']) && $item['end_cut_off'] !== '') ? $item['end_cut_off'] : null;
                 
+                // Calculate selling price with profit margin
+                $originalPrice = $item['price'] ?? 0;
+                $sellingPrice = $originalPrice;
+                
+                if ($profitType === 'percentage' && $profitMargin > 0) {
+                    $sellingPrice = round($originalPrice * (1 + $profitMargin / 100));
+                } elseif ($profitType === 'fixed' && $fixedProfit > 0) {
+                    $sellingPrice = $originalPrice + $fixedProfit;
+                }
+                
                 $priceList = PriceList::updateOrCreate(
                     [
                         'buyer_sku_code' => $item['buyer_sku_code']
@@ -134,7 +155,8 @@ class DigiflazzController extends Controller
                     [
                         'brand' => $item['brand'] ?? '',
                         'product_name' => $item['product_name'] ?? '',
-                        'price' => $item['price'] ?? 0,
+                        'original_price' => $originalPrice, // Store original price from Digiflazz
+                        'price' => $sellingPrice, // Store selling price with profit
                         'buyer_product_status' => $item['buyer_product_status'] ?? false,
                         'seller_product_status' => $item['seller_product_status'] ?? false,
                         'desc' => $item['desc'] ?? null,
@@ -146,6 +168,9 @@ class DigiflazzController extends Controller
                         'start_cut_off' => $startCutOff,
                         'end_cut_off' => $endCutOff,
                         'product_type' => 'prepaid',
+                        'profit_type' => $profitType,
+                        'profit_margin' => $profitType === 'percentage' ? $profitMargin : null,
+                        'fixed_profit' => $profitType === 'fixed' ? $fixedProfit : null,
                         'last_updated' => Carbon::now(),
                     ]
                 );
