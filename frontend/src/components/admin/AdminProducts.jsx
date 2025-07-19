@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ShoppingBagIcon,
   MagnifyingGlassIcon,
@@ -10,6 +10,7 @@ import {
   TagIcon,
   CurrencyDollarIcon,
   ClockIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import "../../styles/scrollbar.css";
 
@@ -19,79 +20,80 @@ const AdminProducts = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showProductModal, setShowProductModal] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [products] = useState([
-    {
-      id: 1,
-      name: "PUBG Mobile UC 1800",
-      category: "Game Top Up",
-      provider: "PUBG Mobile",
-      price: 250000,
-      cost: 240000,
-      profit: 10000,
-      status: "active",
-      stock: 999,
-      sold: 156,
-      createdAt: "2024-01-15",
-      description: "1800 UC untuk PUBG Mobile Indonesia",
-    },
-    {
-      id: 2,
-      name: "Steam Wallet 500K",
-      category: "Game Voucher",
-      provider: "Steam",
-      price: 500000,
-      cost: 485000,
-      profit: 15000,
-      status: "active",
-      stock: 50,
-      sold: 23,
-      createdAt: "2024-01-10",
-      description: "Steam Wallet IDR 500.000",
-    },
-    {
-      id: 3,
-      name: "Free Fire Diamond 2180",
-      category: "Game Top Up",
-      provider: "Free Fire",
-      price: 300000,
-      cost: 290000,
-      profit: 10000,
-      status: "active",
-      stock: 999,
-      sold: 89,
-      createdAt: "2024-01-08",
-      description: "2180 Diamond untuk Free Fire Indonesia",
-    },
-    {
-      id: 4,
-      name: "Mobile Legends Diamond 5000",
-      category: "Game Top Up",
-      provider: "Mobile Legends",
-      price: 750000,
-      cost: 730000,
-      profit: 20000,
-      status: "inactive",
-      stock: 0,
-      sold: 45,
-      createdAt: "2024-01-05",
-      description: "5000 Diamond untuk Mobile Legends Bang Bang",
-    },
-    {
-      id: 5,
-      name: "Genshin Impact Genesis Crystal 6480",
-      category: "Game Top Up",
-      provider: "Genshin Impact",
-      price: 1499000,
-      cost: 1450000,
-      profit: 49000,
-      status: "active",
-      stock: 25,
-      sold: 12,
-      createdAt: "2024-01-03",
-      description: "6480 Genesis Crystal untuk Genshin Impact",
-    },
-  ]);
+  // Fetch products from API
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const token =
+        localStorage.getItem("adminAuthToken") ||
+        sessionStorage.getItem("adminAuthToken");
+
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      const response = await fetch(
+        "http://localhost:8000/api/digiflazz/prepaid-price-list",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Transform API data to match our component format
+        const transformedProducts = data.data.map((item) => ({
+          id: item.id,
+          name: item.product_name,
+          category: item.category || "Unknown",
+          provider: item.brand || "Unknown",
+          price: parseInt(item.price) || 0,
+          cost: Math.floor(parseInt(item.price) * 0.95) || 0, // Assume 5% margin
+          profit: Math.floor(parseInt(item.price) * 0.05) || 0,
+          status:
+            item.buyer_product_status && item.seller_product_status
+              ? "active"
+              : "inactive",
+          stock: item.unlimited_stock ? 999 : item.stock || 0,
+          sold: Math.floor(Math.random() * 100), // Random sold count for demo
+          createdAt: item.created_at
+            ? new Date(item.created_at).toLocaleDateString()
+            : "Unknown",
+          description: item.desc || "No description available",
+          buyer_sku_code: item.buyer_sku_code,
+          type: item.type,
+          multi: item.multi,
+          last_updated: item.last_updated,
+        }));
+
+        setProducts(transformedProducts);
+      } else {
+        throw new Error(data.message || "Failed to fetch products");
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const statusColors = {
     active: "bg-green-100 text-green-800 border-green-200",
@@ -127,6 +129,71 @@ const AdminProducts = () => {
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
+
+  // Get unique categories from products for filter dropdown
+  const uniqueCategories = [
+    ...new Set(
+      products.map((p) => p.category).filter((c) => c && c !== "Unknown")
+    ),
+  ];
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center space-x-3">
+            <svg
+              className="animate-spin h-6 w-6 text-indigo-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span className="text-gray-600 font-medium">
+              Loading products...
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600 font-medium mb-2">
+              Error loading products
+            </p>
+            <p className="text-gray-500 text-sm mb-4">{error}</p>
+            <button
+              onClick={fetchProducts}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const ProductModal = ({ product, onClose }) => (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -166,6 +233,11 @@ const AdminProducts = () => {
               </h4>
               <p className="text-gray-600 mb-2">{product.provider}</p>
               <p className="text-gray-600 mb-4">{product.description}</p>
+              {product.buyer_sku_code && (
+                <p className="text-sm text-gray-500 mb-2">
+                  SKU: {product.buyer_sku_code}
+                </p>
+              )}
               <div className="flex items-center space-x-3">
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-semibold border ${
@@ -178,6 +250,11 @@ const AdminProducts = () => {
                 <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-blue-100 text-blue-800 border-blue-200">
                   {product.category}
                 </span>
+                {product.type && (
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-purple-100 text-purple-800 border-purple-200">
+                    {product.type}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -232,6 +309,16 @@ const AdminProducts = () => {
                   {formatCurrency(product.sold * product.price)}
                 </p>
               </div>
+              {product.last_updated && (
+                <div className="p-4 bg-gray-50 rounded-xl">
+                  <p className="text-sm font-medium text-gray-500 mb-1">
+                    Last Updated
+                  </p>
+                  <p className="text-sm text-gray-900">
+                    {new Date(product.last_updated).toLocaleString()}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -257,13 +344,36 @@ const AdminProducts = () => {
             Product Management
           </h1>
           <p className="text-gray-600 mt-1">
-            Manage your product catalog and inventory
+            Manage your product catalog from Digiflazz API ({products.length}{" "}
+            products loaded)
           </p>
         </div>
-        <button className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg">
-          <PlusIcon className="w-5 h-5" />
-          <span>Add New Product</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={fetchProducts}
+            disabled={loading}
+            className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+          >
+            <svg
+              className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            <span>Refresh Data</span>
+          </button>
+          <button className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg">
+            <PlusIcon className="w-5 h-5" />
+            <span>Add New Product</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -356,8 +466,11 @@ const AdminProducts = () => {
               className="px-3 sm:px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm min-w-0 sm:min-w-[160px]"
             >
               <option value="all">All Categories</option>
-              <option value="Game Top Up">Game Top Up</option>
-              <option value="Game Voucher">Game Voucher</option>
+              {uniqueCategories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
             </select>
 
             <select
