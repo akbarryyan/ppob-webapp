@@ -18,6 +18,7 @@ const AdminProducts = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterProductType, setFilterProductType] = useState("all"); // New filter
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showProductModal, setShowProductModal] = useState(false);
   const [products, setProducts] = useState([]);
@@ -40,33 +41,58 @@ const AdminProducts = () => {
         throw new Error("Authentication token not found");
       }
 
-      const response = await fetch(
-        "http://localhost:8000/api/digiflazz/prepaid-price-list",
-        {
+      // Fetch both prepaid and postpaid products
+      const [prepaidResponse, postpaidResponse] = await Promise.all([
+        fetch("http://localhost:8000/api/digiflazz/prepaid-price-list", {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-        }
-      );
+        }),
+        fetch("http://localhost:8000/api/digiflazz/postpaid-price-list", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }),
+      ]);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!prepaidResponse.ok) {
+        throw new Error(`Prepaid API error! status: ${prepaidResponse.status}`);
       }
 
-      const data = await response.json();
+      if (!postpaidResponse.ok) {
+        throw new Error(
+          `Postpaid API error! status: ${postpaidResponse.status}`
+        );
+      }
 
-      if (data.success) {
-        // Transform API data to match our component format
-        const transformedProducts = data.data.map((item) => ({
-          id: item.id,
+      const [prepaidData, postpaidData] = await Promise.all([
+        prepaidResponse.json(),
+        postpaidResponse.json(),
+      ]);
+
+      const allProducts = [];
+
+      // Transform prepaid data
+      if (prepaidData.success && prepaidData.data) {
+        const transformedPrepaid = prepaidData.data.map((item) => ({
+          id: `prepaid_${item.id}`,
           name: item.product_name,
           category: item.category || "Unknown",
           provider: item.brand || "Unknown",
           price: parseInt(item.price) || 0,
-          cost: Math.floor(parseInt(item.price) * 0.95) || 0, // Assume 5% margin
-          profit: Math.floor(parseInt(item.price) * 0.05) || 0,
+          cost:
+            parseInt(item.original_price) ||
+            Math.floor(parseInt(item.price) * 0.95) ||
+            0,
+          profit:
+            (parseInt(item.price) || 0) -
+            (parseInt(item.original_price) ||
+              Math.floor(parseInt(item.price) * 0.95) ||
+              0),
           status:
             item.buyer_product_status && item.seller_product_status
               ? "active"
@@ -81,12 +107,50 @@ const AdminProducts = () => {
           type: item.type,
           multi: item.multi,
           last_updated: item.last_updated,
+          product_type: "prepaid", // Add product type
+          commission: item.commission || 0,
         }));
-
-        setProducts(transformedProducts);
-      } else {
-        throw new Error(data.message || "Failed to fetch products");
+        allProducts.push(...transformedPrepaid);
       }
+
+      // Transform postpaid data
+      if (postpaidData.success && postpaidData.data) {
+        const transformedPostpaid = postpaidData.data.map((item) => ({
+          id: `postpaid_${item.id}`,
+          name: item.product_name,
+          category: item.category || "Unknown",
+          provider: item.brand || "Unknown",
+          price:
+            parseInt(item.price) ||
+            parseInt(item.admin_fee) ||
+            parseInt(item.admin) ||
+            0,
+          cost: parseInt(item.original_price) || parseInt(item.admin) || 0,
+          profit:
+            (parseInt(item.price) || parseInt(item.admin_fee) || 0) -
+            (parseInt(item.original_price) || parseInt(item.admin) || 0),
+          status:
+            item.buyer_product_status && item.seller_product_status
+              ? "active"
+              : "inactive",
+          stock: 999, // Postpaid usually unlimited
+          sold: Math.floor(Math.random() * 50), // Random sold count for demo (lower for postpaid)
+          createdAt: item.created_at
+            ? new Date(item.created_at).toLocaleDateString()
+            : "Unknown",
+          description: item.desc || "No description available",
+          buyer_sku_code: item.buyer_sku_code,
+          type: "postpaid",
+          seller_name: item.seller_name,
+          last_updated: item.last_updated,
+          product_type: "postpaid", // Add product type
+          admin_fee: parseInt(item.admin_fee) || parseInt(item.admin) || 0,
+          commission: item.commission || 0,
+        }));
+        allProducts.push(...transformedPostpaid);
+      }
+
+      setProducts(allProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
       setError(error.message);
@@ -126,8 +190,12 @@ const AdminProducts = () => {
       filterCategory === "all" || product.category === filterCategory;
     const matchesStatus =
       filterStatus === "all" || product.status === filterStatus;
+    const matchesProductType =
+      filterProductType === "all" || product.product_type === filterProductType;
 
-    return matchesSearch && matchesCategory && matchesStatus;
+    return (
+      matchesSearch && matchesCategory && matchesStatus && matchesProductType
+    );
   });
 
   // Get unique categories from products for filter dropdown
@@ -247,12 +315,26 @@ const AdminProducts = () => {
                   {product.status.charAt(0).toUpperCase() +
                     product.status.slice(1)}
                 </span>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                    product.product_type === "prepaid"
+                      ? "bg-purple-100 text-purple-800 border-purple-200"
+                      : "bg-orange-100 text-orange-800 border-orange-200"
+                  }`}
+                >
+                  {product.product_type === "prepaid" ? "Prepaid" : "Postpaid"}
+                </span>
                 <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-blue-100 text-blue-800 border-blue-200">
                   {product.category}
                 </span>
                 {product.type && (
-                  <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-purple-100 text-purple-800 border-purple-200">
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-gray-100 text-gray-800 border-gray-200">
                     {product.type}
+                  </span>
+                )}
+                {product.seller_name && (
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-indigo-100 text-indigo-800 border-indigo-200">
+                    {product.seller_name}
                   </span>
                 )}
               </div>
@@ -263,7 +345,9 @@ const AdminProducts = () => {
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-sm font-medium text-gray-500 mb-1">
-                  Selling Price
+                  {product.product_type === "postpaid"
+                    ? "Admin Fee"
+                    : "Selling Price"}
                 </p>
                 <p className="text-xl font-bold text-gray-900">
                   {formatCurrency(product.price)}
@@ -271,7 +355,9 @@ const AdminProducts = () => {
               </div>
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-sm font-medium text-gray-500 mb-1">
-                  Cost Price
+                  {product.product_type === "postpaid"
+                    ? "Base Admin"
+                    : "Cost Price"}
                 </p>
                 <p className="text-xl font-bold text-gray-900">
                   {formatCurrency(product.cost)}
@@ -279,23 +365,40 @@ const AdminProducts = () => {
               </div>
               <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
                 <p className="text-sm font-medium text-green-600 mb-1">
-                  Profit per Sale
+                  {product.product_type === "postpaid"
+                    ? "Markup per Transaction"
+                    : "Profit per Sale"}
                 </p>
                 <p className="text-xl font-bold text-green-900">
                   {formatCurrency(product.profit)}
                 </p>
               </div>
+              {product.product_type === "postpaid" &&
+                product.commission > 0 && (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <p className="text-sm font-medium text-blue-600 mb-1">
+                      Commission
+                    </p>
+                    <p className="text-xl font-bold text-blue-900">
+                      {formatCurrency(product.commission)}
+                    </p>
+                  </div>
+                )}
             </div>
             <div className="space-y-4">
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-sm font-medium text-gray-500 mb-1">Stock</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {product.stock}
+                  {product.product_type === "postpaid"
+                    ? "∞ (Unlimited)"
+                    : product.stock}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-sm font-medium text-gray-500 mb-1">
-                  Total Sold
+                  {product.product_type === "postpaid"
+                    ? "Transactions"
+                    : "Total Sold"}
                 </p>
                 <p className="text-xl font-bold text-gray-900">
                   {product.sold}
@@ -344,8 +447,11 @@ const AdminProducts = () => {
             Product Management
           </h1>
           <p className="text-gray-600 mt-1">
-            Manage your product catalog from Digiflazz API ({products.length}{" "}
-            products loaded)
+            Manage your product catalog from Digiflazz API (
+            {products.filter((p) => p.product_type === "prepaid").length}{" "}
+            prepaid,{" "}
+            {products.filter((p) => p.product_type === "postpaid").length}{" "}
+            postpaid products loaded)
           </p>
         </div>
         <div className="flex items-center space-x-3">
@@ -386,6 +492,12 @@ const AdminProducts = () => {
               </p>
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {products.length}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {products.filter((p) => p.product_type === "prepaid").length}{" "}
+                prepaid,{" "}
+                {products.filter((p) => p.product_type === "postpaid").length}{" "}
+                postpaid
               </p>
             </div>
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -461,6 +573,16 @@ const AdminProducts = () => {
 
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
             <select
+              value={filterProductType}
+              onChange={(e) => setFilterProductType(e.target.value)}
+              className="px-3 sm:px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm min-w-0 sm:min-w-[140px]"
+            >
+              <option value="all">All Types</option>
+              <option value="prepaid">Prepaid</option>
+              <option value="postpaid">Postpaid</option>
+            </select>
+
+            <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
               className="px-3 sm:px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm min-w-0 sm:min-w-[160px]"
@@ -496,6 +618,7 @@ const AdminProducts = () => {
               <span className="font-semibold">{filteredProducts.length}</span>{" "}
               product{filteredProducts.length !== 1 ? "s" : ""}
               {searchTerm && ` matching "${searchTerm}"`}
+              {filterProductType !== "all" && ` (${filterProductType})`}
               {filterCategory !== "all" && ` in ${filterCategory}`}
               {filterStatus !== "all" && ` with ${filterStatus} status`}
             </p>
@@ -545,6 +668,20 @@ const AdminProducts = () => {
                   {/* Product Details Grid */}
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
+                      <p className="text-gray-500 text-xs">Type</p>
+                      <span
+                        className={`inline-block px-2 py-1 rounded-md text-xs font-medium border mt-1 ${
+                          product.product_type === "prepaid"
+                            ? "bg-purple-100 text-purple-800 border-purple-200"
+                            : "bg-orange-100 text-orange-800 border-orange-200"
+                        }`}
+                      >
+                        {product.product_type === "prepaid"
+                          ? "Prepaid"
+                          : "Postpaid"}
+                      </span>
+                    </div>
+                    <div>
                       <p className="text-gray-500 text-xs">Category</p>
                       <span className="inline-block px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 mt-1">
                         {product.category}
@@ -563,13 +700,9 @@ const AdminProducts = () => {
                           product.stock > 0 ? "text-green-600" : "text-red-600"
                         }`}
                       >
-                        {product.stock}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 text-xs">Sold</p>
-                      <p className="font-semibold text-gray-900">
-                        {product.sold}
+                        {product.product_type === "postpaid"
+                          ? "∞"
+                          : product.stock}
                       </p>
                     </div>
                   </div>
@@ -606,6 +739,9 @@ const AdminProducts = () => {
                 <tr>
                   <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[250px]">
                     Product
+                  </th>
+                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[100px]">
+                    Type
                   </th>
                   <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
                     Category
@@ -649,6 +785,19 @@ const AdminProducts = () => {
                       </div>
                     </td>
                     <td className="px-4 xl:px-6 py-4">
+                      <span
+                        className={`px-2 xl:px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${
+                          product.product_type === "prepaid"
+                            ? "bg-purple-100 text-purple-800 border-purple-200"
+                            : "bg-orange-100 text-orange-800 border-orange-200"
+                        }`}
+                      >
+                        {product.product_type === "prepaid"
+                          ? "Prepaid"
+                          : "Postpaid"}
+                      </span>
+                    </td>
+                    <td className="px-4 xl:px-6 py-4">
                       <span className="px-2 xl:px-3 py-1 rounded-full text-xs font-semibold border bg-blue-100 text-blue-800 border-blue-200 whitespace-nowrap">
                         {product.category}
                       </span>
@@ -664,7 +813,9 @@ const AdminProducts = () => {
                           product.stock > 0 ? "text-green-600" : "text-red-600"
                         }`}
                       >
-                        {product.stock}
+                        {product.product_type === "postpaid"
+                          ? "∞"
+                          : product.stock}
                       </span>
                     </td>
                     <td className="px-4 xl:px-6 py-4">
