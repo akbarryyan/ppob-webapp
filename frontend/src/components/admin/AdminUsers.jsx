@@ -14,8 +14,10 @@ import {
   ShieldCheckIcon,
   UserIcon,
   ExclamationTriangleIcon,
+  EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import "../../styles/scrollbar.css";
 
 const AdminUsers = () => {
@@ -35,15 +37,17 @@ const AdminUsers = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToEdit, setUserToEdit] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch users from API
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (showSuccessToast = false) => {
     try {
       setLoading(true);
+      setError(null); // Clear previous errors
       const token =
         localStorage.getItem("adminAuthToken") ||
         sessionStorage.getItem("adminAuthToken");
@@ -83,12 +87,27 @@ const AdminUsers = () => {
         }));
 
         setUsers(transformedUsers);
+
+        // Show success message only when manually refreshing
+        if (showSuccessToast) {
+          toast.success(
+            `${transformedUsers.length} users loaded successfully!`,
+            {
+              position: "top-right",
+              autoClose: 2000,
+            }
+          );
+        }
       } else {
         throw new Error(data.message || "Failed to fetch users");
       }
     } catch (error) {
       console.error("Error fetching users:", error);
       setError(error.message);
+      toast.error(`Error loading users: ${error.message}`, {
+        position: "top-right",
+        autoClose: 5000,
+      });
     } finally {
       setLoading(false);
     }
@@ -131,12 +150,19 @@ const AdminUsers = () => {
 
         setUsers((prev) => [transformedUser, ...prev]);
         setShowAddUserModal(false);
+        toast.success(`User ${userData.name} has been created successfully!`, {
+          position: "top-right",
+          autoClose: 3000,
+        });
       } else {
         throw new Error(data.message || "Failed to create user");
       }
     } catch (error) {
       console.error("Error adding user:", error);
-      alert("Error adding user: " + error.message);
+      toast.error(`Error creating user: ${error.message}`, {
+        position: "top-right",
+        autoClose: 5000,
+      });
     }
   };
 
@@ -185,12 +211,19 @@ const AdminUsers = () => {
         );
         setShowEditUserModal(false);
         setUserToEdit(null);
+        toast.success(`User ${userData.name} has been updated successfully!`, {
+          position: "top-right",
+          autoClose: 3000,
+        });
       } else {
         throw new Error(data.message || "Failed to update user");
       }
     } catch (error) {
       console.error("Error updating user:", error);
-      alert("Error updating user: " + error.message);
+      toast.error(`Error updating user: ${error.message}`, {
+        position: "top-right",
+        autoClose: 5000,
+      });
     }
   };
 
@@ -220,12 +253,22 @@ const AdminUsers = () => {
         setUsers((prev) => prev.filter((user) => user.id !== userToDelete.id));
         setShowDeleteModal(false);
         setUserToDelete(null);
+        toast.success(
+          `User ${userToDelete.name} has been deleted successfully!`,
+          {
+            position: "top-right",
+            autoClose: 3000,
+          }
+        );
       } else {
         throw new Error(data.message || "Failed to delete user");
       }
     } catch (error) {
       console.error("Error deleting user:", error);
-      alert("Error deleting user: " + error.message);
+      toast.error(`Error deleting user: ${error.message}`, {
+        position: "top-right",
+        autoClose: 5000,
+      });
     }
   };
 
@@ -338,7 +381,7 @@ const AdminUsers = () => {
             <p className="text-red-600 font-medium mb-2">Error loading users</p>
             <p className="text-gray-500 text-sm mb-4">{error}</p>
             <button
-              onClick={fetchUsers}
+              onClick={() => fetchUsers(true)}
               className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
             >
               Try Again
@@ -468,6 +511,7 @@ const AdminUsers = () => {
       balance: 0,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -556,17 +600,33 @@ const AdminUsers = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                required
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, password: e.target.value }))
-                }
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter password (min 8 characters)"
-                minLength={8}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      password: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="Enter password (min 8 characters)"
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <div>
@@ -620,6 +680,7 @@ const AdminUsers = () => {
       balance: user.balance,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -705,16 +766,32 @@ const AdminUsers = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, password: e.target.value }))
-                }
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Leave empty to keep current password"
-                minLength={8}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      password: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="Leave empty to keep current password"
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
               <p className="text-xs text-gray-500 mt-1">
                 Leave empty to keep current password
               </p>
@@ -848,9 +925,9 @@ const AdminUsers = () => {
         </div>
         <div className="flex items-center space-x-3">
           <button
-            onClick={fetchUsers}
+            onClick={() => fetchUsers(true)}
             disabled={loading}
-            className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+            className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             <svg
               className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
