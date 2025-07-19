@@ -9,9 +9,144 @@ use App\Models\Transaction;
 use App\Models\PriceList;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
+    /**
+     * Admin login
+     */
+    public function login(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required|string|min:6',
+            ]);
+
+            $credentials = $request->only(['email', 'password']);
+            
+            // Find user with admin role
+            $user = User::where('email', $credentials['email'])
+                       ->whereIn('role', ['admin', 'super_admin'])
+                       ->first();
+
+            if (!$user || !Hash::check($credentials['password'], $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid email or password'
+                ], 401);
+            }
+
+            if ($user->status !== 'active') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your account is not active'
+                ], 401);
+            }
+
+            // Create token
+            $token = $user->createToken('admin_token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => $user->role,
+                    ],
+                    'token' => $token,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Admin login error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Login failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Admin logout
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        try {
+            $request->user()->currentAccessToken()->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout successful'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Admin logout error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Logout failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Admin logout from all devices
+     */
+    public function logoutAll(Request $request): JsonResponse
+    {
+        try {
+            $request->user()->tokens()->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Logged out from all devices'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Admin logout all error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Logout failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get admin profile
+     */
+    public function profile(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'created_at' => $user->created_at,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Get admin profile error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get profile',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     /**
      * Get all users with transaction count (only regular users, not admins)
      */
@@ -168,35 +303,69 @@ class AdminController extends Controller
             $previousMonth = now()->subMonth()->startOfMonth();
             $previousMonthEnd = now()->subMonth()->endOfMonth();
 
+            // For more realistic growth, let's use last 30 days vs previous 30 days
+            $last30Days = now()->subDays(30);
+            $previous30Days = now()->subDays(60);
+            $previous30DaysEnd = now()->subDays(30);
+
             // Total Users (only regular users, not admins)
             $totalUsers = User::where('role', 'user')->count();
-            $currentMonthUsers = User::where('role', 'user')
-                ->where('created_at', '>=', $currentMonth)->count();
-            $previousMonthUsers = User::where('role', 'user')
-                ->whereBetween('created_at', [$previousMonth, $previousMonthEnd])->count();
-            $userGrowth = $previousMonthUsers > 0 ? (($currentMonthUsers - $previousMonthUsers) / $previousMonthUsers) * 100 : 0;
+            $last30DaysUsers = User::where('role', 'user')
+                ->where('created_at', '>=', $last30Days)->count();
+            $previous30DaysUsers = User::where('role', 'user')
+                ->whereBetween('created_at', [$previous30Days, $previous30DaysEnd])->count();
+            
+            // Calculate user growth with fallback logic
+            if ($previous30DaysUsers > 0) {
+                $userGrowth = (($last30DaysUsers - $previous30DaysUsers) / $previous30DaysUsers) * 100;
+            } elseif ($last30DaysUsers > 0) {
+                $userGrowth = 100; // 100% growth if we have current users but no previous users
+            } else {
+                $userGrowth = 0;
+            }
 
             // Total Transactions
             $totalTransactions = Transaction::count();
-            $currentMonthTransactions = Transaction::where('created_at', '>=', $currentMonth)->count();
-            $previousMonthTransactions = Transaction::whereBetween('created_at', [$previousMonth, $previousMonthEnd])->count();
-            $transactionGrowth = $previousMonthTransactions > 0 ? (($currentMonthTransactions - $previousMonthTransactions) / $previousMonthTransactions) * 100 : 0;
+            $last30DaysTransactions = Transaction::where('created_at', '>=', $last30Days)->count();
+            $previous30DaysTransactions = Transaction::whereBetween('created_at', [$previous30Days, $previous30DaysEnd])->count();
+            
+            if ($previous30DaysTransactions > 0) {
+                $transactionGrowth = (($last30DaysTransactions - $previous30DaysTransactions) / $previous30DaysTransactions) * 100;
+            } elseif ($last30DaysTransactions > 0) {
+                $transactionGrowth = 100;
+            } else {
+                $transactionGrowth = 0;
+            }
 
             // Total Products
             $totalProducts = PriceList::count();
-            $currentMonthProducts = PriceList::where('created_at', '>=', $currentMonth)->count();
-            $previousMonthProducts = PriceList::whereBetween('created_at', [$previousMonth, $previousMonthEnd])->count();
-            $productGrowth = $previousMonthProducts > 0 ? (($currentMonthProducts - $previousMonthProducts) / $previousMonthProducts) * 100 : 0;
+            $last30DaysProducts = PriceList::where('created_at', '>=', $last30Days)->count();
+            $previous30DaysProducts = PriceList::whereBetween('created_at', [$previous30Days, $previous30DaysEnd])->count();
+            
+            if ($previous30DaysProducts > 0) {
+                $productGrowth = (($last30DaysProducts - $previous30DaysProducts) / $previous30DaysProducts) * 100;
+            } elseif ($last30DaysProducts > 0) {
+                $productGrowth = 100;
+            } else {
+                $productGrowth = 0;
+            }
 
             // Total Revenue (sum of all transaction prices with status success)
             $totalRevenue = Transaction::where('status', 'success')->sum('price') ?? 0;
-            $currentMonthRevenue = Transaction::where('status', 'success')
-                ->where('created_at', '>=', $currentMonth)
+            $last30DaysRevenue = Transaction::where('status', 'success')
+                ->where('created_at', '>=', $last30Days)
                 ->sum('price') ?? 0;
-            $previousMonthRevenue = Transaction::where('status', 'success')
-                ->whereBetween('created_at', [$previousMonth, $previousMonthEnd])
+            $previous30DaysRevenue = Transaction::where('status', 'success')
+                ->whereBetween('created_at', [$previous30Days, $previous30DaysEnd])
                 ->sum('price') ?? 0;
-            $revenueGrowth = $previousMonthRevenue > 0 ? (($currentMonthRevenue - $previousMonthRevenue) / $previousMonthRevenue) * 100 : 0;
+            
+            if ($previous30DaysRevenue > 0) {
+                $revenueGrowth = (($last30DaysRevenue - $previous30DaysRevenue) / $previous30DaysRevenue) * 100;
+            } elseif ($last30DaysRevenue > 0) {
+                $revenueGrowth = 100;
+            } else {
+                $revenueGrowth = 0;
+            }
 
             return response()->json([
                 'success' => true,

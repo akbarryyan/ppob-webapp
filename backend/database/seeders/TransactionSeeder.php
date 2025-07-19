@@ -36,38 +36,66 @@ class TransactionSeeder extends Seeder
             ['code' => 'GPLAY50', 'name' => 'Google Play 50K', 'price' => 52500],
         ];
 
-        // Create transactions for the last 3 months
-        for ($i = 0; $i < 150; $i++) {
-            $user = $users->random();
-            $product = $products[array_rand($products)];
-            $status = $statuses[array_rand($statuses)];
-            $type = $types[array_rand($types)];
-            
-            // Create more success transactions than failed ones
-            if (rand(1, 100) <= 80) {
-                $status = 'success';
-            }
-
-            // Random date within the last 3 months
-            $createdAt = Carbon::now()->subMonths(3)->addDays(rand(0, 90))->addHours(rand(0, 23))->addMinutes(rand(0, 59));
-
-            Transaction::create([
-                'user_id' => $user->id,
-                'transaction_id' => 'TRX' . time() . rand(1000, 9999),
-                'product_code' => $product['code'],
-                'product_name' => $product['name'],
-                'type' => $type,
-                'price' => $product['price'],
-                'profit' => $product['price'] * 0.1, // 10% profit margin
-                'status' => $status,
-                'target' => $this->generateRandomTarget($product['code']),
-                'message' => $status === 'success' ? 'Transaction completed successfully' : 
-                           ($status === 'pending' ? 'Transaction is being processed' : 'Transaction failed'),
-                'processed_at' => $status === 'success' ? $createdAt->addMinutes(rand(1, 10)) : null,
-                'created_at' => $createdAt,
-                'updated_at' => $createdAt,
-            ]);
+        // Create transactions with better distribution across time periods
+        $totalTransactions = 200; // Increase total transactions
+        
+        // Previous 60-30 days (older period): 40 transactions
+        for ($i = 0; $i < 40; $i++) {
+            $this->createTransaction($users, $products, $statuses, $types, 60, 30);
         }
+        
+        // Last 30 days (recent period): 80 transactions
+        for ($i = 0; $i < 80; $i++) {
+            $this->createTransaction($users, $products, $statuses, $types, 30, 0);
+        }
+        
+        // Last 7 days (very recent): 40 transactions
+        for ($i = 0; $i < 40; $i++) {
+            $this->createTransaction($users, $products, $statuses, $types, 7, 0);
+        }
+        
+        // Today: 10 transactions
+        for ($i = 0; $i < 10; $i++) {
+            $this->createTransaction($users, $products, $statuses, $types, 1, 0);
+        }
+    }
+
+    private function createTransaction($users, $products, $statuses, $types, $maxDaysAgo, $minDaysAgo = 0)
+    {
+        $user = $users->random();
+        $product = $products[array_rand($products)];
+        $status = $statuses[array_rand($statuses)];
+        $type = $types[array_rand($types)];
+        
+        // Create more success transactions than failed ones (85% success rate)
+        if (rand(1, 100) <= 85) {
+            $status = 'success';
+        } elseif (rand(1, 100) <= 10) {
+            $status = 'pending';
+        } else {
+            $status = 'failed';
+        }
+
+        // Generate random date within the specified range
+        $daysAgo = rand($minDaysAgo, $maxDaysAgo);
+        $createdAt = Carbon::now()->subDays($daysAgo)->addHours(rand(0, 23))->addMinutes(rand(0, 59));
+
+        Transaction::create([
+            'user_id' => $user->id,
+            'transaction_id' => 'TRX' . time() . rand(1000, 9999) . $daysAgo,
+            'product_code' => $product['code'],
+            'product_name' => $product['name'],
+            'type' => $type,
+            'price' => $product['price'],
+            'profit' => $product['price'] * rand(5, 15) / 100, // 5-15% profit margin
+            'status' => $status,
+            'target' => $this->generateRandomTarget($product['code']),
+            'message' => $status === 'success' ? 'Transaction completed successfully' : 
+                       ($status === 'pending' ? 'Transaction is being processed' : 'Transaction failed'),
+            'processed_at' => $status === 'success' ? $createdAt->addMinutes(rand(1, 10)) : null,
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
+        ]);
     }
 
     private function generateRandomTarget($productCode)

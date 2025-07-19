@@ -49,30 +49,42 @@ export const adminAuthService = {
   // Admin login
   async login(credentials) {
     try {
-      console.log("Admin login attempt:", { email: credentials.email });
+      console.log("Admin login attempt:", credentials);
 
       const response = await adminApiClient.post("/admin/login", credentials);
+      console.log("Login response:", response.data);
 
-      const { user, token } = response.data;
+      // Backend returns: { success: true, data: { user, token }, message }
+      const responseData = response.data;
 
-      // Store in localStorage or sessionStorage based on rememberMe
-      const storage = credentials.rememberMe ? localStorage : sessionStorage;
-      storage.setItem("adminAuthToken", token);
-      storage.setItem("adminUser", JSON.stringify(user));
-      storage.setItem("adminEmail", user.email);
+      if (responseData.success) {
+        const { user, token } = responseData.data;
 
-      console.log("Admin login successful:", {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-      });
+        // Store in localStorage or sessionStorage based on rememberMe
+        const storage = credentials.rememberMe ? localStorage : sessionStorage;
+        storage.setItem("adminAuthToken", token);
+        storage.setItem("adminUser", JSON.stringify(user));
+        storage.setItem("adminEmail", user.email);
 
-      return {
-        success: true,
-        user,
-        token,
-        message: "Login successful",
-      };
+        console.log("Admin login successful:", {
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+        });
+
+        return {
+          success: true,
+          user,
+          token,
+          message: responseData.message || "Login successful",
+        };
+      } else {
+        return {
+          success: false,
+          message: responseData.message || "Login failed",
+          errors: responseData.errors || {},
+        };
+      }
     } catch (error) {
       console.error("Admin login error:", error);
 
