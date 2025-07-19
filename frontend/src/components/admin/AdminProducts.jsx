@@ -98,6 +98,7 @@ const AdminProducts = () => {
               ? "active"
               : "inactive",
           stock: item.unlimited_stock ? 999 : item.stock || 0,
+          unlimited_stock: item.unlimited_stock || false,
           sold: Math.floor(Math.random() * 100), // Random sold count for demo
           createdAt: item.created_at
             ? new Date(item.created_at).toLocaleDateString()
@@ -134,6 +135,7 @@ const AdminProducts = () => {
               ? "active"
               : "inactive",
           stock: 999, // Postpaid usually unlimited
+          unlimited_stock: true, // Postpaid always unlimited
           sold: Math.floor(Math.random() * 50), // Random sold count for demo (lower for postpaid)
           createdAt: item.created_at
             ? new Date(item.created_at).toLocaleDateString()
@@ -389,9 +391,7 @@ const AdminProducts = () => {
               <div className="p-4 bg-gray-50 rounded-xl">
                 <p className="text-sm font-medium text-gray-500 mb-1">Stock</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {product.product_type === "postpaid"
-                    ? "∞ (Unlimited)"
-                    : product.stock}
+                  {product.unlimited_stock ? "∞ (Unlimited)" : product.stock}
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-xl">
@@ -700,9 +700,7 @@ const AdminProducts = () => {
                           product.stock > 0 ? "text-green-600" : "text-red-600"
                         }`}
                       >
-                        {product.product_type === "postpaid"
-                          ? "∞"
-                          : product.stock}
+                        {product.unlimited_stock ? "∞" : product.stock}
                       </p>
                     </div>
                   </div>
@@ -813,9 +811,7 @@ const AdminProducts = () => {
                           product.stock > 0 ? "text-green-600" : "text-red-600"
                         }`}
                       >
-                        {product.product_type === "postpaid"
-                          ? "∞"
-                          : product.stock}
+                        {product.unlimited_stock ? "∞" : product.stock}
                       </span>
                     </td>
                     <td className="px-4 xl:px-6 py-4">
