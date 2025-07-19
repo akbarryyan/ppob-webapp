@@ -98,11 +98,6 @@ export const digiflazzService = {
 
   // Transform Digiflazz data to our format
   transformPrepaidData: (digiflazzData) => {
-    // Debug logging
-    console.log("transformPrepaidData received:", digiflazzData);
-    console.log("Type:", typeof digiflazzData);
-    console.log("Is array:", Array.isArray(digiflazzData));
-
     // Safety check: ensure we have an array
     if (!Array.isArray(digiflazzData)) {
       console.error(
@@ -154,11 +149,6 @@ export const digiflazzService = {
 
   // Transform postpaid data to our format
   transformPostpaidData: (digiflazzData) => {
-    // Debug logging
-    console.log("transformPostpaidData received:", digiflazzData);
-    console.log("Type:", typeof digiflazzData);
-    console.log("Is array:", Array.isArray(digiflazzData));
-
     // Safety check: ensure we have an array
     if (!Array.isArray(digiflazzData)) {
       console.error(
