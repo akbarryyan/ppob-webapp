@@ -12,6 +12,7 @@ import {
   AdminSettings,
   AdminNotifications,
 } from "../components/admin";
+import AdminPriceSync from "../components/admin/AdminPriceSync";
 import { LogoutModal } from "../components/dashboard";
 
 const AdminDashboard = () => {
@@ -26,6 +27,7 @@ const AdminDashboard = () => {
     { icon: "UsersIcon", label: "Users", key: "users" },
     { icon: "CreditCardIcon", label: "Transactions", key: "transactions" },
     { icon: "CubeIcon", label: "Products", key: "products" },
+    { icon: "ServerIcon", label: "Price Sync", key: "price-sync" },
     { icon: "ChartBarIcon", label: "Reports", key: "reports" },
     { icon: "BellIcon", label: "Notifications", key: "notifications" },
     { icon: "Cog6ToothIcon", label: "Settings", key: "settings" },
@@ -75,6 +77,8 @@ const AdminDashboard = () => {
         return <AdminTransactions />;
       case "products":
         return <AdminProducts />;
+      case "price-sync":
+        return <AdminPriceSync />;
       case "reports":
         return <AdminReports />;
       case "notifications":

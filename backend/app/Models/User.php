@@ -25,9 +25,11 @@ class User extends Authenticatable
         'phone',
         'avatar',
         'status',
+        'role',
         'last_login_at',
         'referral_code',
         'referred_by',
+        'balance',
     ];
 
     /**

@@ -22,6 +22,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('admin123'),
             'balance' => 1000000.00,
             'status' => 'active',
+            'role' => 'super_admin',
             'referral_code' => User::generateReferralCode(),
             'email_verified_at' => now(),
         ]);

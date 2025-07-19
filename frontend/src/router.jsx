@@ -4,7 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import LoginAdmin from "./pages/LoginAdmin";
+import AdminLoginPage from "./pages/AdminLoginPage";
 import ForgotPasswordAdmin from "./pages/ForgotPasswordAdmin";
 import NewTransaction from "./pages/NewTransaction";
 
@@ -31,7 +31,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin/login",
-    element: <LoginAdmin />,
+    element: <AdminLoginPage />,
   },
   {
     path: "/admin/forgot-password",

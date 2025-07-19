@@ -12,27 +12,39 @@ const AdminAuthGuard = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = () => {
+      console.log("AdminAuthGuard: Checking authentication...");
+
       // Check for admin token in localStorage or sessionStorage
       const token =
         localStorage.getItem("adminAuthToken") ||
         sessionStorage.getItem("adminAuthToken");
 
-      const adminUser = localStorage.getItem("adminUser");
+      const adminUser =
+        localStorage.getItem("adminUser") ||
+        sessionStorage.getItem("adminUser");
+
+      console.log("AdminAuthGuard: Token exists:", !!token);
+      console.log("AdminAuthGuard: User data exists:", !!adminUser);
 
       if (token && adminUser) {
         try {
           const user = JSON.parse(adminUser);
+          console.log("AdminAuthGuard: User role:", user.role);
+
           // Additional validation can be added here
           if (user.role === "super_admin" || user.role === "admin") {
+            console.log("AdminAuthGuard: Authentication successful");
             setIsAuthenticated(true);
           } else {
+            console.log("AdminAuthGuard: User does not have admin role");
             setIsAuthenticated(false);
           }
         } catch (error) {
-          console.error("Invalid user data:", error);
+          console.error("AdminAuthGuard: Invalid user data:", error);
           setIsAuthenticated(false);
         }
       } else {
+        console.log("AdminAuthGuard: No token or user data found");
         setIsAuthenticated(false);
       }
 

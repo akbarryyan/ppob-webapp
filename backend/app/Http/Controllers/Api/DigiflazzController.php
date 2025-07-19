@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Models\PriceList;
+use Carbon\Carbon;
 
 class DigiflazzController extends Controller
 {
@@ -29,9 +31,55 @@ class DigiflazzController extends Controller
     }
 
     /**
-     * Get prepaid price list
+     * Get prepaid price list from database
      */
     public function getPrepaidPriceList(Request $request)
+    {
+        try {
+            // Get data from database
+            $query = PriceList::prepaid();
+            
+            // Apply filters if provided
+            if ($request->has('category')) {
+                $query->where('category', $request->category);
+            }
+            if ($request->has('brand')) {
+                $query->where('brand', $request->brand);
+            }
+            if ($request->has('type')) {
+                $query->where('type', $request->type);
+            }
+
+            $priceList = $query->orderBy('brand')->orderBy('product_name')->get();
+
+            // Transform to array format for frontend
+            $data = $priceList->toArray();
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'message' => 'Price list retrieved successfully from database',
+                'count' => count($data)
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Database PriceList Exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Internal server error',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Sync prepaid price list from Digiflazz API to database
+     */
+    public function syncPrepaidPriceList(Request $request)
     {
         try {
             $requestBody = [
@@ -44,7 +92,7 @@ class DigiflazzController extends Controller
             $filters = $request->only(['category', 'brand', 'type', 'code']);
             $requestBody = array_merge($requestBody, $filters);
 
-            $response = Http::timeout(30)->post($this->apiBaseUrl . '/price-list', $requestBody);
+            $response = Http::timeout(60)->post($this->apiBaseUrl . '/price-list', $requestBody);
 
             if (!$response->successful()) {
                 Log::error('Digiflazz API Error', [
@@ -54,36 +102,78 @@ class DigiflazzController extends Controller
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to fetch price list',
+                    'message' => 'Failed to fetch price list from Digiflazz',
                     'error' => 'API request failed'
                 ], $response->status());
             }
 
             $data = $response->json();
+            $apiData = $data['data'] ?? [];
 
-            // Debug: Log the response structure
-            Log::info('Digiflazz API Response', [
-                'raw_response' => $data,
-                'data_property' => $data['data'] ?? 'not found',
-                'data_type' => gettype($data['data'] ?? null),
-                'is_array' => is_array($data['data'] ?? null),
-            ]);
+            if (empty($apiData)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No data received from Digiflazz API',
+                    'data' => []
+                ]);
+            }
+
+            // Sync data to database
+            $syncedCount = 0;
+            $updatedCount = 0;
+
+            foreach ($apiData as $item) {
+                // Handle empty datetime strings
+                $startCutOff = (!empty($item['start_cut_off']) && $item['start_cut_off'] !== '') ? $item['start_cut_off'] : null;
+                $endCutOff = (!empty($item['end_cut_off']) && $item['end_cut_off'] !== '') ? $item['end_cut_off'] : null;
+                
+                $priceList = PriceList::updateOrCreate(
+                    [
+                        'buyer_sku_code' => $item['buyer_sku_code']
+                    ],
+                    [
+                        'brand' => $item['brand'] ?? '',
+                        'product_name' => $item['product_name'] ?? '',
+                        'price' => $item['price'] ?? 0,
+                        'buyer_product_status' => $item['buyer_product_status'] ?? false,
+                        'seller_product_status' => $item['seller_product_status'] ?? false,
+                        'desc' => $item['desc'] ?? null,
+                        'category' => $item['category'] ?? null,
+                        'type' => $item['type'] ?? null,
+                        'unlimited_stock' => $item['unlimited_stock'] ?? false,
+                        'stock' => $item['stock'] ?? 0,
+                        'multi' => $item['multi'] ?? null,
+                        'start_cut_off' => $startCutOff,
+                        'end_cut_off' => $endCutOff,
+                        'product_type' => 'prepaid',
+                        'last_updated' => Carbon::now(),
+                    ]
+                );
+
+                if ($priceList->wasRecentlyCreated) {
+                    $syncedCount++;
+                } else {
+                    $updatedCount++;
+                }
+            }
 
             return response()->json([
                 'success' => true,
-                'data' => $data['data'] ?? [],
-                'message' => 'Price list retrieved successfully'
+                'message' => 'Price list synced successfully',
+                'synced_count' => $syncedCount,
+                'updated_count' => $updatedCount,
+                'total_processed' => count($apiData)
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Digiflazz API Exception', [
+            Log::error('Digiflazz Sync Exception', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Internal server error',
+                'message' => 'Internal server error during sync',
                 'error' => $e->getMessage()
             ], 500);
         }

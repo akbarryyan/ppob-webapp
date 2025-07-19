@@ -11,6 +11,7 @@ import {
   XMarkIcon,
   ShieldCheckIcon,
   UserGroupIcon,
+  ServerIcon,
 } from "@heroicons/react/24/outline";
 
 const AdminSidebar = ({
@@ -26,6 +27,7 @@ const AdminSidebar = ({
     UsersIcon,
     CreditCardIcon,
     CubeIcon: Square3Stack3DIcon,
+    ServerIcon,
     ChartBarIcon,
     BellIcon,
     Cog6ToothIcon,
