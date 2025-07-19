@@ -20,6 +20,7 @@ class PriceList extends Model
         'buyer_sku_code',
         'desc',
         'category',
+        'seller_name',
         'type',
         'unlimited_stock',
         'stock',
@@ -28,6 +29,7 @@ class PriceList extends Model
         'end_cut_off',
         'admin',
         'commission',
+        'admin_fee',
         'product_type',
         'profit_type',
         'profit_margin',
@@ -40,8 +42,11 @@ class PriceList extends Model
         'seller_product_status' => 'boolean',
         'unlimited_stock' => 'boolean',
         'price' => 'decimal:2',
+        'original_price' => 'decimal:2',
         'admin' => 'decimal:2',
         'commission' => 'decimal:2',
+        'admin_fee' => 'decimal:2',
+        'profit_margin' => 'decimal:2',
         'last_updated' => 'datetime',
     ];
 

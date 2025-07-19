@@ -12,7 +12,9 @@ import {
 
 const AdminPriceSync = () => {
   const [loading, setLoading] = useState(false);
+  const [postpaidLoading, setPostpaidLoading] = useState(false);
   const [syncStats, setSyncStats] = useState(null);
+  const [postpaidSyncStats, setPostpaidSyncStats] = useState(null);
   const [profitMargin, setProfitMargin] = useState(8); // Default 8% profit margin
   const [fixedProfit, setFixedProfit] = useState(0); // Fixed profit amount
   const [profitType, setProfitType] = useState("percentage"); // 'percentage' or 'fixed'
@@ -95,6 +97,64 @@ const AdminPriceSync = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const syncPostpaidPriceList = async () => {
+    setPostpaidLoading(true);
+    setPostpaidSyncStats(null);
+
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      const requestBody = {
+        profit_type: profitType,
+        profit_margin: profitType === "percentage" ? profitMargin : null,
+        fixed_profit: profitType === "fixed" ? fixedProfit : null,
+      };
+
+      const response = await fetch(
+        "http://localhost:8000/api/admin/digiflazz/sync-postpaid-price-list",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setPostpaidSyncStats(data);
+        toast.success(
+          `Berhasil sync ${data.total_processed} produk postpaid! (${data.synced_count} baru, ${data.updated_count} diperbarui)`,
+          {
+            position: "top-right",
+            autoClose: 5000,
+          }
+        );
+      } else {
+        throw new Error(data.message || "Sync postpaid failed");
+      }
+    } catch (error) {
+      console.error("Error syncing postpaid price list:", error);
+      toast.error(`Gagal sync data postpaid: ${error.message}`, {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    } finally {
+      setPostpaidLoading(false);
     }
   };
 
@@ -381,8 +441,8 @@ const AdminPriceSync = () => {
           </div>
         </div>
 
-        {/* Postpaid Sync - Coming Soon */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 overflow-hidden shadow-sm hover:shadow-md transition-shadow opacity-50">
+        {/* Postpaid Sync */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
           <div className="bg-gradient-to-r from-orange-50 to-red-50/30 px-6 py-4 border-b border-gray-100">
             <div className="flex items-center space-x-3">
               <CloudArrowDownIcon className="w-6 h-6 text-orange-600" />
@@ -391,7 +451,7 @@ const AdminPriceSync = () => {
                   Produk Postpaid
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Sinkronisasi daftar harga produk postpaid
+                  Sinkronisasi daftar harga produk postpaid/pascabayar
                 </p>
               </div>
             </div>
@@ -402,17 +462,69 @@ const AdminPriceSync = () => {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Status:</span>
                 <span className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                  <span className="text-yellow-600">Coming Soon</span>
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span className="text-green-600">Ready</span>
                 </span>
               </div>
 
+              {postpaidSyncStats && (
+                <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Total Processed:</span>
+                    <span className="font-medium text-gray-900">
+                      {postpaidSyncStats.total_processed}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">New Products:</span>
+                    <span className="font-medium text-green-600">
+                      {postpaidSyncStats.synced_count}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Updated Products:</span>
+                    <span className="font-medium text-blue-600">
+                      {postpaidSyncStats.updated_count}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <button
-                disabled
-                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gray-300 text-gray-500 rounded-xl cursor-not-allowed"
+                onClick={syncPostpaidPriceList}
+                disabled={postpaidLoading}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ClockIcon className="w-5 h-5" />
-                <span>Coming Soon</span>
+                {postpaidLoading ? (
+                  <>
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    <span>Sedang Sync...</span>
+                  </>
+                ) : (
+                  <>
+                    <ArrowPathIcon className="w-5 h-5" />
+                    <span>Sync Postpaid Price List</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
