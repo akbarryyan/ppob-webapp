@@ -29,6 +29,13 @@ const AdminUsers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // New states for modals
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToEdit, setUserToEdit] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
+
   // Fetch users from API
   useEffect(() => {
     fetchUsers();
@@ -84,6 +91,141 @@ const AdminUsers = () => {
       setError(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Add User function
+  const handleAddUser = async (userData) => {
+    try {
+      const token =
+        localStorage.getItem("adminAuthToken") ||
+        sessionStorage.getItem("adminAuthToken");
+
+      const response = await fetch("http://localhost:8000/api/admin/users", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Add new user to the list
+        const transformedUser = {
+          id: data.data.id,
+          name: data.data.name,
+          email: data.data.email,
+          phone: data.data.phone || "N/A",
+          role: data.data.role || "user",
+          status: data.data.email_verified_at ? "active" : "inactive",
+          balance: data.data.balance || 0,
+          totalTransactions: data.data.transactions_count || 0,
+          joinDate: data.data.created_at,
+          lastActive: data.data.updated_at || data.data.created_at,
+          avatar: null,
+        };
+
+        setUsers((prev) => [transformedUser, ...prev]);
+        setShowAddUserModal(false);
+      } else {
+        throw new Error(data.message || "Failed to create user");
+      }
+    } catch (error) {
+      console.error("Error adding user:", error);
+      alert("Error adding user: " + error.message);
+    }
+  };
+
+  // Edit User function
+  const handleEditUser = async (userData) => {
+    try {
+      const token =
+        localStorage.getItem("adminAuthToken") ||
+        sessionStorage.getItem("adminAuthToken");
+
+      const response = await fetch(
+        `http://localhost:8000/api/admin/users/${userToEdit.id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(userData),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update user in the list
+        const transformedUser = {
+          id: data.data.id,
+          name: data.data.name,
+          email: data.data.email,
+          phone: data.data.phone || "N/A",
+          role: data.data.role || "user",
+          status: data.data.email_verified_at ? "active" : "inactive",
+          balance: data.data.balance || 0,
+          totalTransactions: data.data.transactions_count || 0,
+          joinDate: data.data.created_at,
+          lastActive: data.data.updated_at || data.data.created_at,
+          avatar: null,
+        };
+
+        setUsers((prev) =>
+          prev.map((user) =>
+            user.id === userToEdit.id ? transformedUser : user
+          )
+        );
+        setShowEditUserModal(false);
+        setUserToEdit(null);
+      } else {
+        throw new Error(data.message || "Failed to update user");
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
+      alert("Error updating user: " + error.message);
+    }
+  };
+
+  // Delete User function
+  const handleDeleteUser = async () => {
+    try {
+      const token =
+        localStorage.getItem("adminAuthToken") ||
+        sessionStorage.getItem("adminAuthToken");
+
+      const response = await fetch(
+        `http://localhost:8000/api/admin/users/${userToDelete.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Remove user from the list
+        setUsers((prev) => prev.filter((user) => user.id !== userToDelete.id));
+        setShowDeleteModal(false);
+        setUserToDelete(null);
+      } else {
+        throw new Error(data.message || "Failed to delete user");
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("Error deleting user: " + error.message);
     }
   };
 
@@ -316,6 +458,382 @@ const AdminUsers = () => {
     </div>
   );
 
+  // Add User Modal Component
+  const AddUserModal = ({ onClose, onSubmit }) => {
+    const [formData, setFormData] = useState({
+      name: "",
+      email: "",
+      phone: "",
+      password: "",
+      balance: 0,
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setIsSubmitting(true);
+      await onSubmit(formData);
+      setIsSubmitting(false);
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Add New User</h3>
+              <button
+                onClick={onClose}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Name
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Enter user name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, email: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Enter email address"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone
+              </label>
+              <input
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Enter phone number"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, password: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Enter password (min 8 characters)"
+                minLength={8}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Initial Balance
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.balance}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    balance: parseFloat(e.target.value) || 0,
+                  }))
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Enter initial balance (optional)"
+              />
+            </div>
+
+            <div className="flex space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? "Creating..." : "Create User"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  // Edit User Modal Component
+  const EditUserModal = ({ user, onClose, onSubmit }) => {
+    const [formData, setFormData] = useState({
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      password: "",
+      balance: user.balance,
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setIsSubmitting(true);
+      await onSubmit(formData);
+      setIsSubmitting(false);
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Edit User</h3>
+              <button
+                onClick={onClose}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Name
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, email: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone
+              </label>
+              <input
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, password: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Leave empty to keep current password"
+                minLength={8}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Leave empty to keep current password
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Balance
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.balance}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    balance: parseFloat(e.target.value) || 0,
+                  }))
+                }
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="flex space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? "Updating..." : "Update User"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  // Delete User Modal Component
+  const DeleteUserModal = ({ user, onClose, onConfirm }) => {
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
+      setIsDeleting(true);
+      await onConfirm();
+      setIsDeleting(false);
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Delete User</h3>
+              <button
+                onClick={onClose}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <div className="text-center mb-6">
+              <ExclamationTriangleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                Are you sure you want to delete this user?
+              </h4>
+              <p className="text-gray-600">
+                <strong>{user.name}</strong> ({user.email})
+              </p>
+              <p className="text-gray-500 text-sm mt-2">
+                This action cannot be undone. All user data and transactions
+                will be permanently deleted.
+              </p>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? "Deleting..." : "Delete User"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -349,7 +867,10 @@ const AdminUsers = () => {
             </svg>
             <span>Refresh Data</span>
           </button>
-          <button className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg">
+          <button
+            onClick={() => setShowAddUserModal(true)}
+            className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg"
+          >
             <UserPlusIcon className="w-5 h-5" />
             <span>Add New User</span>
           </button>
@@ -529,13 +1050,28 @@ const AdminUsers = () => {
                         setShowUserModal(true);
                       }}
                       className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      title="View User"
                     >
                       <EyeIcon className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                    <button
+                      onClick={() => {
+                        setUserToEdit(user);
+                        setShowEditUserModal(true);
+                      }}
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Edit User"
+                    >
                       <PencilIcon className="w-4 h-4" />
                     </button>
-                    <button className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <button
+                      onClick={() => {
+                        setUserToDelete(user);
+                        setShowDeleteModal(true);
+                      }}
+                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete User"
+                    >
                       <TrashIcon className="w-4 h-4" />
                     </button>
                   </div>
@@ -656,13 +1192,28 @@ const AdminUsers = () => {
                             setShowUserModal(true);
                           }}
                           className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          title="View User"
                         >
                           <EyeIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                         </button>
-                        <button className="p-1.5 xl:p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                        <button
+                          onClick={() => {
+                            setUserToEdit(user);
+                            setShowEditUserModal(true);
+                          }}
+                          className="p-1.5 xl:p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit User"
+                        >
                           <PencilIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                         </button>
-                        <button className="p-1.5 xl:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <button
+                          onClick={() => {
+                            setUserToDelete(user);
+                            setShowDeleteModal(true);
+                          }}
+                          className="p-1.5 xl:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete User"
+                        >
                           <TrashIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                         </button>
                       </div>
@@ -694,6 +1245,38 @@ const AdminUsers = () => {
             setShowUserModal(false);
             setSelectedUser(null);
           }}
+        />
+      )}
+
+      {/* Add User Modal */}
+      {showAddUserModal && (
+        <AddUserModal
+          onClose={() => setShowAddUserModal(false)}
+          onSubmit={handleAddUser}
+        />
+      )}
+
+      {/* Edit User Modal */}
+      {showEditUserModal && userToEdit && (
+        <EditUserModal
+          user={userToEdit}
+          onClose={() => {
+            setShowEditUserModal(false);
+            setUserToEdit(null);
+          }}
+          onSubmit={handleEditUser}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && userToDelete && (
+        <DeleteUserModal
+          user={userToDelete}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setUserToDelete(null);
+          }}
+          onConfirm={handleDeleteUser}
         />
       )}
     </div>

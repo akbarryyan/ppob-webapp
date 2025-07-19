@@ -39,6 +39,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Users management routes
         Route::get('/users', [AdminController::class, 'getUsers']);
+        Route::post('/users', [AdminController::class, 'createUser']);
+        Route::put('/users/{id}', [AdminController::class, 'updateUser']);
+        Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
 
         // Digiflazz Admin Settings routes
         Route::prefix('digiflazz')->group(function () {
