@@ -263,10 +263,7 @@ const Dashboard = () => {
           {activeTab === "overview" && (
             <div className="space-y-8">
               {/* Welcome Section & Balance */}
-              <WelcomeCard
-                userBalance={userBalance}
-                setActiveTab={handleTabChange}
-              />
+              <WelcomeCard setActiveTab={handleTabChange} />
 
               {/* Quick Actions - Product Categories */}
               <QuickActions />
@@ -286,7 +283,7 @@ const Dashboard = () => {
             <TransactionsList recentTransactions={recentTransactions} />
           )}
 
-          {activeTab === "topup" && <TopUpSection userBalance={userBalance} />}
+          {activeTab === "topup" && <TopUpSection />}
 
           {activeTab === "leaderboard" && <LeaderboardSection />}
 

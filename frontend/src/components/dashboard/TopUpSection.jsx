@@ -19,6 +19,7 @@ import {
   BanknotesIcon as BanknotesIconSolid,
 } from "@heroicons/react/24/solid";
 import { useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 
 // Custom scrollbar styles
 const scrollbarStyles = `
@@ -42,7 +43,9 @@ const scrollbarStyles = `
   }
 `;
 
-const TopUpSection = ({ userBalance }) => {
+const TopUpSection = () => {
+  const { user } = useAuth();
+  const userBalance = user?.balance || 0;
   const [selectedAmount, setSelectedAmount] = useState("");
   const [customAmount, setCustomAmount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("");

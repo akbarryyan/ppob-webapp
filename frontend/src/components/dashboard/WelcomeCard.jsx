@@ -1,8 +1,13 @@
 import { useState } from "react";
 import { PlusIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "../../contexts/AuthContext";
 
-const WelcomeCard = ({ userBalance, setActiveTab }) => {
+const WelcomeCard = ({ setActiveTab }) => {
+  const { user } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
+
+  // Get user balance from user data, fallback to 0 if not available
+  const userBalance = user?.balance || 0;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -12,7 +17,9 @@ const WelcomeCard = ({ userBalance, setActiveTab }) => {
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-yellow-400/20 rounded-full translate-y-12 -translate-x-12"></div>
 
         <div className="relative z-10">
-          <h2 className="text-3xl font-bold mb-2">Halo, Selamat Datang! 👋</h2>
+          <h2 className="text-3xl font-bold mb-2">
+            Halo, {user?.name || "User"}! 👋
+          </h2>
           <p className="text-blue-100 mb-6">
             Kelola transaksi digital Anda dengan mudah
           </p>

@@ -51,13 +51,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (credentials) => {
+  const login = async (credentials, remember = false) => {
     const response = await authService.login(credentials);
     if (response.success) {
       setUser(response.data.user);
       setIsAuthenticated(true);
-      authService.setToken(response.data.token);
-      authService.setUser(response.data.user);
+      authService.setToken(response.data.token, remember);
+      authService.setUser(response.data.user, remember);
     }
     return response;
   };

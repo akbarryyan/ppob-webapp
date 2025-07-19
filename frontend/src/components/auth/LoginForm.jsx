@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -15,10 +16,10 @@ import {
   DevicePhoneMobileIcon,
   BoltIcon,
 } from "@heroicons/react/24/outline";
-import { authService } from "../../services/authService";
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -40,16 +41,15 @@ const LoginForm = () => {
     setLoading(true);
 
     try {
-      const response = await authService.login({
-        email: formData.email,
-        password: formData.password,
-      });
+      const response = await login(
+        {
+          email: formData.email,
+          password: formData.password,
+        },
+        formData.rememberMe
+      );
 
       if (response.success) {
-        // Store auth data
-        authService.setToken(response.data.token, formData.rememberMe);
-        authService.setUser(response.data.user, formData.rememberMe);
-
         // Show success toast
         toast.success(`Selamat datang, ${response.data.user.name}!`, {
           position: "top-right",

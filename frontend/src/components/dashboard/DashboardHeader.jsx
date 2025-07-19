@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const DashboardHeader = ({
   activeTab,
@@ -15,6 +16,7 @@ const DashboardHeader = ({
   menuItems,
   onLogout,
 }) => {
+  const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isNotificationClosing, setIsNotificationClosing] = useState(false);
@@ -401,9 +403,11 @@ const DashboardHeader = ({
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-semibold text-gray-900">
-                    John Doe
+                    {user?.name || "User"}
                   </p>
-                  <p className="text-xs text-gray-500">Administrator</p>
+                  <p className="text-xs text-gray-500">
+                    {user?.email || "user@example.com"}
+                  </p>
                 </div>
                 <div className="relative group">
                   <button
@@ -433,10 +437,10 @@ const DashboardHeader = ({
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-gray-900">
-                          John Doe
+                          {user?.name || "User"}
                         </p>
                         <p className="text-xs text-gray-500">
-                          john.doe@admin.com
+                          {user?.email || "user@example.com"}
                         </p>
                         <div className="flex items-center mt-1">
                           <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
