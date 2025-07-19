@@ -50,14 +50,20 @@ const RegisterForm = () => {
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      toast.error("Konfirmasi password tidak cocok");
+      toast.error("Konfirmasi password tidak cocok", {
+        position: "top-right",
+        autoClose: 2500,
+      });
       setLoading(false);
       return;
     }
 
     // Validate terms agreement
     if (!formData.agreeToTerms) {
-      toast.error("Harap setujui syarat dan ketentuan");
+      toast.error("Harap setujui syarat dan ketentuan", {
+        position: "top-right",
+        autoClose: 2500,
+      });
       setLoading(false);
       return;
     }
@@ -77,12 +83,12 @@ const RegisterForm = () => {
         authService.setToken(response.data.token, true);
         authService.setUser(response.data.user, true);
 
-        // Show success toast
+        // Show success toast immediately
         toast.success(
           `Selamat datang, ${response.data.user.name}! Akun Anda berhasil dibuat.`,
           {
             position: "top-right",
-            autoClose: 4000,
+            autoClose: 2500,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -90,16 +96,16 @@ const RegisterForm = () => {
           }
         );
 
-        // Navigate to dashboard with slight delay
+        // Navigate to dashboard with delay
         setTimeout(() => {
           navigate("/dashboard");
-        }, 500);
+        }, 600);
       }
     } catch (err) {
-      // Show error toast
+      // Show error toast immediately
       toast.error(err.message || "Registrasi gagal. Silakan coba lagi.", {
         position: "top-right",
-        autoClose: 5000,
+        autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -497,11 +503,40 @@ const RegisterForm = () => {
             {/* Register Button */}
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 transform hover:-translate-y-1 hover:shadow-lg"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 transform hover:-translate-y-1 hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-none"
             >
               <span className="flex items-center">
-                Daftar Sekarang
-                <ArrowRightIcon className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+                {loading ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Mendaftar...
+                  </>
+                ) : (
+                  <>
+                    Daftar Sekarang
+                    <ArrowRightIcon className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+                  </>
+                )}
               </span>
             </button>
           </form>
