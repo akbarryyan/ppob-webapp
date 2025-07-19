@@ -45,6 +45,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // Admin routes for syncing data
         Route::post('/sync-prepaid-price-list', [DigiflazzController::class, 'syncPrepaidPriceList']);
         Route::post('/sync-postpaid-price-list', [DigiflazzController::class, 'syncPostpaidPriceList']);
+
+        // Settings routes
+        Route::get('/settings', [DigiflazzController::class, 'getSettings']);
+        Route::post('/settings', [DigiflazzController::class, 'updateSettings']);
+        Route::post('/check-balance', [DigiflazzController::class, 'checkBalance']);
     });
 
     // Legacy route for backward compatibility

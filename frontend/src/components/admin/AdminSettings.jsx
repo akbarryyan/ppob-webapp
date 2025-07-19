@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import {
   Cog6ToothIcon,
   ShieldCheckIcon,
@@ -13,11 +14,27 @@ import {
   PhoneIcon,
   EyeIcon,
   EyeSlashIcon,
+  CloudIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  ArrowPathIcon,
+  CurrencyDollarIcon,
+  ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 
 const AdminSettings = () => {
   const [activeSection, setActiveSection] = useState("general");
   const [showPassword, setShowPassword] = useState({});
+  const [digiflazzLoading, setDigiflazzLoading] = useState(false);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [hasExistingData, setHasExistingData] = useState(false);
+  const [digiflazzSettings, setDigiflazzSettings] = useState({
+    username: "",
+    api_key: "",
+    whitelist_ips: "",
+    current_balance: null,
+    balance_updated_at: null,
+  });
   const [settings, setSettings] = useState({
     general: {
       siteName: "BayarAja",
@@ -73,8 +90,161 @@ const AdminSettings = () => {
     }));
   };
 
+  const getAuthToken = () => {
+    return (
+      localStorage.getItem("adminAuthToken") ||
+      sessionStorage.getItem("adminAuthToken")
+    );
+  };
+
+  // Load Digiflazz settings on component mount
+  useEffect(() => {
+    loadDigiflazzSettings();
+  }, []);
+
+  const loadDigiflazzSettings = async () => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        toast.error("Authentication token not found");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:8000/api/digiflazz/settings",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (data.success && data.data) {
+        const hasData =
+          data.data.username && data.data.api_key === "***********";
+        setHasExistingData(hasData);
+
+        setDigiflazzSettings({
+          username: hasData ? "***********" : data.data.username || "",
+          api_key: hasData ? "***********" : data.data.api_key || "",
+          whitelist_ips: Array.isArray(data.data.whitelist_ips)
+            ? data.data.whitelist_ips.join(", ")
+            : data.data.whitelist_ips || "",
+          current_balance: data.data.current_balance,
+          balance_updated_at: data.data.balance_updated_at,
+        });
+      } else {
+        setHasExistingData(false);
+      }
+    } catch (error) {
+      console.error("Failed to load Digiflazz settings:", error);
+      setHasExistingData(false);
+    }
+  };
+
+  const saveDigiflazzSettings = async () => {
+    setDigiflazzLoading(true);
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        toast.error("Authentication token not found");
+        return;
+      }
+
+      // Check if user is trying to save without entering actual values for existing data
+      if (
+        hasExistingData &&
+        (digiflazzSettings.username === "***********" ||
+          digiflazzSettings.api_key === "***********")
+      ) {
+        toast.error(
+          "Please enter actual username and API key values to update"
+        );
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:8000/api/digiflazz/settings",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: digiflazzSettings.username,
+            api_key: digiflazzSettings.api_key,
+            whitelist_ips: digiflazzSettings.whitelist_ips,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        toast.success("Digiflazz settings saved successfully");
+        loadDigiflazzSettings(); // Reload to get updated data
+      } else {
+        toast.error(data.message || "Failed to save settings");
+      }
+    } catch (error) {
+      console.error("Failed to save Digiflazz settings:", error);
+      toast.error("Failed to save Digiflazz settings");
+    } finally {
+      setDigiflazzLoading(false);
+    }
+  };
+
+  const checkDigiflazzBalance = async () => {
+    setBalanceLoading(true);
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        toast.error("Authentication token not found");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:8000/api/digiflazz/check-balance",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        setDigiflazzSettings((prev) => ({
+          ...prev,
+          current_balance: data.data.balance,
+          balance_updated_at: data.data.last_updated,
+        }));
+        toast.success(`Balance: ${data.data.formatted_balance}`);
+      } else {
+        toast.error(data.message || "Failed to check balance");
+      }
+    } catch (error) {
+      console.error("Failed to check balance:", error);
+      toast.error("Failed to check balance");
+    } finally {
+      setBalanceLoading(false);
+    }
+  };
+
+  const handleDigiflazzSettingChange = (key, value) => {
+    setDigiflazzSettings((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
   const settingSections = [
     { key: "general", label: "General", icon: Cog6ToothIcon },
+    { key: "digiflazz", label: "Digiflazz", icon: CloudIcon },
     { key: "security", label: "Security", icon: ShieldCheckIcon },
     { key: "payment", label: "Payment", icon: CreditCardIcon },
     { key: "notifications", label: "Notifications", icon: BellIcon },
@@ -266,6 +436,250 @@ const AdminSettings = () => {
                   label="Maintenance Mode"
                   description="Temporarily disable the site for maintenance"
                 />
+              </SettingCard>
+            </div>
+          )}
+
+          {activeSection === "digiflazz" && (
+            <div className="space-y-6">
+              <SettingCard
+                title="API Configuration"
+                description="Configure your Digiflazz API credentials"
+              >
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Username
+                    </label>
+                    <div className="relative">
+                      <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type={
+                          showPassword.digiflazz_username
+                            ? "text"
+                            : hasExistingData
+                            ? "password"
+                            : "text"
+                        }
+                        value={digiflazzSettings.username}
+                        onChange={(e) =>
+                          handleDigiflazzSettingChange(
+                            "username",
+                            e.target.value
+                          )
+                        }
+                        className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        placeholder={
+                          hasExistingData
+                            ? "Enter new username to update"
+                            : "Enter Digiflazz username"
+                        }
+                      />
+                      {hasExistingData && (
+                        <button
+                          type="button"
+                          onClick={() => togglePassword("digiflazz_username")}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword.digiflazz_username ? (
+                            <EyeSlashIcon className="w-5 h-5" />
+                          ) : (
+                            <EyeIcon className="w-5 h-5" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                    {hasExistingData && (
+                      <p className="text-sm text-amber-600 mt-1">
+                        Current username is saved. Enter new value to update.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      API Key
+                    </label>
+                    <div className="relative">
+                      <KeyIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type={
+                          showPassword.digiflazz_api_key ? "text" : "password"
+                        }
+                        value={digiflazzSettings.api_key}
+                        onChange={(e) =>
+                          handleDigiflazzSettingChange(
+                            "api_key",
+                            e.target.value
+                          )
+                        }
+                        className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        placeholder={
+                          hasExistingData
+                            ? "Enter new API key to update"
+                            : "Enter Digiflazz API key"
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePassword("digiflazz_api_key")}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPassword.digiflazz_api_key ? (
+                          <EyeSlashIcon className="w-5 h-5" />
+                        ) : (
+                          <EyeIcon className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                    {hasExistingData && (
+                      <p className="text-sm text-amber-600 mt-1">
+                        Current API key is saved. Enter new value to update.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Whitelist IP Addresses
+                    </label>
+                    <div className="relative">
+                      <GlobeAltIcon className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      <textarea
+                        rows={3}
+                        value={digiflazzSettings.whitelist_ips}
+                        onChange={(e) =>
+                          handleDigiflazzSettingChange(
+                            "whitelist_ips",
+                            e.target.value
+                          )
+                        }
+                        className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        placeholder="Enter IP addresses separated by commas (e.g., 192.168.1.1, 10.0.0.1)"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Add IP addresses that are allowed to access the Digiflazz
+                      API
+                    </p>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    {hasExistingData && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDigiflazzSettings((prev) => ({
+                            ...prev,
+                            username: "",
+                            api_key: "",
+                          }));
+                          setHasExistingData(false);
+                        }}
+                        className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors"
+                      >
+                        <XCircleIcon className="w-4 h-4" />
+                        <span className="text-sm">
+                          Clear to enter new values
+                        </span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={saveDigiflazzSettings}
+                      disabled={digiflazzLoading}
+                      className="flex items-center space-x-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                    >
+                      {digiflazzLoading ? (
+                        <>
+                          <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircleIcon className="w-5 h-5" />
+                          <span>Save Settings</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </SettingCard>
+
+              <SettingCard
+                title="Account Information"
+                description="View your Digiflazz account balance and status"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div className="flex items-center space-x-3">
+                      <CurrencyDollarIcon className="w-6 h-6 text-green-600" />
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          Account Balance
+                        </p>
+                        {digiflazzSettings.current_balance !== null ? (
+                          <p className="text-sm text-gray-600">
+                            Last updated:{" "}
+                            {digiflazzSettings.balance_updated_at
+                              ? new Date(
+                                  digiflazzSettings.balance_updated_at
+                                ).toLocaleString("id-ID")
+                              : "Never"}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-gray-500">
+                            Not checked yet
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {digiflazzSettings.current_balance !== null ? (
+                        <p className="text-2xl font-bold text-green-600">
+                          Rp{" "}
+                          {Number(
+                            digiflazzSettings.current_balance
+                          ).toLocaleString("id-ID")}
+                        </p>
+                      ) : (
+                        <p className="text-lg text-gray-400">-</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={checkDigiflazzBalance}
+                      disabled={balanceLoading || !hasExistingData}
+                      className="flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {balanceLoading ? (
+                        <>
+                          <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                          <span>Checking...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ArrowPathIcon className="w-5 h-5" />
+                          <span>Check Balance</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {!hasExistingData && (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                      <div className="flex items-center space-x-3">
+                        <ExclamationCircleIcon className="w-5 h-5 text-yellow-600" />
+                        <p className="text-sm text-yellow-800">
+                          Please save your API credentials first before checking
+                          balance.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </SettingCard>
             </div>
           )}

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\PriceList;
+use App\Models\DigiflazzSetting;
 use Carbon\Carbon;
 
 class DigiflazzController extends Controller
@@ -18,8 +19,17 @@ class DigiflazzController extends Controller
     public function __construct()
     {
         $this->apiBaseUrl = env('DIGIFLAZZ_API_BASE_URL', 'https://api.digiflazz.com/v1');
-        $this->username = env('DIGIFLAZZ_USERNAME');
-        $this->apiKey = env('DIGIFLAZZ_API_KEY');
+        
+        // Try to get credentials from database first, fallback to env
+        $setting = DigiflazzSetting::getActiveSetting();
+        if ($setting) {
+            $this->username = $setting->username;
+            $this->apiKey = $setting->api_key;
+        } else {
+            // Fallback to environment variables
+            $this->username = env('DIGIFLAZZ_USERNAME');
+            $this->apiKey = env('DIGIFLAZZ_API_KEY');
+        }
     }
 
     /**
@@ -277,5 +287,195 @@ class DigiflazzController extends Controller
             'env_api_key_length' => $this->apiKey ? strlen($this->apiKey) : 'not set',
             'api_url' => $this->apiBaseUrl,
         ]);
+    }
+
+    /**
+     * Get Digiflazz settings
+     */
+    public function getSettings()
+    {
+        try {
+            $setting = DigiflazzSetting::getActiveSetting();
+            
+            if (!$setting) {
+                return response()->json([
+                    'success' => true,
+                    'data' => null,
+                    'message' => 'No Digiflazz settings found'
+                ]);
+            }
+
+            // Don't expose API key in response
+            $settingData = $setting->toArray();
+            $settingData['api_key'] = $setting->api_key ? '***********' : null;
+
+            return response()->json([
+                'success' => true,
+                'data' => $settingData,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Get Digiflazz Settings Error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get Digiflazz settings'
+            ], 500);
+        }
+    }
+
+    /**
+     * Update Digiflazz settings
+     */
+    public function updateSettings(Request $request)
+    {
+        try {
+            $request->validate([
+                'username' => 'required|string|max:255',
+                'api_key' => 'required|string',
+                'whitelist_ips' => 'nullable|string',
+            ]);
+
+            // Deactivate all existing settings
+            DigiflazzSetting::where('is_active', true)->update(['is_active' => false]);
+
+            // Create or update setting
+            $setting = DigiflazzSetting::create([
+                'username' => $request->username,
+                'api_key' => $request->api_key,
+                'whitelist_ips' => $request->whitelist_ips,
+                'is_active' => true,
+            ]);
+
+            // Update credentials for current instance
+            $this->username = $request->username;
+            $this->apiKey = $request->api_key;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Digiflazz settings updated successfully',
+                'data' => [
+                    'username' => $setting->username,
+                    'api_key' => '***********',
+                    'whitelist_ips' => $setting->whitelist_ips,
+                    'is_active' => $setting->is_active,
+                ]
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Update Digiflazz Settings Error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update Digiflazz settings'
+            ], 500);
+        }
+    }
+
+    /**
+     * Check Digiflazz account balance
+     */
+    public function checkBalance()
+    {
+        try {
+            // Get active setting from database
+            $setting = DigiflazzSetting::getActiveSetting();
+            
+            if (!$setting) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No active Digiflazz settings found. Please configure your settings first.'
+                ], 404);
+            }
+
+            // Use setting credentials
+            $username = $setting->username;
+            $apiKey = $setting->api_key;
+            $signature = md5($username . $apiKey . "depo");
+
+            $requestData = [
+                'cmd' => 'deposit',
+                'username' => $username,
+                'sign' => $signature
+            ];
+
+            Log::info('Digiflazz Balance Check Request', [
+                'request_data' => array_merge($requestData, ['sign' => '***hidden***'])
+            ]);
+
+            $response = Http::timeout(30)
+                ->post($this->apiBaseUrl . '/cek-saldo', $requestData);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                Log::info('Digiflazz Balance Check Response', [
+                    'response_data' => $data
+                ]);
+
+                if (isset($data['data']['deposit'])) {
+                    $balance = $data['data']['deposit'];
+                    
+                    // Update balance in settings
+                    $setting->update([
+                        'current_balance' => $balance,
+                        'balance_updated_at' => now()
+                    ]);
+
+                    return response()->json([
+                        'success' => true,
+                        'data' => [
+                            'balance' => $balance,
+                            'formatted_balance' => 'Rp ' . number_format($balance, 0, ',', '.'),
+                            'last_updated' => $setting->balance_updated_at->format('Y-m-d H:i:s'),
+                        ],
+                        'message' => 'Balance retrieved successfully'
+                    ]);
+                } else {
+                    Log::error('Digiflazz Balance Check - Invalid Response Format', [
+                        'response' => $data
+                    ]);
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid response format from Digiflazz API'
+                    ], 500);
+                }
+            } else {
+                Log::error('Digiflazz Balance Check API Error', [
+                    'status' => $response->status(),
+                    'response' => $response->body()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to connect to Digiflazz API',
+                    'status_code' => $response->status()
+                ], 500);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Digiflazz Balance Check Exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while checking balance'
+            ], 500);
+        }
     }
 }
