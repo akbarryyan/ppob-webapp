@@ -37,6 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AdminController::class, 'logout']);
         Route::post('/logout-all', [AdminController::class, 'logoutAll']);
 
+        // Dashboard stats route
+        Route::get('/dashboard/stats', [AdminController::class, 'getDashboardStats']);
+
         // Users management routes
         Route::get('/users', [AdminController::class, 'getUsers']);
         Route::post('/users', [AdminController::class, 'createUser']);

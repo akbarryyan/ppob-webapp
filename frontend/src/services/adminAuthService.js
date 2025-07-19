@@ -221,6 +221,28 @@ export const adminAuthService = {
       sessionStorage.getItem("adminAuthToken")
     );
   },
+
+  // Get dashboard statistics
+  async getDashboardStats() {
+    try {
+      console.log("Making API call to /admin/dashboard/stats");
+      const response = await adminApiClient.get("/admin/dashboard/stats");
+      console.log("API response:", response.data);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error) {
+      console.error("Dashboard stats error:", error);
+      console.error("Error response:", error.response?.data);
+      return {
+        success: false,
+        message:
+          error.response?.data?.message || "Failed to fetch dashboard stats",
+      };
+    }
+  },
 };
 
 // Export the configured axios instance for other admin services

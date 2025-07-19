@@ -16,21 +16,25 @@ import {
 } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { adminAuthService } from "../../services/adminAuthService";
 import "../../styles/scrollbar.css";
 
 const AdminOverview = () => {
   const navigate = useNavigate();
 
-  const [stats] = useState({
-    totalUsers: 12543,
-    totalTransactions: 8765,
-    totalProducts: 234,
-    totalRevenue: 875432100,
-    userGrowth: 12.5,
-    transactionGrowth: 8.3,
-    productGrowth: 15.2,
-    revenueGrowth: 23.7,
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalTransactions: 0,
+    totalProducts: 0,
+    totalRevenue: 0,
+    userGrowth: 0,
+    transactionGrowth: 0,
+    productGrowth: 0,
+    revenueGrowth: 0,
   });
+
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [statsError, setStatsError] = useState(null);
 
   const [recentActivity] = useState([
     {
@@ -130,6 +134,30 @@ const AdminOverview = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isMobile, setIsMobile] = useState(false);
 
+  // Fetch dashboard stats
+  const fetchStats = async () => {
+    setIsLoadingStats(true);
+    setStatsError(null);
+    try {
+      const response = await adminAuthService.getDashboardStats();
+      if (response.success) {
+        setStats(response.data);
+      } else {
+        console.error("Failed to fetch stats:", response.message);
+        setStatsError(response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      setStatsError("Network error while fetching stats");
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -196,6 +224,7 @@ const AdminOverview = () => {
     icon: Icon,
     color,
     isAmount = false,
+    isLoading = false,
   }) => (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden hover:shadow-xl transition-all duration-300 group">
       <div className="p-4 sm:p-5 lg:p-6">
@@ -216,32 +245,51 @@ const AdminOverview = () => {
 
           {/* Value */}
           <div className="space-y-2">
-            <p className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
-              {isAmount ? formatCurrency(value) : formatNumber(value)}
-            </p>
+            {isLoading ? (
+              <div className="animate-pulse">
+                <div className="h-8 sm:h-10 lg:h-12 xl:h-14 bg-gray-200 rounded-lg"></div>
+              </div>
+            ) : (
+              <p className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
+                {isAmount ? formatCurrency(value) : formatNumber(value)}
+              </p>
+            )}
 
             {/* Growth indicator */}
             <div className="flex items-center space-x-2">
-              <div
-                className={`flex items-center space-x-1 px-2 py-1 rounded-lg ${
-                  growth > 0
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
-                }`}
-              >
-                {growth > 0 ? (
-                  <ArrowUpIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                ) : (
-                  <ArrowDownIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                )}
-                <span className="text-xs sm:text-sm font-semibold">
-                  {Math.abs(growth)}%
-                </span>
-              </div>
-              <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">
-                vs last month
-              </span>
-              <span className="text-xs text-gray-500 sm:hidden">vs prev</span>
+              {isLoading ? (
+                <div className="animate-pulse flex items-center space-x-2">
+                  <div className="h-6 w-16 bg-gray-200 rounded-lg"></div>
+                  <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                </div>
+              ) : (
+                <>
+                  <div
+                    className={`flex items-center space-x-1 px-2 py-1 rounded-lg ${
+                      growth > 0
+                        ? "bg-green-50 text-green-700"
+                        : growth < 0
+                        ? "bg-red-50 text-red-700"
+                        : "bg-gray-50 text-gray-700"
+                    }`}
+                  >
+                    {growth > 0 ? (
+                      <ArrowUpIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                    ) : growth < 0 ? (
+                      <ArrowDownIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                    ) : null}
+                    <span className="text-xs sm:text-sm font-semibold">
+                      {Math.abs(growth)}%
+                    </span>
+                  </div>
+                  <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">
+                    vs last month
+                  </span>
+                  <span className="text-xs text-gray-500 sm:hidden">
+                    vs prev
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -262,8 +310,15 @@ const AdminOverview = () => {
               Here's what's happening with your platform today
             </p>
           </div>
-          <div className="flex items-center space-x-4 text-right">
-            <div>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={fetchStats}
+              disabled={isLoadingStats}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors duration-200 disabled:opacity-50"
+            >
+              {isLoadingStats ? "Refreshing..." : "Refresh Stats"}
+            </button>
+            <div className="text-right">
               <p className="text-indigo-100 text-sm">Current Time</p>
               <p className="text-xl font-bold">
                 {currentTime.toLocaleTimeString("id-ID", {
@@ -282,35 +337,62 @@ const AdminOverview = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-        <StatCard
-          title="Total Users"
-          value={stats.totalUsers}
-          growth={stats.userGrowth}
-          icon={UsersIcon}
-          color="bg-gradient-to-tr from-blue-500 to-cyan-500"
-        />
-        <StatCard
-          title="Total Transactions"
-          value={stats.totalTransactions}
-          growth={stats.transactionGrowth}
-          icon={CreditCardIcon}
-          color="bg-gradient-to-tr from-green-500 to-emerald-500"
-        />
-        <StatCard
-          title="Total Products"
-          value={stats.totalProducts}
-          growth={stats.productGrowth}
-          icon={ShoppingBagIcon}
-          color="bg-gradient-to-tr from-purple-500 to-pink-500"
-        />
-        <StatCard
-          title="Total Revenue"
-          value={stats.totalRevenue}
-          growth={stats.revenueGrowth}
-          icon={ArrowTrendingUpIcon}
-          color="bg-gradient-to-tr from-orange-500 to-red-500"
-          isAmount={true}
-        />
+        {statsError ? (
+          <div className="col-span-full bg-red-50 border border-red-200 rounded-2xl p-6">
+            <div className="text-center">
+              <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-red-400" />
+              <h3 className="mt-2 text-sm font-semibold text-red-900">
+                Unable to load statistics
+              </h3>
+              <p className="mt-1 text-sm text-red-600">{statsError}</p>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={fetchStats}
+                  className="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                >
+                  Try again
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <StatCard
+              title="Total Users"
+              value={stats.totalUsers}
+              growth={stats.userGrowth}
+              icon={UsersIcon}
+              color="bg-gradient-to-tr from-blue-500 to-cyan-500"
+              isLoading={isLoadingStats}
+            />
+            <StatCard
+              title="Total Transactions"
+              value={stats.totalTransactions}
+              growth={stats.transactionGrowth}
+              icon={CreditCardIcon}
+              color="bg-gradient-to-tr from-green-500 to-emerald-500"
+              isLoading={isLoadingStats}
+            />
+            <StatCard
+              title="Total Products"
+              value={stats.totalProducts}
+              growth={stats.productGrowth}
+              icon={ShoppingBagIcon}
+              color="bg-gradient-to-tr from-purple-500 to-pink-500"
+              isLoading={isLoadingStats}
+            />
+            <StatCard
+              title="Total Revenue"
+              value={stats.totalRevenue}
+              growth={stats.revenueGrowth}
+              icon={ArrowTrendingUpIcon}
+              color="bg-gradient-to-tr from-orange-500 to-red-500"
+              isAmount={true}
+              isLoading={isLoadingStats}
+            />
+          </>
+        )}
       </div>
 
       {/* System Health & Quick Actions */}
