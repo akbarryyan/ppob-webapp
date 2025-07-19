@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { toast } from "react-toastify";
+import { digiflazzService } from "../../services/digiflazzService";
 import {
   CurrencyDollarIcon,
   ChevronDownIcon,
@@ -14,9 +16,13 @@ import {
 } from "@heroicons/react/24/outline";
 
 const PriceList = () => {
-  const [selectedCategory, setSelectedCategory] = useState("pulsa");
+  const [selectedCategory, setSelectedCategory] = useState("prepaid");
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [priceData, setPriceData] = useState([]);
+  const [rawData, setRawData] = useState([]);
+  const [error, setError] = useState(null);
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -34,125 +40,94 @@ const PriceList = () => {
   }, []);
 
   const categories = [
-    { key: "pulsa", label: "Pulsa & Paket Data", icon: SignalIcon },
-    { key: "pln", label: "Token PLN", icon: BoltIcon },
-    { key: "internet", label: "Internet & WiFi", icon: GlobeAltIcon },
-    { key: "games", label: "Voucher Game", icon: PuzzlePieceIcon },
-    { key: "streaming", label: "Layanan Streaming", icon: TvIcon },
-    { key: "bank", label: "Transfer Bank", icon: BuildingLibraryIcon },
-    { key: "ewallet", label: "E-Wallet", icon: CreditCardIcon },
-    { key: "retail", label: "Voucher Belanja", icon: ShoppingBagIcon },
+    { key: "prepaid", label: "Produk Prepaid", icon: SignalIcon },
+    { key: "postpaid", label: "Produk Pascabayar", icon: BuildingLibraryIcon },
   ];
 
-  const priceData = {
-    pulsa: [
-      {
-        provider: "Telkomsel",
-        products: [
-          { name: "Pulsa 5.000", price: 6000, status: "available" },
-          { name: "Pulsa 10.000", price: 11000, status: "available" },
-          { name: "Pulsa 20.000", price: 20500, status: "available" },
-          { name: "Pulsa 25.000", price: 25500, status: "available" },
-          { name: "Pulsa 50.000", price: 50500, status: "available" },
-          { name: "Pulsa 100.000", price: 100500, status: "available" },
-          { name: "Data 1GB 30hr", price: 15000, status: "available" },
-          { name: "Data 2GB 30hr", price: 25000, status: "available" },
-          { name: "Data 5GB 30hr", price: 50000, status: "available" },
-          { name: "Data 10GB 30hr", price: 85000, status: "available" },
-        ],
-      },
-      {
-        provider: "XL Axiata",
-        products: [
-          { name: "Pulsa 5.000", price: 6200, status: "available" },
-          { name: "Pulsa 10.000", price: 11200, status: "available" },
-          { name: "Pulsa 25.000", price: 25700, status: "available" },
-          { name: "Pulsa 50.000", price: 50700, status: "available" },
-          { name: "Data 1GB 30hr", price: 16000, status: "available" },
-          { name: "Data 3GB 30hr", price: 35000, status: "available" },
-          { name: "Data 8GB 30hr", price: 75000, status: "maintenance" },
-        ],
-      },
-      {
-        provider: "Indosat",
-        products: [
-          { name: "Pulsa 5.000", price: 6100, status: "available" },
-          { name: "Pulsa 10.000", price: 11100, status: "available" },
-          { name: "Pulsa 25.000", price: 25600, status: "available" },
-          { name: "Data 1GB 30hr", price: 15500, status: "available" },
-          { name: "Data 2GB 30hr", price: 28000, status: "available" },
-        ],
-      },
-    ],
-    pln: [
-      {
-        provider: "PLN Prabayar",
-        products: [
-          { name: "Token 20.000", price: 21000, status: "available" },
-          { name: "Token 50.000", price: 51000, status: "available" },
-          { name: "Token 100.000", price: 101000, status: "available" },
-          { name: "Token 200.000", price: 201000, status: "available" },
-          { name: "Token 500.000", price: 501000, status: "available" },
-          { name: "Token 1.000.000", price: 1001000, status: "available" },
-        ],
-      },
-    ],
-    games: [
-      {
-        provider: "Mobile Legends",
-        products: [
-          { name: "86 Diamond", price: 22000, status: "available" },
-          { name: "172 Diamond", price: 43000, status: "available" },
-          { name: "257 Diamond", price: 64000, status: "available" },
-          { name: "344 Diamond", price: 86000, status: "available" },
-          { name: "429 Diamond", price: 107000, status: "available" },
-          { name: "514 Diamond", price: 129000, status: "available" },
-        ],
-      },
-      {
-        provider: "Free Fire",
-        products: [
-          { name: "70 Diamond", price: 10000, status: "available" },
-          { name: "140 Diamond", price: 20000, status: "available" },
-          { name: "355 Diamond", price: 50000, status: "available" },
-          { name: "720 Diamond", price: 100000, status: "available" },
-        ],
-      },
-      {
-        provider: "PUBG Mobile",
-        products: [
-          { name: "60 UC", price: 15000, status: "available" },
-          { name: "325 UC", price: 75000, status: "available" },
-          { name: "660 UC", price: 150000, status: "available" },
-        ],
-      },
-    ],
-    streaming: [
-      {
-        provider: "Netflix",
-        products: [
-          { name: "1 Bulan Mobile", price: 54000, status: "available" },
-          { name: "1 Bulan Basic", price: 120000, status: "available" },
-          { name: "1 Bulan Standard", price: 153000, status: "available" },
-          { name: "1 Bulan Premium", price: 186000, status: "available" },
-        ],
-      },
-      {
-        provider: "Disney+ Hotstar",
-        products: [
-          { name: "1 Bulan", price: 39000, status: "available" },
-          { name: "1 Tahun", price: 199000, status: "available" },
-        ],
-      },
-      {
-        provider: "Spotify",
-        products: [
-          { name: "1 Bulan Premium", price: 54000, status: "available" },
-          { name: "3 Bulan Premium", price: 150000, status: "available" },
-        ],
-      },
-    ],
+  const prepaidCategories = [
+    { key: "Pulsa", label: "Pulsa & Paket Data", icon: SignalIcon },
+    { key: "Data", label: "Paket Data", icon: GlobeAltIcon },
+    { key: "PLN", label: "Token PLN", icon: BoltIcon },
+    { key: "Games", label: "Voucher Game", icon: PuzzlePieceIcon },
+    { key: "Voucher", label: "Voucher Digital", icon: ShoppingBagIcon },
+    { key: "E-Money", label: "E-Wallet", icon: CreditCardIcon },
+  ];
+
+  // Fetch price list data
+  const fetchPriceList = async (
+    category = selectedCategory,
+    showToast = true
+  ) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      let response;
+      if (category === "prepaid") {
+        response = await digiflazzService.getPrepaidPriceList();
+      } else if (category === "postpaid") {
+        response = await digiflazzService.getPostpaidPriceList();
+      }
+
+      if (response.success) {
+        setRawData(response.data);
+
+        // Transform data based on category
+        let transformedData;
+        if (category === "prepaid") {
+          transformedData = digiflazzService.transformPrepaidData(
+            response.data
+          );
+        } else {
+          transformedData = digiflazzService.transformPostpaidData(
+            response.data
+          );
+        }
+
+        setPriceData(transformedData);
+
+        if (showToast) {
+          toast.success(`Berhasil memuat ${transformedData.length} provider`, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
+      } else {
+        setError(response.error);
+        setPriceData([]);
+        if (showToast) {
+          toast.error(`Gagal memuat data: ${response.error}`, {
+            position: "top-right",
+            autoClose: 4000,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching price list:", err);
+      setError(err.message);
+      setPriceData([]);
+      if (showToast) {
+        toast.error("Terjadi kesalahan saat memuat data", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Load data on component mount
+  useEffect(() => {
+    fetchPriceList(selectedCategory, false);
+  }, []);
+
+  // Refresh data when category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      fetchPriceList(selectedCategory, true);
+    }
+  }, [selectedCategory]);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -191,7 +166,7 @@ const PriceList = () => {
     }).format(price);
   };
 
-  const filteredData = priceData[selectedCategory] || [];
+  const filteredData = priceData || [];
   const searchedData = filteredData
     .map((provider) => ({
       ...provider,
@@ -222,52 +197,91 @@ const PriceList = () => {
         </div>
 
         {/* Category Dropdown */}
-        <div className="relative w-full lg:w-auto" ref={dropdownRef}>
-          <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-full lg:w-auto flex items-center justify-between lg:justify-center space-x-3 px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 lg:min-w-64"
-          >
-            <div className="flex items-center space-x-3">
-              {selectedCategoryData && (
-                <>
-                  <selectedCategoryData.icon className="w-5 h-5 text-gray-600" />
-                  <span className="font-medium text-gray-900">
-                    {selectedCategoryData.label}
-                  </span>
-                </>
-              )}
-            </div>
-            <ChevronDownIcon
-              className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
-                isDropdownOpen ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-
-          {isDropdownOpen && (
-            <div className="absolute top-full mt-2 left-0 right-0 lg:left-auto lg:right-0 lg:w-80 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-xl z-50 py-2">
-              <div className="grid grid-cols-1 gap-1">
-                {categories.map((category) => (
-                  <button
-                    key={category.key}
-                    onClick={() => {
-                      setSelectedCategory(category.key);
-                      setIsDropdownOpen(false);
-                      setSearchTerm("");
-                    }}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors rounded-xl mx-2 ${
-                      selectedCategory === category.key
-                        ? "bg-blue-50 text-blue-700 border border-blue-200"
-                        : "text-gray-700"
-                    }`}
-                  >
-                    <category.icon className="w-5 h-5 flex-shrink-0" />
-                    <span className="font-medium">{category.label}</span>
-                  </button>
-                ))}
+        <div className="flex items-center space-x-3">
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center justify-center space-x-3 px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 min-w-64"
+            >
+              <div className="flex items-center space-x-3">
+                {selectedCategoryData && (
+                  <>
+                    <selectedCategoryData.icon className="w-5 h-5 text-gray-600" />
+                    <span className="font-medium text-gray-900">
+                      {selectedCategoryData.label}
+                    </span>
+                  </>
+                )}
               </div>
-            </div>
-          )}
+              <ChevronDownIcon
+                className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                  isDropdownOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {isDropdownOpen && (
+              <div className="absolute top-full mt-2 right-0 w-80 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-xl z-50 py-2">
+                <div className="grid grid-cols-1 gap-1">
+                  {categories.map((category) => (
+                    <button
+                      key={category.key}
+                      onClick={() => {
+                        setSelectedCategory(category.key);
+                        setIsDropdownOpen(false);
+                        setSearchTerm("");
+                      }}
+                      className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors rounded-xl mx-2 ${
+                        selectedCategory === category.key
+                          ? "bg-blue-50 text-blue-700 border border-blue-200"
+                          : "text-gray-700"
+                      }`}
+                    >
+                      <category.icon className="w-5 h-5 flex-shrink-0" />
+                      <span className="font-medium">{category.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => fetchPriceList(selectedCategory)}
+            disabled={loading}
+            className="px-4 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+          >
+            {loading ? (
+              <>
+                <svg
+                  className="animate-spin h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span>Memuat...</span>
+              </>
+            ) : (
+              <>
+                <BoltIcon className="w-4 h-4" />
+                <span>Refresh</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -335,7 +349,68 @@ const PriceList = () => {
 
       {/* Price List */}
       <div className="space-y-6">
-        {searchedData.length === 0 ? (
+        {loading && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="animate-spin h-8 w-8 text-blue-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Memuat Data Harga...
+            </h3>
+            <p className="text-gray-500">Mengambil data terbaru dari server</p>
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="w-8 h-8 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Gagal Memuat Data
+            </h3>
+            <p className="text-gray-500 mb-4">{error}</p>
+            <button
+              onClick={() => fetchPriceList(selectedCategory)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && searchedData.length === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <MagnifyingGlassIcon className="w-8 h-8 text-gray-400" />
@@ -344,10 +419,16 @@ const PriceList = () => {
               Tidak ada produk ditemukan
             </h3>
             <p className="text-gray-500">
-              Coba ubah kata kunci pencarian atau pilih kategori lain
+              {searchTerm
+                ? "Coba ubah kata kunci pencarian atau pilih kategori lain"
+                : "Tidak ada data untuk kategori yang dipilih"}
             </p>
           </div>
-        ) : (
+        )}
+
+        {!loading &&
+          !error &&
+          searchedData.length > 0 &&
           searchedData.map((provider, index) => (
             <div
               key={provider.provider}
@@ -467,8 +548,7 @@ const PriceList = () => {
                 </div>
               </div>
             </div>
-          ))
-        )}
+          ))}
       </div>
 
       {/* Footer Info */}
