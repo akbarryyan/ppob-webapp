@@ -37,6 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AdminController::class, 'logout']);
         Route::post('/logout-all', [AdminController::class, 'logoutAll']);
 
+        // Users management routes
+        Route::get('/users', [AdminController::class, 'getUsers']);
+
         // Digiflazz Admin Settings routes
         Route::prefix('digiflazz')->group(function () {
             Route::get('/settings', [DigiflazzController::class, 'getSettings']);

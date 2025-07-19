@@ -73,6 +73,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Relationship: User's transactions
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    /**
      * Generate unique referral code
      */
     public static function generateReferralCode()

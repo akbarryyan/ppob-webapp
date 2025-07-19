@@ -13,8 +13,9 @@ import {
   ClockIcon,
   ShieldCheckIcon,
   UserIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../../styles/scrollbar.css";
 
 const AdminUsers = () => {
@@ -24,74 +25,67 @@ const AdminUsers = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [showUserModal, setShowUserModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [users] = useState([
-    {
-      id: 1,
-      name: "Budi Santoso",
-      email: "budi.santoso@email.com",
-      phone: "+62 812-3456-7890",
-      role: "user",
-      status: "active",
-      balance: 150000,
-      totalTransactions: 23,
-      joinDate: "2024-01-15",
-      lastActive: "2024-01-20T10:30:00",
-      avatar: null,
-    },
-    {
-      id: 2,
-      name: "Sari Melati",
-      email: "sari.melati@email.com",
-      phone: "+62 811-2233-4455",
-      role: "user",
-      status: "active",
-      balance: 75000,
-      totalTransactions: 12,
-      joinDate: "2024-01-10",
-      lastActive: "2024-01-20T09:15:00",
-      avatar: null,
-    },
-    {
-      id: 3,
-      name: "Admin User",
-      email: "admin@bayaraja.com",
-      phone: "+62 810-1111-2222",
-      role: "admin",
-      status: "active",
-      balance: 0,
-      totalTransactions: 0,
-      joinDate: "2023-12-01",
-      lastActive: "2024-01-20T11:45:00",
-      avatar: null,
-    },
-    {
-      id: 4,
-      name: "Andi Prakoso",
-      email: "andi.prakoso@email.com",
-      phone: "+62 813-5566-7788",
-      role: "user",
-      status: "inactive",
-      balance: 25000,
-      totalTransactions: 5,
-      joinDate: "2024-01-08",
-      lastActive: "2024-01-18T16:20:00",
-      avatar: null,
-    },
-    {
-      id: 5,
-      name: "Maya Sari",
-      email: "maya.sari@email.com",
-      phone: "+62 814-9900-1122",
-      role: "user",
-      status: "suspended",
-      balance: 0,
-      totalTransactions: 45,
-      joinDate: "2023-12-20",
-      lastActive: "2024-01-19T14:10:00",
-      avatar: null,
-    },
-  ]);
+  // Fetch users from API
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const token =
+        localStorage.getItem("adminAuthToken") ||
+        sessionStorage.getItem("adminAuthToken");
+
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      const response = await fetch("http://localhost:8000/api/admin/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Transform API data to match our component format
+        const transformedUsers = data.data.map((user) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone || "N/A",
+          role: user.role || "user",
+          status: user.email_verified_at ? "active" : "inactive",
+          balance: user.balance || 0,
+          totalTransactions: user.transactions_count || 0,
+          joinDate: user.created_at,
+          lastActive: user.updated_at || user.created_at,
+          avatar: null,
+        }));
+
+        setUsers(transformedUsers);
+      } else {
+        throw new Error(data.message || "Failed to fetch users");
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const statusColors = {
     active: "bg-green-100 text-green-800 border-green-200",
@@ -158,6 +152,60 @@ const AdminUsers = () => {
       setSelectedUsers(filteredUsers.map((user) => user.id));
     }
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center space-x-3">
+            <svg
+              className="animate-spin h-6 w-6 text-indigo-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span className="text-gray-600 font-medium">Loading users...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600 font-medium mb-2">Error loading users</p>
+            <p className="text-gray-500 text-sm mb-4">{error}</p>
+            <button
+              onClick={fetchUsers}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const UserModal = ({ user, onClose }) => (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -277,13 +325,35 @@ const AdminUsers = () => {
             User Management
           </h1>
           <p className="text-gray-600 mt-1">
-            Manage and monitor all user accounts
+            Manage and monitor all user accounts ({users.length} users loaded)
           </p>
         </div>
-        <button className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg">
-          <UserPlusIcon className="w-5 h-5" />
-          <span>Add New User</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={fetchUsers}
+            disabled={loading}
+            className="flex items-center space-x-2 border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+          >
+            <svg
+              className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            <span>Refresh Data</span>
+          </button>
+          <button className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg">
+            <UserPlusIcon className="w-5 h-5" />
+            <span>Add New User</span>
+          </button>
+        </div>
       </div>
 
       {/* Filters and Search */}
