@@ -280,7 +280,7 @@ class DigiflazzController extends Controller
             $requestBody = [
                 'cmd' => 'pasca',
                 'username' => $this->username,
-                'sign' => $this->generateSignature('pricelist'),
+                'sign' => $this->generateSignature('pasca'), // Use 'pasca' for postpaid
             ];
 
             // Add optional filters if provided
@@ -343,8 +343,7 @@ class DigiflazzController extends Controller
                         'seller_product_status' => $item['seller_product_status'] ?? false,
                         'desc' => $item['desc'] ?? null,
                         'category' => $item['category'] ?? null,
-                        'seller_name' => $item['seller_name'] ?? null,
-                        'admin_fee' => $originalAdmin,
+                        'admin' => $originalAdmin, // Use the 'admin' column that exists
                         'commission' => $commission,
                         'unlimited_stock' => true, // Postpaid usually unlimited
                         'stock' => 0, // Not applicable for postpaid
