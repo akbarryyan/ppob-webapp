@@ -423,10 +423,50 @@ class DigiflazzController extends Controller
             // Use setting credentials
             $username = $setting->username;
             $apiKey = $setting->api_key;
-            $signature = md5($username . $apiKey . "depo");
+            
+            // Check if using development credentials (only check API key)
+            $isDevelopment = str_starts_with($apiKey, 'dev-');
+            
+            if ($isDevelopment) {
+                // Mock response for development environment
+                Log::info('Using development credentials - returning mock balance');
+                
+                // Simulate a successful balance check
+                $mockBalance = 50000; // 50k mock balance
+                
+                // Update balance in settings
+                $setting->update([
+                    'current_balance' => $mockBalance,
+                    'balance_updated_at' => now()
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'balance' => $mockBalance,
+                        'formatted_balance' => 'Rp ' . number_format($mockBalance, 0, ',', '.'),
+                        'last_updated' => $setting->balance_updated_at->format('Y-m-d H:i:s'),
+                    ],
+                    'message' => 'Balance retrieved successfully (Development Mode)'
+                ]);
+            }
+
+            $cmd = 'deposit';
+            // Note: signature uses "depo" but cmd uses "deposit" according to Digiflazz docs
+            $signature = md5($username . $apiKey . 'depo');
+
+            // Debug logging to check signature generation
+            Log::info('Digiflazz Signature Debug', [
+                'username' => $username,
+                'api_key_length' => strlen($apiKey),
+                'cmd' => $cmd,
+                'signature_string' => 'depo',  // What's used for signature
+                'signature_input' => $username . $apiKey . 'depo',
+                'signature' => $signature
+            ]);
 
             $requestData = [
-                'cmd' => 'deposit',
+                'cmd' => $cmd,
                 'username' => $username,
                 'sign' => $signature
             ];
@@ -481,8 +521,9 @@ class DigiflazzController extends Controller
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to connect to Digiflazz API',
-                    'status_code' => $response->status()
+                    'message' => 'Failed to connect to Digiflazz API. Please check your credentials.',
+                    'status_code' => $response->status(),
+                    'hint' => 'Make sure you are using valid production Digiflazz credentials.'
                 ], 500);
             }
 
