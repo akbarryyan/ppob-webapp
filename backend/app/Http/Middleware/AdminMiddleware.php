@@ -23,9 +23,9 @@ class AdminMiddleware
             ], 401);
         }
 
-        // Check if user is admin (has admin email pattern or specific role)
+        // Check if user has admin role
         $user = $request->user();
-        if (!str_contains($user->email, 'admin@') && $user->email !== 'admin@bayaraja.com') {
+        if (!in_array($user->role, ['admin', 'super_admin'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Access denied. Admin privileges required.'

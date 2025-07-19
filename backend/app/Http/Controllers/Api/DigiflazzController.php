@@ -295,7 +295,13 @@ class DigiflazzController extends Controller
     public function getSettings()
     {
         try {
+            Log::info('DigiflazzController@getSettings called');
+            
             $setting = DigiflazzSetting::getActiveSetting();
+            
+            Log::info('Active setting query result', [
+                'setting' => $setting ? $setting->toArray() : null
+            ]);
             
             if (!$setting) {
                 return response()->json([
@@ -333,11 +339,17 @@ class DigiflazzController extends Controller
     public function updateSettings(Request $request)
     {
         try {
+            Log::info('DigiflazzController@updateSettings called', [
+                'request_data' => $request->all()
+            ]);
+            
             $request->validate([
                 'username' => 'required|string|max:255',
                 'api_key' => 'required|string',
                 'whitelist_ips' => 'nullable|string',
             ]);
+
+            Log::info('Validation passed');
 
             // Deactivate all existing settings
             DigiflazzSetting::where('is_active', true)->update(['is_active' => false]);
@@ -348,6 +360,10 @@ class DigiflazzController extends Controller
                 'api_key' => $request->api_key,
                 'whitelist_ips' => $request->whitelist_ips,
                 'is_active' => true,
+            ]);
+
+            Log::info('Setting created successfully', [
+                'setting_id' => $setting->id
             ]);
 
             // Update credentials for current instance
@@ -366,6 +382,10 @@ class DigiflazzController extends Controller
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error', [
+                'errors' => $e->errors()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',

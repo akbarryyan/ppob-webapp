@@ -57,7 +57,7 @@ const AdminPriceSync = () => {
       };
 
       const response = await fetch(
-        "http://localhost:8000/api/digiflazz/sync-prepaid-price-list",
+        "http://localhost:8000/api/admin/digiflazz/sync-prepaid-price-list",
         {
           method: "POST",
           headers: {

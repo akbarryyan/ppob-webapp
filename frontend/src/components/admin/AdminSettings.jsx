@@ -111,7 +111,7 @@ const AdminSettings = () => {
       }
 
       const response = await fetch(
-        "http://localhost:8000/api/digiflazz/settings",
+        "http://localhost:8000/api/admin/digiflazz/settings",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -166,7 +166,7 @@ const AdminSettings = () => {
       }
 
       const response = await fetch(
-        "http://localhost:8000/api/digiflazz/settings",
+        "http://localhost:8000/api/admin/digiflazz/settings",
         {
           method: "POST",
           headers: {
@@ -206,7 +206,7 @@ const AdminSettings = () => {
       }
 
       const response = await fetch(
-        "http://localhost:8000/api/digiflazz/check-balance",
+        "http://localhost:8000/api/admin/digiflazz/check-balance",
         {
           method: "POST",
           headers: {

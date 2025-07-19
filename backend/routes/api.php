@@ -30,26 +30,29 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout-all', [AuthController::class, 'logoutAll']);
     });
 
-    // Admin protected routes
-    Route::prefix('admin')->group(function () {
+        // Admin routes requiring authentication
+    Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+        // Admin authentication routes
         Route::get('/profile', [AdminController::class, 'profile']);
         Route::post('/logout', [AdminController::class, 'logout']);
         Route::post('/logout-all', [AdminController::class, 'logoutAll']);
+
+        // Digiflazz Admin Settings routes
+        Route::prefix('digiflazz')->group(function () {
+            Route::get('/settings', [DigiflazzController::class, 'getSettings']);
+            Route::post('/settings', [DigiflazzController::class, 'updateSettings']);
+            Route::post('/check-balance', [DigiflazzController::class, 'checkBalance']);
+            
+            // Admin routes for syncing data
+            Route::post('/sync-prepaid-price-list', [DigiflazzController::class, 'syncPrepaidPriceList']);
+            Route::post('/sync-postpaid-price-list', [DigiflazzController::class, 'syncPostpaidPriceList']);
+        });
     });
 
-    // Digiflazz API routes
+    // Digiflazz API routes (public)
     Route::prefix('digiflazz')->group(function () {
         Route::get('/prepaid-price-list', [DigiflazzController::class, 'getPrepaidPriceList']);
         Route::get('/postpaid-price-list', [DigiflazzController::class, 'getPostpaidPriceList']);
-        
-        // Admin routes for syncing data
-        Route::post('/sync-prepaid-price-list', [DigiflazzController::class, 'syncPrepaidPriceList']);
-        Route::post('/sync-postpaid-price-list', [DigiflazzController::class, 'syncPostpaidPriceList']);
-
-        // Settings routes
-        Route::get('/settings', [DigiflazzController::class, 'getSettings']);
-        Route::post('/settings', [DigiflazzController::class, 'updateSettings']);
-        Route::post('/check-balance', [DigiflazzController::class, 'checkBalance']);
     });
 
     // Legacy route for backward compatibility
