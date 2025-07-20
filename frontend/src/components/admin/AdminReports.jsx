@@ -20,77 +20,18 @@ const AdminReports = () => {
 
   const [reportData, setReportData] = useState({
     overview: {
-      totalRevenue: 6852500,
-      totalTransactions: 151,
-      totalUsers: 21,
-      successRate: 88.8, // 151/170 * 100
-      revenueGrowth: 0, // No comparison for all time
+      totalRevenue: 0,
+      totalTransactions: 0,
+      totalUsers: 0,
+      successRate: 0,
+      revenueGrowth: 0,
       transactionGrowth: 0,
       userGrowth: 0,
       successRateChange: 0,
     },
-    sales: [
-      {
-        product: "PLN Token 100K",
-        sales: 18,
-        revenue: 1845000,
-      },
-      {
-        product: "Google Play 50K",
-        sales: 16,
-        revenue: 840000,
-      },
-      {
-        product: "XL 15GB",
-        sales: 15,
-        revenue: 825000,
-      },
-      {
-        product: "PLN Token 50K",
-        sales: 12,
-        revenue: 630000,
-      },
-      {
-        product: "Telkomsel 10GB",
-        sales: 14,
-        revenue: 630000,
-      },
-    ],
-    daily: [
-      { date: "2025-07-15", transactions: 12, revenue: 630000 },
-      { date: "2025-07-16", transactions: 18, revenue: 945000 },
-      { date: "2025-07-17", transactions: 22, revenue: 1155000 },
-      { date: "2025-07-18", transactions: 15, revenue: 785000 },
-      { date: "2025-07-19", transactions: 26, revenue: 1365000 },
-      { date: "2025-07-20", transactions: 32, revenue: 1680000 },
-    ],
-    topUsers: [
-      {
-        name: "Ahmad Rizki",
-        transactions: 28,
-        spent: 1470000,
-      },
-      {
-        name: "Sari Indah",
-        transactions: 22,
-        spent: 1155000,
-      },
-      {
-        name: "Budi Santoso",
-        transactions: 18,
-        spent: 945000,
-      },
-      {
-        name: "Nia Kurnia",
-        transactions: 15,
-        spent: 787500,
-      },
-      {
-        name: "Dedi Supriyadi",
-        transactions: 12,
-        spent: 630000,
-      },
-    ],
+    sales: [],
+    daily: [],
+    topUsers: [],
   });
 
   // Fetch all reports data
@@ -99,190 +40,26 @@ const AdminReports = () => {
       setLoading(true);
       setError(null);
 
-      // Simulate loading time
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Use real data from database based on selected period
-      let realData;
-
-      if (selectedPeriod === "all") {
-        // All time data - no period filtering
-        realData = {
-          overview: {
-            totalRevenue: 6852500,
-            totalTransactions: 151,
-            totalUsers: 21,
-            successRate: 88.8, // 151/170 * 100
-            revenueGrowth: 0, // No comparison for all time
-            transactionGrowth: 0,
-            userGrowth: 0,
-            successRateChange: 0,
-          },
-          sales: [
-            {
-              product: "PLN Token 100K",
-              sales: 18,
-              revenue: 1845000,
-            },
-            {
-              product: "Google Play 50K",
-              sales: 16,
-              revenue: 840000,
-            },
-            {
-              product: "XL 15GB",
-              sales: 15,
-              revenue: 825000,
-            },
-            {
-              product: "PLN Token 50K",
-              sales: 12,
-              revenue: 630000,
-            },
-            {
-              product: "Telkomsel 10GB",
-              sales: 14,
-              revenue: 630000,
-            },
-          ],
-          daily: [
-            { date: "2025-07-15", transactions: 12, revenue: 630000 },
-            { date: "2025-07-16", transactions: 18, revenue: 945000 },
-            { date: "2025-07-17", transactions: 22, revenue: 1155000 },
-            { date: "2025-07-18", transactions: 15, revenue: 785000 },
-            { date: "2025-07-19", transactions: 26, revenue: 1365000 },
-            { date: "2025-07-20", transactions: 32, revenue: 1680000 },
-          ],
-          topUsers: [
-            {
-              name: "Ahmad Rizki",
-              transactions: 28,
-              spent: 1470000,
-            },
-            {
-              name: "Sari Indah",
-              transactions: 22,
-              spent: 1155000,
-            },
-            {
-              name: "Budi Santoso",
-              transactions: 18,
-              spent: 945000,
-            },
-            {
-              name: "Nia Kurnia",
-              transactions: 15,
-              spent: 787500,
-            },
-            {
-              name: "Dedi Supriyadi",
-              transactions: 12,
-              spent: 630000,
-            },
-          ],
-        };
-      } else {
-        // Specific period data (30 days, 7 days, etc.)
-        realData = {
-          overview: {
-            totalRevenue: 5025000,
-            totalTransactions: 112,
-            totalUsers: 6,
-            successRate: 90.3,
-            revenueGrowth: 208.8,
-            transactionGrowth: 211.1,
-            userGrowth: 20,
-            successRateChange: 6.6,
-          },
-          sales: [
-            {
-              product: "PLN Token 100K",
-              sales: 12,
-              revenue: 1230000,
-            },
-            {
-              product: "Google Play 50K",
-              sales: 14,
-              revenue: 735000,
-            },
-            {
-              product: "XL 15GB",
-              sales: 10,
-              revenue: 550000,
-            },
-            {
-              product: "Steam Wallet 50K",
-              sales: 9,
-              revenue: 495000,
-            },
-            {
-              product: "Telkomsel 10GB",
-              sales: 11,
-              revenue: 495000,
-            },
-          ],
-          daily: [
-            { date: "2025-07-15", transactions: 8, revenue: 420000 },
-            { date: "2025-07-16", transactions: 12, revenue: 630000 },
-            { date: "2025-07-17", transactions: 15, revenue: 785000 },
-            { date: "2025-07-18", transactions: 9, revenue: 465000 },
-            { date: "2025-07-19", transactions: 18, revenue: 945000 },
-            { date: "2025-07-20", transactions: 22, revenue: 1155000 },
-          ],
-          topUsers: [
-            {
-              name: "Ahmad Rizki",
-              transactions: 15,
-              spent: 765000,
-            },
-            {
-              name: "Sari Indah",
-              transactions: 12,
-              spent: 620000,
-            },
-            {
-              name: "Budi Santoso",
-              transactions: 8,
-              spent: 420000,
-            },
-            {
-              name: "Nia Kurnia",
-              transactions: 10,
-              spent: 525000,
-            },
-            {
-              name: "Dedi Supriyadi",
-              transactions: 6,
-              spent: 315000,
-            },
-          ],
-        };
-      }
-
-      setReportData(realData);
-      console.log(`Report data set for period: ${selectedPeriod}`, realData);
-
-      /* TODO: Enable when admin authentication is working
-      console.log('Fetching reports data...');
+      console.log("Fetching reports data for period:", selectedPeriod);
 
       // Fetch overview data
       const overviewResponse = await adminService.getReports(selectedPeriod);
-      console.log('Overview response:', overviewResponse);
+      console.log("Overview response:", overviewResponse);
 
       // Fetch top products
       const productsResponse = await adminService.getTopProducts(
         selectedPeriod,
         5
       );
-      console.log('Products response:', productsResponse);
+      console.log("Products response:", productsResponse);
 
       // Fetch top users
       const usersResponse = await adminService.getTopUsers(selectedPeriod, 5);
-      console.log('Users response:', usersResponse);
+      console.log("Users response:", usersResponse);
 
       // Fetch daily revenue
       const dailyResponse = await adminService.getDailyRevenue(selectedPeriod);
-      console.log('Daily response:', dailyResponse);
+      console.log("Daily response:", dailyResponse);
 
       if (
         overviewResponse.success &&
@@ -296,7 +73,7 @@ const AdminReports = () => {
           topUsers: usersResponse.data,
           daily: dailyResponse.data,
         });
-        console.log('Final report data:', {
+        console.log("Final report data set:", {
           overview: overviewResponse.data.overview,
           sales: productsResponse.data,
           topUsers: usersResponse.data,
@@ -305,7 +82,6 @@ const AdminReports = () => {
       } else {
         throw new Error("Failed to fetch reports data");
       }
-      */
     } catch (err) {
       setError(err.message || "Failed to load reports data");
       console.error("Error fetching reports:", err);
@@ -354,6 +130,7 @@ const AdminReports = () => {
     color,
     isAmount = false,
     isPercentage = false,
+    subtitle = null,
   }) => (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden hover:shadow-xl transition-all duration-300 group">
       <div className="p-4 sm:p-5 lg:p-6">
@@ -381,6 +158,13 @@ const AdminReports = () => {
                 ? `${value}%`
                 : value.toLocaleString()}
             </p>
+
+            {/* Subtitle */}
+            {subtitle && (
+              <p className="text-xs sm:text-sm text-gray-500 font-medium">
+                {subtitle}
+              </p>
+            )}
 
             {/* Growth indicator */}
             {selectedPeriod !== "all" && (
@@ -537,6 +321,7 @@ const AdminReports = () => {
                       growth={reportData.overview.transactionGrowth}
                       icon={CreditCardIcon}
                       color="bg-gradient-to-tr from-blue-500 to-cyan-500"
+                      subtitle={`${reportData.overview.successfulTransactions} successful (${reportData.overview.successRate}%)`}
                     />
                     <StatCard
                       title="Total Users"

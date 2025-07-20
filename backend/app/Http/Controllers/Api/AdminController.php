@@ -686,48 +686,77 @@ class AdminController extends Controller
             }
 
             // Current period stats
-            $totalRevenue = Transaction::where('status', 'success')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->sum('price') ?? 0;
+            if ($period === 'all') {
+                // For "all" period, don't use date filters
+                $totalRevenue = Transaction::where('status', 'success')
+                    ->sum('price') ?? 0;
 
-            $totalTransactions = Transaction::where('status', 'success')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->count();
+                // Total transactions = ALL transactions (not just successful ones)
+                $totalTransactions = Transaction::count();
 
-            $totalUsers = User::where('role', 'user')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->count();
+                $totalUsers = User::where('role', 'user')->count();
 
-            $successfulTransactions = Transaction::where('status', 'success')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->count();
-            
-            $totalAllTransactions = Transaction::whereBetween('created_at', [$startDate, $endDate])
-                ->count();
+                $successfulTransactions = Transaction::where('status', 'success')->count();
+                
+                $totalAllTransactions = Transaction::count();
 
-            $successRate = $totalAllTransactions > 0 ? ($successfulTransactions / $totalAllTransactions) * 100 : 0;
+                $successRate = $totalAllTransactions > 0 ? ($successfulTransactions / $totalAllTransactions) * 100 : 0;
+            } else {
+                // For specific periods, use date filters
+                $totalRevenue = Transaction::where('status', 'success')
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->sum('price') ?? 0;
+
+                // Total transactions = ALL transactions (not just successful ones)
+                $totalTransactions = Transaction::whereBetween('created_at', [$startDate, $endDate])
+                    ->count();
+
+                $totalUsers = User::where('role', 'user')
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->count();
+
+                $successfulTransactions = Transaction::where('status', 'success')
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->count();
+                
+                $totalAllTransactions = Transaction::whereBetween('created_at', [$startDate, $endDate])
+                    ->count();
+
+                $successRate = $totalAllTransactions > 0 ? ($successfulTransactions / $totalAllTransactions) * 100 : 0;
+            }
 
             // Previous period stats for growth calculation
-            $prevRevenue = Transaction::where('status', 'success')
-                ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-                ->sum('price') ?? 0;
+            if ($period === 'all') {
+                // For "all" period, set previous stats to 0 (no comparison available)
+                $prevRevenue = 0;
+                $prevTransactions = 0;
+                $prevUsers = 0;
+                $prevSuccessfulTransactions = 0;
+                $prevTotalAllTransactions = 0;
+                $prevSuccessRate = 0;
+            } else {
+                // For specific periods, use date filters
+                $prevRevenue = Transaction::where('status', 'success')
+                    ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+                    ->sum('price') ?? 0;
 
-            $prevTransactions = Transaction::where('status', 'success')
-                ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-                ->count();
+                // Previous total transactions = ALL transactions (not just successful ones)
+                $prevTransactions = Transaction::whereBetween('created_at', [$prevStartDate, $prevEndDate])
+                    ->count();
 
-            $prevUsers = User::where('role', 'user')
-                ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-                ->count();
+                $prevUsers = User::where('role', 'user')
+                    ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+                    ->count();
 
-            $prevSuccessfulTransactions = Transaction::where('status', 'success')
-                ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-                ->count();
-            
-            $prevTotalAllTransactions = Transaction::whereBetween('created_at', [$prevStartDate, $prevEndDate])
-                ->count();
+                $prevSuccessfulTransactions = Transaction::where('status', 'success')
+                    ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+                    ->count();
+                
+                $prevTotalAllTransactions = Transaction::whereBetween('created_at', [$prevStartDate, $prevEndDate])
+                    ->count();
 
-            $prevSuccessRate = $prevTotalAllTransactions > 0 ? ($prevSuccessfulTransactions / $prevTotalAllTransactions) * 100 : 0;
+                $prevSuccessRate = $prevTotalAllTransactions > 0 ? ($prevSuccessfulTransactions / $prevTotalAllTransactions) * 100 : 0;
+            }
 
             // Calculate growth percentages
             $revenueGrowth = $prevRevenue > 0 ? (($totalRevenue - $prevRevenue) / $prevRevenue) * 100 : ($totalRevenue > 0 ? 100 : 0);
@@ -741,6 +770,7 @@ class AdminController extends Controller
                     'overview' => [
                         'totalRevenue' => (float) $totalRevenue,
                         'totalTransactions' => (int) $totalTransactions,
+                        'successfulTransactions' => (int) $successfulTransactions,
                         'totalUsers' => (int) $totalUsers,
                         'successRate' => round($successRate, 1),
                         'revenueGrowth' => round($revenueGrowth, 1),
