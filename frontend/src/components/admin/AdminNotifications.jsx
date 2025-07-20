@@ -16,6 +16,7 @@ import {
 } from "@heroicons/react/24/outline";
 import "../../styles/scrollbar.css";
 import adminService from "../../services/adminService";
+import { toast } from "react-toastify";
 
 const AdminNotifications = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,6 +26,12 @@ const AdminNotifications = () => {
   const [showComposeModal, setShowComposeModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Modal states
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Real data states
   const [notifications, setNotifications] = useState([]);
@@ -71,9 +78,16 @@ const AdminNotifications = () => {
           per_page: notificationsResponse.data.per_page,
           total: notificationsResponse.data.total,
         });
+      } else {
+        toast.error(
+          notificationsResponse.message || "Failed to fetch notifications",
+          { autoClose: 3000 }
+        );
       }
     } catch (err) {
-      setError(err.message || "Failed to load notifications");
+      const errorMessage = err.message || "Failed to load notifications";
+      setError(errorMessage);
+      toast.error(errorMessage, { autoClose: 3000 });
       console.error("Error fetching notifications:", err);
     } finally {
       setLoading(false);
@@ -166,20 +180,78 @@ const AdminNotifications = () => {
   };
 
   // Handler functions
-  const handleDeleteNotification = async (id) => {
+  const handleViewNotification = (notification) => {
+    setSelectedNotification(notification);
+    setShowViewModal(true);
+  };
+
+  const handleConfirmDelete = (notification) => {
+    setSelectedNotification(notification);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteNotification = async () => {
+    if (!selectedNotification) return;
+
     try {
-      setLoading(true);
-      const response = await adminService.deleteNotification(id);
+      setDeleteLoading(true);
+      toast.info("Deleting notification...", { autoClose: 2000 });
+
+      // Add delay for better UX
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const response = await adminService.deleteNotification(
+        selectedNotification.id
+      );
+
       if (response.success) {
+        toast.success("Notification deleted successfully!", {
+          autoClose: 3000,
+        });
         await fetchNotifications(); // Refresh data
         setSelectedNotifications((prev) =>
-          prev.filter((selectedId) => selectedId !== id)
+          prev.filter((selectedId) => selectedId !== selectedNotification.id)
         );
+        setShowDeleteModal(false);
+        setSelectedNotification(null);
+      } else {
+        toast.error(response.message || "Failed to delete notification", {
+          autoClose: 3000,
+        });
       }
     } catch (err) {
-      setError(err.message || "Failed to delete notification");
+      console.error("Error deleting notification:", err);
+
+      // Better error handling for specific HTTP status codes
+      let errorMessage = "Failed to delete notification";
+
+      if (err.response) {
+        switch (err.response.status) {
+          case 400:
+            errorMessage =
+              err.response.data?.message ||
+              "Cannot delete this notification. It may have been sent already.";
+            break;
+          case 401:
+            errorMessage = "Authentication failed. Please login again.";
+            break;
+          case 403:
+            errorMessage =
+              "You don't have permission to delete this notification.";
+            break;
+          case 404:
+            errorMessage = "Notification not found.";
+            break;
+          default:
+            errorMessage = err.response.data?.message || errorMessage;
+        }
+      }
+
+      toast.error(errorMessage, {
+        autoClose: 4000,
+      });
     } finally {
-      setLoading(false);
+      setDeleteLoading(false);
     }
   };
 
@@ -188,15 +260,57 @@ const AdminNotifications = () => {
 
     try {
       setLoading(true);
+      toast.info(`Deleting ${selectedNotifications.length} notifications...`, {
+        autoClose: 2000,
+      });
+
+      // Add delay for better UX
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const response = await adminService.bulkDeleteNotifications(
         selectedNotifications
       );
+
       if (response.success) {
+        toast.success(
+          `${selectedNotifications.length} notifications deleted successfully!`,
+          { autoClose: 3000 }
+        );
         await fetchNotifications(); // Refresh data
         setSelectedNotifications([]);
+      } else {
+        toast.error(response.message || "Failed to delete notifications", {
+          autoClose: 3000,
+        });
       }
     } catch (err) {
-      setError(err.message || "Failed to delete notifications");
+      console.error("Error bulk deleting notifications:", err);
+
+      // Better error handling for specific HTTP status codes
+      let errorMessage = "Failed to delete notifications";
+
+      if (err.response) {
+        switch (err.response.status) {
+          case 400:
+            errorMessage =
+              err.response.data?.message ||
+              "Some notifications cannot be deleted (sent notifications cannot be deleted).";
+            break;
+          case 401:
+            errorMessage = "Authentication failed. Please login again.";
+            break;
+          case 403:
+            errorMessage =
+              "You don't have permission to delete these notifications.";
+            break;
+          default:
+            errorMessage = err.response.data?.message || errorMessage;
+        }
+      }
+
+      toast.error(errorMessage, {
+        autoClose: 4000,
+      });
     } finally {
       setLoading(false);
     }
@@ -309,6 +423,242 @@ const AdminNotifications = () => {
             </div>
           </form>
         </div>
+      </div>
+    </div>
+  );
+
+  // Delete Confirmation Modal
+  const DeleteModal = ({ onClose, onConfirm }) => {
+    const canDelete =
+      selectedNotification && selectedNotification.status !== "sent";
+
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+          <div className="p-6">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+              <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 text-center mb-2">
+              Delete Notification
+            </h3>
+
+            {!canDelete ? (
+              <div className="mb-4">
+                <p className="text-gray-600 text-center mb-4">
+                  This notification cannot be deleted because it has already
+                  been sent.
+                </p>
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Note:</strong> Sent notifications cannot be deleted
+                    to maintain audit trail.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-600 text-center mb-6">
+                Are you sure you want to delete this notification? This action
+                cannot be undone.
+              </p>
+            )}
+
+            {selectedNotification && (
+              <div className="bg-gray-50 rounded-lg p-3 mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-semibold text-sm text-gray-900 truncate flex-1 mr-2">
+                    {selectedNotification.title}
+                  </p>
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium border ${
+                      statusConfig[selectedNotification.status].color
+                    }`}
+                  >
+                    {statusConfig[selectedNotification.status].label}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                  {selectedNotification.message}
+                </p>
+              </div>
+            )}
+
+            <div className="flex space-x-3">
+              <button
+                onClick={onClose}
+                disabled={deleteLoading}
+                className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+              >
+                {canDelete ? "Cancel" : "Close"}
+              </button>
+              {canDelete && (
+                <button
+                  onClick={onConfirm}
+                  disabled={deleteLoading}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center"
+                >
+                  {deleteLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // View Detail Modal
+  const ViewModal = ({ onClose }) => (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-gray-900">
+              Notification Details
+            </h3>
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {selectedNotification && (
+          <div className="p-6">
+            <div className="space-y-6">
+              {/* Header Info */}
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                    {selectedNotification.title}
+                  </h4>
+                  <div className="flex items-center space-x-3 mb-4">
+                    {React.createElement(
+                      typeConfig[selectedNotification.type].icon,
+                      {
+                        className: `w-5 h-5 ${
+                          typeConfig[selectedNotification.type].iconColor
+                        }`,
+                      }
+                    )}
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium border ${
+                        typeConfig[selectedNotification.type].color
+                      }`}
+                    >
+                      {typeConfig[selectedNotification.type].label}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium border ${
+                        statusConfig[selectedNotification.status].color
+                      }`}
+                    >
+                      {statusConfig[selectedNotification.status].label}
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className={`px-2 py-1 text-sm font-semibold ${
+                    priorityConfig[selectedNotification.priority].color
+                  }`}
+                >
+                  {priorityConfig[selectedNotification.priority].label} Priority
+                </span>
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message
+                </label>
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-gray-900 whitespace-pre-wrap">
+                    {selectedNotification.message}
+                  </p>
+                </div>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Recipients
+                  </label>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="font-semibold text-gray-900">
+                      {selectedNotification.recipient_count.toLocaleString()}{" "}
+                      users
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {selectedNotification.recipients.replace("_", " ")}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Created By
+                  </label>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="font-semibold text-gray-900">
+                      {selectedNotification.created_by}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {formatDateTime(selectedNotification.created_at)}
+                    </p>
+                  </div>
+                </div>
+
+                {selectedNotification.sent_at && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Sent At
+                    </label>
+                    <div className="p-3 bg-green-50 rounded-lg">
+                      <p className="text-sm font-medium text-green-800">
+                        {formatDateTime(selectedNotification.sent_at)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {selectedNotification.scheduled_at && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Scheduled At
+                    </label>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <p className="text-sm font-medium text-blue-800">
+                        {formatDateTime(selectedNotification.scheduled_at)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -444,9 +794,31 @@ const AdminNotifications = () => {
         {selectedNotifications.length > 0 && (
           <div className="mt-4 p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-indigo-700">
-                {selectedNotifications.length} notification(s) selected
-              </span>
+              <div className="flex-1">
+                <span className="text-sm font-medium text-indigo-700">
+                  {selectedNotifications.length} notification(s) selected
+                </span>
+                {(() => {
+                  const sentCount = selectedNotifications.filter(
+                    (id) =>
+                      filteredNotifications.find((n) => n.id === id)?.status ===
+                      "sent"
+                  ).length;
+                  const canDeleteCount =
+                    selectedNotifications.length - sentCount;
+
+                  if (sentCount > 0) {
+                    return (
+                      <div className="mt-1 text-xs text-amber-600">
+                        {canDeleteCount > 0
+                          ? `${canDeleteCount} will be deleted • ${sentCount} sent notifications will be skipped`
+                          : `${sentCount} sent notifications cannot be deleted`}
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
               <div className="flex space-x-2">
                 <button
                   onClick={handleBulkDelete}
@@ -521,7 +893,11 @@ const AdminNotifications = () => {
                   {filteredNotifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200 hover:shadow-md transition-shadow"
+                      className={`rounded-xl p-4 space-y-3 border transition-shadow ${
+                        notification.status === "sent"
+                          ? "bg-gray-50 border-gray-200 opacity-80"
+                          : "bg-white border-gray-200 hover:shadow-md hover:border-gray-300"
+                      }`}
                     >
                       {/* Notification Header */}
                       <div className="flex items-start justify-between">
@@ -625,15 +1001,26 @@ const AdminNotifications = () => {
 
                       {/* Actions */}
                       <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-200">
-                        <button className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                        <button
+                          onClick={() => handleViewNotification(notification)}
+                          className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          title="View Details"
+                        >
                           <EyeIcon className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() =>
-                            handleDeleteNotification(notification.id)
+                          onClick={() => handleConfirmDelete(notification)}
+                          disabled={loading || notification.status === "sent"}
+                          className={`p-2 rounded-lg transition-colors ${
+                            notification.status === "sent"
+                              ? "text-gray-400 cursor-not-allowed opacity-50"
+                              : "text-gray-500 hover:text-red-600 hover:bg-red-50"
+                          } disabled:opacity-50`}
+                          title={
+                            notification.status === "sent"
+                              ? "Cannot delete sent notifications"
+                              : "Delete Notification"
                           }
-                          disabled={loading}
-                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                         >
                           <TrashIcon className="w-4 h-4" />
                         </button>
@@ -686,7 +1073,11 @@ const AdminNotifications = () => {
                     {filteredNotifications.map((notification) => (
                       <tr
                         key={notification.id}
-                        className="hover:bg-gray-50 transition-colors"
+                        className={`transition-colors ${
+                          notification.status === "sent"
+                            ? "bg-gray-25 opacity-80"
+                            : "hover:bg-gray-50"
+                        }`}
                       >
                         <td className="px-4 xl:px-6 py-4">
                           <input
@@ -780,15 +1171,20 @@ const AdminNotifications = () => {
                         </td>
                         <td className="px-4 xl:px-6 py-4">
                           <div className="flex items-center space-x-1 xl:space-x-2">
-                            <button className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                            <button
+                              onClick={() =>
+                                handleViewNotification(notification)
+                              }
+                              className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                              title="View Details"
+                            >
                               <EyeIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                             </button>
                             <button
-                              onClick={() =>
-                                handleDeleteNotification(notification.id)
-                              }
+                              onClick={() => handleConfirmDelete(notification)}
                               disabled={loading}
                               className="p-1.5 xl:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                              title="Delete Notification"
                             >
                               <TrashIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                             </button>
@@ -819,6 +1215,27 @@ const AdminNotifications = () => {
       {/* Compose Modal */}
       {showComposeModal && (
         <ComposeModal onClose={() => setShowComposeModal(false)} />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <DeleteModal
+          onClose={() => {
+            setShowDeleteModal(false);
+            setSelectedNotification(null);
+          }}
+          onConfirm={handleDeleteNotification}
+        />
+      )}
+
+      {/* View Detail Modal */}
+      {showViewModal && (
+        <ViewModal
+          onClose={() => {
+            setShowViewModal(false);
+            setSelectedNotification(null);
+          }}
+        />
       )}
     </div>
   );
