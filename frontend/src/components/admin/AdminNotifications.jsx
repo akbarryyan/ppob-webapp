@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   BellIcon,
   MagnifyingGlassIcon,
@@ -18,6 +18,241 @@ import "../../styles/scrollbar.css";
 import adminService from "../../services/adminService";
 import { toast } from "react-toastify";
 
+// Compose Modal Component (outside main component to prevent re-renders)
+const ComposeModal = React.memo(
+  ({
+    onClose,
+    formData,
+    composeLoading,
+    handleInputChange,
+    handleComposeSubmit,
+    resetForm,
+  }) => {
+    const handleClose = useCallback(() => {
+      resetForm();
+      onClose();
+    }, [resetForm, onClose]);
+
+    const handleScheduleSubmit = useCallback(() => {
+      if (!formData.scheduled_at) {
+        toast.error("Please select schedule date and time", {
+          autoClose: 3000,
+        });
+        return;
+      }
+      handleComposeSubmit("scheduled");
+    }, [formData.scheduled_at, handleComposeSubmit]);
+
+    const handleFormSubmit = useCallback(
+      (e) => {
+        e.preventDefault();
+        handleComposeSubmit("draft");
+      },
+      [handleComposeSubmit]
+    );
+
+    const handleSendNow = useCallback(() => {
+      handleComposeSubmit("sent");
+    }, [handleComposeSubmit]);
+
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">
+                Compose Notification
+              </h3>
+              <button
+                onClick={handleClose}
+                disabled={composeLoading}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <form className="space-y-6" onSubmit={handleFormSubmit}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  placeholder="Notification title..."
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  disabled={composeLoading}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:bg-gray-50"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message *
+                </label>
+                <textarea
+                  name="message"
+                  rows={4}
+                  placeholder="Notification message..."
+                  value={formData.message}
+                  onChange={handleInputChange}
+                  disabled={composeLoading}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:bg-gray-50"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Type
+                  </label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    disabled={composeLoading}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:bg-gray-50"
+                  >
+                    <option value="info">Info</option>
+                    <option value="success">Success</option>
+                    <option value="warning">Warning</option>
+                    <option value="error">Error</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Priority
+                  </label>
+                  <select
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleInputChange}
+                    disabled={composeLoading}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:bg-gray-50"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Recipients
+                </label>
+                <select
+                  name="recipients"
+                  value={formData.recipients}
+                  onChange={handleInputChange}
+                  disabled={composeLoading}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:bg-gray-50"
+                >
+                  <option value="all_users">All Users</option>
+                  <option value="active_users">Active Users</option>
+                  <option value="new_users">New Users</option>
+                  <option value="premium_users">Premium Users</option>
+                  <option value="admin_users">Admin Users</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Schedule Date & Time (Optional)
+                </label>
+                <input
+                  type="datetime-local"
+                  name="scheduled_at"
+                  value={formData.scheduled_at}
+                  onChange={handleInputChange}
+                  disabled={composeLoading}
+                  min={new Date().toISOString().slice(0, 16)}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 disabled:bg-gray-50"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Leave empty to save as draft or send immediately
+                </p>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={handleSendNow}
+                  disabled={composeLoading}
+                  className="flex-1 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {composeLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Now"
+                  )}
+                </button>
+
+                {formData.scheduled_at && (
+                  <button
+                    type="button"
+                    onClick={handleScheduleSubmit}
+                    disabled={composeLoading}
+                    className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {composeLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Scheduling...
+                      </>
+                    ) : (
+                      "Schedule"
+                    )}
+                  </button>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={composeLoading}
+                  className="flex-1 border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {composeLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-700 mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    "Save as Draft"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+ComposeModal.displayName = "ComposeModal";
+
 const AdminNotifications = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
@@ -32,6 +267,18 @@ const AdminNotifications = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Compose form state
+  const [composeLoading, setComposeLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    message: "",
+    type: "info",
+    priority: "medium",
+    recipients: "all_users",
+    scheduled_at: "",
+    status: "draft",
+  });
 
   // Real data states
   const [notifications, setNotifications] = useState([]);
@@ -255,6 +502,101 @@ const AdminNotifications = () => {
     }
   };
 
+  // Compose handlers
+  const handleComposeSubmit = async (actionType = "draft") => {
+    try {
+      if (!formData.title.trim() || !formData.message.trim()) {
+        toast.error("Please fill in title and message", { autoClose: 3000 });
+        return;
+      }
+
+      setComposeLoading(true);
+
+      const submitData = {
+        ...formData,
+        status: actionType,
+        scheduled_at:
+          actionType === "scheduled" && formData.scheduled_at
+            ? formData.scheduled_at
+            : null,
+      };
+
+      // Remove empty scheduled_at if not scheduling
+      if (actionType !== "scheduled") {
+        delete submitData.scheduled_at;
+      }
+
+      const response = await adminService.createNotification(submitData);
+
+      if (response.success) {
+        let successMessage = "";
+        switch (actionType) {
+          case "sent":
+            successMessage = "Notification sent successfully!";
+            break;
+          case "scheduled":
+            successMessage = "Notification scheduled successfully!";
+            break;
+          default:
+            successMessage = "Notification saved as draft!";
+        }
+
+        toast.success(successMessage, { autoClose: 3000 });
+        setShowComposeModal(false);
+        resetForm();
+        await fetchNotifications(); // Refresh data
+      } else {
+        toast.error(response.message || "Failed to create notification", {
+          autoClose: 3000,
+        });
+      }
+    } catch (err) {
+      console.error("Error creating notification:", err);
+      let errorMessage = "Failed to create notification";
+
+      if (err.response) {
+        switch (err.response.status) {
+          case 400:
+            errorMessage =
+              err.response.data?.message || "Invalid notification data";
+            break;
+          case 401:
+            errorMessage = "Authentication failed. Please login again.";
+            break;
+          case 403:
+            errorMessage = "You don't have permission to create notifications.";
+            break;
+          default:
+            errorMessage = err.response.data?.message || errorMessage;
+        }
+      }
+
+      toast.error(errorMessage, { autoClose: 4000 });
+    } finally {
+      setComposeLoading(false);
+    }
+  };
+
+  const handleInputChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }, []);
+
+  const resetForm = useCallback(() => {
+    setFormData({
+      title: "",
+      message: "",
+      type: "info",
+      priority: "medium",
+      recipients: "all_users",
+      scheduled_at: "",
+      status: "draft",
+    });
+  }, []);
+
   const handleBulkDelete = async () => {
     if (selectedNotifications.length === 0) return;
 
@@ -315,117 +657,6 @@ const AdminNotifications = () => {
       setLoading(false);
     }
   };
-
-  const ComposeModal = ({ onClose }) => (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-gray-900">
-              Compose Notification
-            </h3>
-            <button
-              onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div className="p-6">
-          <form className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title
-              </label>
-              <input
-                type="text"
-                placeholder="Notification title..."
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Message
-              </label>
-              <textarea
-                rows={4}
-                placeholder="Notification message..."
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type
-                </label>
-                <select className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                  <option value="info">Info</option>
-                  <option value="success">Success</option>
-                  <option value="warning">Warning</option>
-                  <option value="error">Error</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Priority
-                </label>
-                <select className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Recipients
-              </label>
-              <select className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                <option value="all_users">All Users</option>
-                <option value="active_users">Active Users</option>
-                <option value="new_users">New Users</option>
-                <option value="premium_users">Premium Users</option>
-                <option value="admin_users">Admin Users</option>
-              </select>
-            </div>
-
-            <div className="flex space-x-3">
-              <button
-                type="button"
-                className="flex-1 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
-              >
-                Send Now
-              </button>
-              <button
-                type="button"
-                className="flex-1 border border-gray-300 text-gray-700 px-4 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
-              >
-                Save as Draft
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
 
   // Delete Confirmation Modal
   const DeleteModal = ({ onClose, onConfirm }) => {
@@ -1182,9 +1413,19 @@ const AdminNotifications = () => {
                             </button>
                             <button
                               onClick={() => handleConfirmDelete(notification)}
-                              disabled={loading}
-                              className="p-1.5 xl:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                              title="Delete Notification"
+                              disabled={
+                                loading || notification.status === "sent"
+                              }
+                              className={`p-1.5 xl:p-2 rounded-lg transition-colors ${
+                                notification.status === "sent"
+                                  ? "text-gray-400 cursor-not-allowed opacity-50"
+                                  : "text-gray-400 hover:text-red-600 hover:bg-red-50"
+                              } disabled:opacity-50`}
+                              title={
+                                notification.status === "sent"
+                                  ? "Cannot delete sent notifications"
+                                  : "Delete Notification"
+                              }
                             >
                               <TrashIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
                             </button>
@@ -1214,7 +1455,17 @@ const AdminNotifications = () => {
 
       {/* Compose Modal */}
       {showComposeModal && (
-        <ComposeModal onClose={() => setShowComposeModal(false)} />
+        <ComposeModal
+          onClose={() => {
+            setShowComposeModal(false);
+            resetForm();
+          }}
+          formData={formData}
+          composeLoading={composeLoading}
+          handleInputChange={handleInputChange}
+          handleComposeSubmit={handleComposeSubmit}
+          resetForm={resetForm}
+        />
       )}
 
       {/* Delete Confirmation Modal */}
