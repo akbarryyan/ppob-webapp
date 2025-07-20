@@ -35,18 +35,18 @@ class AuthController extends Controller
 
             // Find referrer if referral code provided
             $referrer = null;
-            if ($request->referral_code) {
-                $referrer = User::where('referral_code', $request->referral_code)->first();
+            if ($request->input('referral_code')) {
+                $referrer = User::where('referral_code', $request->input('referral_code'))->first();
             }
 
             // Create user
             $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'password' => Hash::make($request->password),
+                'name' => $request->input('name'),
+                'email' => $request->input('email'),
+                'phone' => $request->input('phone'),
+                'password' => Hash::make($request->input('password')),
                 'referral_code' => User::generateReferralCode(),
-                'referred_by' => $referrer ? $referrer->id : null,
+                'referred_by' => $referrer ? $referrer->getAttribute('id') : null,
                 'status' => 'active',
             ]);
 

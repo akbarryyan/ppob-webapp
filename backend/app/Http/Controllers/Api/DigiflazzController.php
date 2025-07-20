@@ -23,8 +23,8 @@ class DigiflazzController extends Controller
         // Try to get credentials from database first, fallback to env
         $setting = DigiflazzSetting::getActiveSetting();
         if ($setting) {
-            $this->username = $setting->username;
-            $this->apiKey = $setting->api_key;
+            $this->username = $setting->getAttribute('username');
+            $this->apiKey = $setting->getAttribute('api_key');
         } else {
             // Fallback to environment variables
             $this->username = env('DIGIFLAZZ_USERNAME');
@@ -51,13 +51,13 @@ class DigiflazzController extends Controller
             
             // Apply filters if provided
             if ($request->has('category')) {
-                $query->where('category', $request->category);
+                $query->where('category', $request->input('category'));
             }
             if ($request->has('brand')) {
-                $query->where('brand', $request->brand);
+                $query->where('brand', $request->input('brand'));
             }
             if ($request->has('type')) {
-                $query->where('type', $request->type);
+                $query->where('type', $request->input('type'));
             }
 
             $priceList = $query->orderBy('brand')->orderBy('product_name')->get();
@@ -99,9 +99,9 @@ class DigiflazzController extends Controller
                 'fixed_profit' => 'nullable|integer|min:0',
             ]);
 
-            $profitType = $request->profit_type;
-            $profitMargin = $request->profit_margin;
-            $fixedProfit = $request->fixed_profit;
+            $profitType = $request->input('profit_type');
+            $profitMargin = $request->input('profit_margin');
+            $fixedProfit = $request->input('fixed_profit');
 
             $requestBody = [
                 'cmd' => 'prepaid',
@@ -225,13 +225,13 @@ class DigiflazzController extends Controller
             
             // Apply filters if provided
             if ($request->has('category')) {
-                $query->where('category', $request->category);
+                $query->where('category', $request->input('category'));
             }
             if ($request->has('brand')) {
-                $query->where('brand', $request->brand);
+                $query->where('brand', $request->input('brand'));
             }
             if ($request->has('code')) {
-                $query->where('buyer_sku_code', $request->code);
+                $query->where('buyer_sku_code', $request->input('code'));
             }
 
             $priceList = $query->orderBy('brand')->orderBy('product_name')->get();
@@ -273,9 +273,9 @@ class DigiflazzController extends Controller
                 'fixed_profit' => 'nullable|integer|min:0',
             ]);
 
-            $profitType = $request->profit_type;
-            $profitMargin = $request->profit_margin;
-            $fixedProfit = $request->fixed_profit;
+            $profitType = $request->input('profit_type');
+            $profitMargin = $request->input('profit_margin');
+            $fixedProfit = $request->input('fixed_profit');
 
             $requestBody = [
                 'cmd' => 'pasca',
@@ -425,7 +425,7 @@ class DigiflazzController extends Controller
 
             // Don't expose API key in response
             $settingData = $setting->toArray();
-            $settingData['api_key'] = $setting->api_key ? '***********' : null;
+            $settingData['api_key'] = $setting->getAttribute('api_key') ? '***********' : null;
 
             return response()->json([
                 'success' => true,
@@ -468,28 +468,28 @@ class DigiflazzController extends Controller
 
             // Create or update setting
             $setting = DigiflazzSetting::create([
-                'username' => $request->username,
-                'api_key' => $request->api_key,
-                'whitelist_ips' => $request->whitelist_ips,
+                'username' => $request->input('username'),
+                'api_key' => $request->input('api_key'),
+                'whitelist_ips' => $request->input('whitelist_ips'),
                 'is_active' => true,
             ]);
 
             Log::info('Setting created successfully', [
-                'setting_id' => $setting->id
+                'setting_id' => $setting->getAttribute('id')
             ]);
 
             // Update credentials for current instance
-            $this->username = $request->username;
-            $this->apiKey = $request->api_key;
+            $this->username = $request->input('username');
+            $this->apiKey = $request->input('api_key');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Digiflazz settings updated successfully',
                 'data' => [
-                    'username' => $setting->username,
+                    'username' => $setting->getAttribute('username'),
                     'api_key' => '***********',
-                    'whitelist_ips' => $setting->whitelist_ips,
-                    'is_active' => $setting->is_active,
+                    'whitelist_ips' => $setting->getAttribute('whitelist_ips'),
+                    'is_active' => $setting->getAttribute('is_active'),
                 ]
             ]);
 
@@ -533,8 +533,8 @@ class DigiflazzController extends Controller
             }
 
             // Use setting credentials
-            $username = $setting->username;
-            $apiKey = $setting->api_key;
+            $username = $setting->getAttribute('username');
+            $apiKey = $setting->getAttribute('api_key');
             
             // Check if using development credentials (only check API key)
             $isDevelopment = str_starts_with($apiKey, 'dev-');
