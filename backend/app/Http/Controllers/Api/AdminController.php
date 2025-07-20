@@ -681,8 +681,9 @@ class AdminController extends Controller
 
                 $endDate = now();
                 $startDate = now()->subDays($days);
-                $prevStartDate = now()->subDays($days * 2);
+                // Fixed: Previous period should end where current period starts
                 $prevEndDate = $startDate->copy();
+                $prevStartDate = now()->subDays($days * 2);
             }
 
             // Current period stats
