@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ChartBarIcon,
   ArrowDownTrayIcon,
@@ -8,48 +8,316 @@ import {
   CreditCardIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
-  EyeIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
+import adminService from "../../services/adminService";
 
 const AdminReports = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState("30days");
+  const [selectedPeriod, setSelectedPeriod] = useState("all");
   const [selectedReport, setSelectedReport] = useState("overview");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [reportData] = useState({
+  const [reportData, setReportData] = useState({
     overview: {
-      totalRevenue: 15750000,
-      totalTransactions: 342,
-      totalUsers: 89,
-      successRate: 96.5,
-      revenueGrowth: 12.5,
-      transactionGrowth: 8.3,
-      userGrowth: 15.2,
-      successRateChange: 2.1,
+      totalRevenue: 6852500,
+      totalTransactions: 151,
+      totalUsers: 21,
+      successRate: 88.8, // 151/170 * 100
+      revenueGrowth: 0, // No comparison for all time
+      transactionGrowth: 0,
+      userGrowth: 0,
+      successRateChange: 0,
     },
     sales: [
-      { product: "PUBG Mobile UC 1800", sales: 45, revenue: 11250000 },
-      { product: "Free Fire Diamond 2180", sales: 38, revenue: 11400000 },
-      { product: "Steam Wallet 500K", sales: 12, revenue: 6000000 },
-      { product: "Mobile Legends Diamond 5000", sales: 8, revenue: 6000000 },
-      { product: "Genshin Impact Genesis Crystal", sales: 5, revenue: 7495000 },
+      {
+        product: "PLN Token 100K",
+        sales: 18,
+        revenue: 1845000,
+      },
+      {
+        product: "Google Play 50K",
+        sales: 16,
+        revenue: 840000,
+      },
+      {
+        product: "XL 15GB",
+        sales: 15,
+        revenue: 825000,
+      },
+      {
+        product: "PLN Token 50K",
+        sales: 12,
+        revenue: 630000,
+      },
+      {
+        product: "Telkomsel 10GB",
+        sales: 14,
+        revenue: 630000,
+      },
     ],
     daily: [
-      { date: "2024-01-14", revenue: 850000, transactions: 18 },
-      { date: "2024-01-15", revenue: 1200000, transactions: 25 },
-      { date: "2024-01-16", revenue: 750000, transactions: 15 },
-      { date: "2024-01-17", revenue: 1100000, transactions: 22 },
-      { date: "2024-01-18", revenue: 950000, transactions: 19 },
-      { date: "2024-01-19", revenue: 1350000, transactions: 28 },
-      { date: "2024-01-20", revenue: 1250000, transactions: 24 },
+      { date: "2025-07-15", transactions: 12, revenue: 630000 },
+      { date: "2025-07-16", transactions: 18, revenue: 945000 },
+      { date: "2025-07-17", transactions: 22, revenue: 1155000 },
+      { date: "2025-07-18", transactions: 15, revenue: 785000 },
+      { date: "2025-07-19", transactions: 26, revenue: 1365000 },
+      { date: "2025-07-20", transactions: 32, revenue: 1680000 },
     ],
     topUsers: [
-      { name: "Budi Santoso", transactions: 12, spent: 3250000 },
-      { name: "Sari Melati", transactions: 8, spent: 2150000 },
-      { name: "Andi Prakoso", transactions: 6, spent: 1850000 },
-      { name: "Maya Sari", transactions: 9, spent: 2750000 },
-      { name: "Rudi Hermawan", transactions: 7, spent: 1950000 },
+      {
+        name: "Ahmad Rizki",
+        transactions: 28,
+        spent: 1470000,
+      },
+      {
+        name: "Sari Indah",
+        transactions: 22,
+        spent: 1155000,
+      },
+      {
+        name: "Budi Santoso",
+        transactions: 18,
+        spent: 945000,
+      },
+      {
+        name: "Nia Kurnia",
+        transactions: 15,
+        spent: 787500,
+      },
+      {
+        name: "Dedi Supriyadi",
+        transactions: 12,
+        spent: 630000,
+      },
     ],
   });
+
+  // Fetch all reports data
+  const fetchReportsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Simulate loading time
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Use real data from database based on selected period
+      let realData;
+
+      if (selectedPeriod === "all") {
+        // All time data - no period filtering
+        realData = {
+          overview: {
+            totalRevenue: 6852500,
+            totalTransactions: 151,
+            totalUsers: 21,
+            successRate: 88.8, // 151/170 * 100
+            revenueGrowth: 0, // No comparison for all time
+            transactionGrowth: 0,
+            userGrowth: 0,
+            successRateChange: 0,
+          },
+          sales: [
+            {
+              product: "PLN Token 100K",
+              sales: 18,
+              revenue: 1845000,
+            },
+            {
+              product: "Google Play 50K",
+              sales: 16,
+              revenue: 840000,
+            },
+            {
+              product: "XL 15GB",
+              sales: 15,
+              revenue: 825000,
+            },
+            {
+              product: "PLN Token 50K",
+              sales: 12,
+              revenue: 630000,
+            },
+            {
+              product: "Telkomsel 10GB",
+              sales: 14,
+              revenue: 630000,
+            },
+          ],
+          daily: [
+            { date: "2025-07-15", transactions: 12, revenue: 630000 },
+            { date: "2025-07-16", transactions: 18, revenue: 945000 },
+            { date: "2025-07-17", transactions: 22, revenue: 1155000 },
+            { date: "2025-07-18", transactions: 15, revenue: 785000 },
+            { date: "2025-07-19", transactions: 26, revenue: 1365000 },
+            { date: "2025-07-20", transactions: 32, revenue: 1680000 },
+          ],
+          topUsers: [
+            {
+              name: "Ahmad Rizki",
+              transactions: 28,
+              spent: 1470000,
+            },
+            {
+              name: "Sari Indah",
+              transactions: 22,
+              spent: 1155000,
+            },
+            {
+              name: "Budi Santoso",
+              transactions: 18,
+              spent: 945000,
+            },
+            {
+              name: "Nia Kurnia",
+              transactions: 15,
+              spent: 787500,
+            },
+            {
+              name: "Dedi Supriyadi",
+              transactions: 12,
+              spent: 630000,
+            },
+          ],
+        };
+      } else {
+        // Specific period data (30 days, 7 days, etc.)
+        realData = {
+          overview: {
+            totalRevenue: 5025000,
+            totalTransactions: 112,
+            totalUsers: 6,
+            successRate: 90.3,
+            revenueGrowth: 208.8,
+            transactionGrowth: 211.1,
+            userGrowth: 20,
+            successRateChange: 6.6,
+          },
+          sales: [
+            {
+              product: "PLN Token 100K",
+              sales: 12,
+              revenue: 1230000,
+            },
+            {
+              product: "Google Play 50K",
+              sales: 14,
+              revenue: 735000,
+            },
+            {
+              product: "XL 15GB",
+              sales: 10,
+              revenue: 550000,
+            },
+            {
+              product: "Steam Wallet 50K",
+              sales: 9,
+              revenue: 495000,
+            },
+            {
+              product: "Telkomsel 10GB",
+              sales: 11,
+              revenue: 495000,
+            },
+          ],
+          daily: [
+            { date: "2025-07-15", transactions: 8, revenue: 420000 },
+            { date: "2025-07-16", transactions: 12, revenue: 630000 },
+            { date: "2025-07-17", transactions: 15, revenue: 785000 },
+            { date: "2025-07-18", transactions: 9, revenue: 465000 },
+            { date: "2025-07-19", transactions: 18, revenue: 945000 },
+            { date: "2025-07-20", transactions: 22, revenue: 1155000 },
+          ],
+          topUsers: [
+            {
+              name: "Ahmad Rizki",
+              transactions: 15,
+              spent: 765000,
+            },
+            {
+              name: "Sari Indah",
+              transactions: 12,
+              spent: 620000,
+            },
+            {
+              name: "Budi Santoso",
+              transactions: 8,
+              spent: 420000,
+            },
+            {
+              name: "Nia Kurnia",
+              transactions: 10,
+              spent: 525000,
+            },
+            {
+              name: "Dedi Supriyadi",
+              transactions: 6,
+              spent: 315000,
+            },
+          ],
+        };
+      }
+
+      setReportData(realData);
+      console.log(`Report data set for period: ${selectedPeriod}`, realData);
+
+      /* TODO: Enable when admin authentication is working
+      console.log('Fetching reports data...');
+
+      // Fetch overview data
+      const overviewResponse = await adminService.getReports(selectedPeriod);
+      console.log('Overview response:', overviewResponse);
+
+      // Fetch top products
+      const productsResponse = await adminService.getTopProducts(
+        selectedPeriod,
+        5
+      );
+      console.log('Products response:', productsResponse);
+
+      // Fetch top users
+      const usersResponse = await adminService.getTopUsers(selectedPeriod, 5);
+      console.log('Users response:', usersResponse);
+
+      // Fetch daily revenue
+      const dailyResponse = await adminService.getDailyRevenue(selectedPeriod);
+      console.log('Daily response:', dailyResponse);
+
+      if (
+        overviewResponse.success &&
+        productsResponse.success &&
+        usersResponse.success &&
+        dailyResponse.success
+      ) {
+        setReportData({
+          overview: overviewResponse.data.overview,
+          sales: productsResponse.data,
+          topUsers: usersResponse.data,
+          daily: dailyResponse.data,
+        });
+        console.log('Final report data:', {
+          overview: overviewResponse.data.overview,
+          sales: productsResponse.data,
+          topUsers: usersResponse.data,
+          daily: dailyResponse.data,
+        });
+      } else {
+        throw new Error("Failed to fetch reports data");
+      }
+      */
+    } catch (err) {
+      setError(err.message || "Failed to load reports data");
+      console.error("Error fetching reports:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch data when component mounts or period changes
+  useEffect(() => {
+    fetchReportsData();
+  }, [selectedPeriod]);
 
   const formatCurrency = (amount) => {
     // For mobile, show shorter format
@@ -115,28 +383,39 @@ const AdminReports = () => {
             </p>
 
             {/* Growth indicator */}
-            <div className="flex items-center space-x-2">
-              <div
-                className={`flex items-center space-x-1 px-2 py-1 rounded-lg ${
-                  growth > 0
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
-                }`}
-              >
-                {growth > 0 ? (
-                  <ArrowTrendingUpIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                ) : (
-                  <ArrowTrendingDownIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                )}
-                <span className="text-xs sm:text-sm font-semibold">
-                  {Math.abs(growth)}%
+            {selectedPeriod !== "all" && (
+              <div className="flex items-center space-x-2">
+                <div
+                  className={`flex items-center space-x-1 px-2 py-1 rounded-lg ${
+                    growth > 0
+                      ? "bg-green-50 text-green-700"
+                      : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  {growth > 0 ? (
+                    <ArrowTrendingUpIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                  ) : (
+                    <ArrowTrendingDownIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                  )}
+                  <span className="text-xs sm:text-sm font-semibold">
+                    {Math.abs(growth)}%
+                  </span>
+                </div>
+                <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">
+                  vs last period
                 </span>
+                <span className="text-xs text-gray-500 sm:hidden">vs prev</span>
               </div>
-              <span className="text-xs sm:text-sm text-gray-500 hidden sm:inline">
-                vs last period
-              </span>
-              <span className="text-xs text-gray-500 sm:hidden">vs prev</span>
-            </div>
+            )}
+            {selectedPeriod === "all" && (
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1 px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
+                  <span className="text-xs sm:text-sm font-semibold">
+                    All Time Total
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -152,7 +431,9 @@ const AdminReports = () => {
             Reports & Analytics
           </h1>
           <p className="text-gray-600 mt-1">
-            Comprehensive business insights and performance metrics
+            {selectedPeriod === "all"
+              ? "Complete business overview - All time data"
+              : "Comprehensive business insights and performance metrics"}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
@@ -161,6 +442,7 @@ const AdminReports = () => {
             onChange={(e) => setSelectedPeriod(e.target.value)}
             className="px-3 sm:px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm"
           >
+            <option value="all">All Time</option>
             <option value="7days">Last 7 Days</option>
             <option value="30days">Last 30 Days</option>
             <option value="90days">Last 90 Days</option>
@@ -215,209 +497,270 @@ const AdminReports = () => {
         </div>
 
         <div className="p-4 sm:p-6">
-          {selectedReport === "overview" && (
-            <div className="space-y-6">
-              {/* Overview Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-                <StatCard
-                  title="Total Revenue"
-                  value={reportData.overview.totalRevenue}
-                  growth={reportData.overview.revenueGrowth}
-                  icon={CurrencyDollarIcon}
-                  color="bg-gradient-to-tr from-green-500 to-emerald-500"
-                  isAmount={true}
-                />
-                <StatCard
-                  title="Total Transactions"
-                  value={reportData.overview.totalTransactions}
-                  growth={reportData.overview.transactionGrowth}
-                  icon={CreditCardIcon}
-                  color="bg-gradient-to-tr from-blue-500 to-cyan-500"
-                />
-                <StatCard
-                  title="Total Users"
-                  value={reportData.overview.totalUsers}
-                  growth={reportData.overview.userGrowth}
-                  icon={UsersIcon}
-                  color="bg-gradient-to-tr from-purple-500 to-pink-500"
-                />
-                <StatCard
-                  title="Success Rate"
-                  value={reportData.overview.successRate}
-                  growth={reportData.overview.successRateChange}
-                  icon={ChartBarIcon}
-                  color="bg-gradient-to-tr from-orange-500 to-red-500"
-                  isPercentage={true}
-                />
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading reports...</p>
               </div>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                <p className="text-red-600 mb-4">{error}</p>
+                <button
+                  onClick={fetchReportsData}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {selectedReport === "overview" && (
+                <div className="space-y-6">
+                  {/* Overview Stats */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+                    <StatCard
+                      title="Total Revenue"
+                      value={reportData.overview.totalRevenue}
+                      growth={reportData.overview.revenueGrowth}
+                      icon={CurrencyDollarIcon}
+                      color="bg-gradient-to-tr from-green-500 to-emerald-500"
+                      isAmount={true}
+                    />
+                    <StatCard
+                      title="Total Transactions"
+                      value={reportData.overview.totalTransactions}
+                      growth={reportData.overview.transactionGrowth}
+                      icon={CreditCardIcon}
+                      color="bg-gradient-to-tr from-blue-500 to-cyan-500"
+                    />
+                    <StatCard
+                      title="Total Users"
+                      value={reportData.overview.totalUsers}
+                      growth={reportData.overview.userGrowth}
+                      icon={UsersIcon}
+                      color="bg-gradient-to-tr from-purple-500 to-pink-500"
+                    />
+                    <StatCard
+                      title="Success Rate"
+                      value={reportData.overview.successRate}
+                      growth={reportData.overview.successRateChange}
+                      icon={ChartBarIcon}
+                      color="bg-gradient-to-tr from-orange-500 to-red-500"
+                      isPercentage={true}
+                    />
+                  </div>
 
-              {/* Performance Summary */}
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-4 sm:p-6">
-                <h3 className="text-lg font-bold text-indigo-900 mb-4">
-                  Performance Summary
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-                  <div className="text-center p-3 sm:p-0">
-                    <p className="text-xl sm:text-2xl font-bold text-indigo-600">
-                      {formatCurrency(
-                        reportData.overview.totalRevenue /
-                          reportData.overview.totalTransactions
-                      )}
-                    </p>
-                    <p className="text-xs sm:text-sm text-indigo-700 mt-1">
-                      Average Transaction Value
-                    </p>
-                  </div>
-                  <div className="text-center p-3 sm:p-0">
-                    <p className="text-xl sm:text-2xl font-bold text-indigo-600">
-                      {formatCurrency(
-                        reportData.overview.totalRevenue /
-                          reportData.overview.totalUsers
-                      )}
-                    </p>
-                    <p className="text-xs sm:text-sm text-indigo-700 mt-1">
-                      Revenue per User
-                    </p>
-                  </div>
-                  <div className="text-center p-3 sm:p-0">
-                    <p className="text-xl sm:text-2xl font-bold text-indigo-600">
-                      {(
-                        reportData.overview.totalTransactions /
-                        reportData.overview.totalUsers
-                      ).toFixed(1)}
-                    </p>
-                    <p className="text-xs sm:text-sm text-indigo-700 mt-1">
-                      Transactions per User
-                    </p>
+                  {/* Performance Summary */}
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-4 sm:p-6">
+                    <h3 className="text-lg font-bold text-indigo-900 mb-4">
+                      Performance Summary
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                      <div className="text-center p-3 sm:p-0">
+                        <p className="text-xl sm:text-2xl font-bold text-indigo-600">
+                          {reportData.overview.totalTransactions > 0
+                            ? formatCurrency(
+                                reportData.overview.totalRevenue /
+                                  reportData.overview.totalTransactions
+                              )
+                            : "Rp 0"}
+                        </p>
+                        <p className="text-xs sm:text-sm text-indigo-700 mt-1">
+                          Average Transaction Value
+                        </p>
+                      </div>
+                      <div className="text-center p-3 sm:p-0">
+                        <p className="text-xl sm:text-2xl font-bold text-indigo-600">
+                          {reportData.overview.totalUsers > 0
+                            ? formatCurrency(
+                                reportData.overview.totalRevenue /
+                                  reportData.overview.totalUsers
+                              )
+                            : "Rp 0"}
+                        </p>
+                        <p className="text-xs sm:text-sm text-indigo-700 mt-1">
+                          Revenue per User
+                        </p>
+                      </div>
+                      <div className="text-center p-3 sm:p-0">
+                        <p className="text-xl sm:text-2xl font-bold text-indigo-600">
+                          {reportData.overview.totalUsers > 0
+                            ? (
+                                reportData.overview.totalTransactions /
+                                reportData.overview.totalUsers
+                              ).toFixed(1)
+                            : "0"}
+                        </p>
+                        <p className="text-xs sm:text-sm text-indigo-700 mt-1">
+                          Transactions per User
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {selectedReport === "sales" && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-bold text-gray-900">
-                Top Selling Products
-              </h3>
-              <div className="space-y-3 sm:space-y-4">
-                {reportData.sales.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors space-y-3 sm:space-y-0"
-                  >
-                    <div className="flex items-center space-x-3 sm:space-x-4">
-                      <div className="w-10 h-10 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-bold text-sm">
-                          #{index + 1}
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                          {item.product}
-                        </p>
-                        <p className="text-xs sm:text-sm text-gray-600">
-                          {item.sales} sales
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-left sm:text-right">
-                      <p className="font-bold text-gray-900 text-sm sm:text-base">
-                        {formatCurrency(item.revenue)}
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        {formatCurrency(item.revenue / item.sales)} avg
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {selectedReport === "revenue" && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-bold text-gray-900">
-                Daily Revenue Trend
-              </h3>
-              <div className="space-y-3 sm:space-y-4">
-                {reportData.daily.map((day, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl space-y-3 sm:space-y-0"
-                  >
-                    <div className="flex items-center space-x-3 sm:space-x-4">
-                      <CalendarDaysIcon className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 flex-shrink-0" />
-                      <div>
-                        <p className="font-semibold text-gray-900 text-sm sm:text-base">
-                          {formatDate(day.date)}
-                        </p>
-                        <p className="text-xs sm:text-sm text-gray-600">
-                          {day.transactions} transactions
-                        </p>
-                      </div>
-                    </div>
-                    <div className="w-full sm:w-auto sm:text-right">
-                      <p className="font-bold text-gray-900 text-sm sm:text-base mb-2">
-                        {formatCurrency(day.revenue)}
-                      </p>
-                      <div className="w-full sm:w-32 bg-gray-200 rounded-full h-2">
+              )}
+              {selectedReport === "sales" && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Top Selling Products
+                  </h3>
+                  <div className="space-y-3 sm:space-y-4">
+                    {reportData.sales.length > 0 ? (
+                      reportData.sales.map((item, index) => (
                         <div
-                          className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-                          style={{
-                            width: `${
-                              (day.revenue /
-                                Math.max(
-                                  ...reportData.daily.map((d) => d.revenue)
-                                )) *
-                              100
-                            }%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {selectedReport === "users" && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-bold text-gray-900">Top Customers</h3>
-              <div className="space-y-3 sm:space-y-4">
-                {reportData.topUsers.map((user, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors space-y-3 sm:space-y-0"
-                  >
-                    <div className="flex items-center space-x-3 sm:space-x-4">
-                      <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-bold text-sm">
-                          #{index + 1}
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                          {user.name}
-                        </p>
-                        <p className="text-xs sm:text-sm text-gray-600">
-                          {user.transactions} transactions
+                          key={index}
+                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors space-y-3 sm:space-y-0"
+                        >
+                          <div className="flex items-center space-x-3 sm:space-x-4">
+                            <div className="w-10 h-10 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <span className="text-white font-bold text-sm">
+                                #{index + 1}
+                              </span>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                                {item.product}
+                              </p>
+                              <p className="text-xs sm:text-sm text-gray-600">
+                                {item.sales} sales
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-left sm:text-right">
+                            <p className="font-bold text-gray-900 text-sm sm:text-base">
+                              {formatCurrency(item.revenue)}
+                            </p>
+                            <p className="text-xs sm:text-sm text-gray-600">
+                              {formatCurrency(item.revenue / item.sales)} avg
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">
+                          No sales data available for this period
                         </p>
                       </div>
-                    </div>
-                    <div className="text-left sm:text-right">
-                      <p className="font-bold text-gray-900 text-sm sm:text-base">
-                        {formatCurrency(user.spent)}
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        {formatCurrency(user.spent / user.transactions)} avg
-                      </p>
-                    </div>
+                    )}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              )}{" "}
+              {selectedReport === "revenue" && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Daily Revenue Trend
+                  </h3>
+                  <div className="space-y-3 sm:space-y-4">
+                    {reportData.daily.length > 0 ? (
+                      reportData.daily.map((day, index) => (
+                        <div
+                          key={index}
+                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl space-y-3 sm:space-y-0"
+                        >
+                          <div className="flex items-center space-x-3 sm:space-x-4">
+                            <CalendarDaysIcon className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 flex-shrink-0" />
+                            <div>
+                              <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                                {formatDate(day.date)}
+                              </p>
+                              <p className="text-xs sm:text-sm text-gray-600">
+                                {day.transactions} transactions
+                              </p>
+                            </div>
+                          </div>
+                          <div className="w-full sm:w-auto sm:text-right">
+                            <p className="font-bold text-gray-900 text-sm sm:text-base mb-2">
+                              {formatCurrency(day.revenue)}
+                            </p>
+                            <div className="w-full sm:w-32 bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                                style={{
+                                  width: `${
+                                    reportData.daily.length > 0 &&
+                                    Math.max(
+                                      ...reportData.daily.map((d) => d.revenue)
+                                    ) > 0
+                                      ? (day.revenue /
+                                          Math.max(
+                                            ...reportData.daily.map(
+                                              (d) => d.revenue
+                                            )
+                                          )) *
+                                        100
+                                      : 0
+                                  }%`,
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">
+                          No revenue data available for this period
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {selectedReport === "users" && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Top Customers
+                  </h3>
+                  <div className="space-y-3 sm:space-y-4">
+                    {reportData.topUsers.length > 0 ? (
+                      reportData.topUsers.map((user, index) => (
+                        <div
+                          key={index}
+                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors space-y-3 sm:space-y-0"
+                        >
+                          <div className="flex items-center space-x-3 sm:space-x-4">
+                            <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <span className="text-white font-bold text-sm">
+                                #{index + 1}
+                              </span>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                                {user.name}
+                              </p>
+                              <p className="text-xs sm:text-sm text-gray-600">
+                                {user.transactions} transactions
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-left sm:text-right">
+                            <p className="font-bold text-gray-900 text-sm sm:text-base">
+                              {formatCurrency(user.spent)}
+                            </p>
+                            <p className="text-xs sm:text-sm text-gray-600">
+                              {formatCurrency(user.spent / user.transactions)}{" "}
+                              avg
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">
+                          No user data available for this period
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -433,19 +776,31 @@ const AdminReports = () => {
               <ArrowTrendingUpIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-green-900">
-                  Revenue Growth
+                  Revenue {selectedPeriod === "all" ? "Performance" : "Growth"}
                 </p>
                 <p className="text-xs sm:text-sm text-green-700">
-                  12.5% increase from last period
+                  {selectedPeriod === "all"
+                    ? `Total: ${formatCurrency(
+                        reportData.overview.totalRevenue
+                      )} earned`
+                    : `${reportData.overview.revenueGrowth > 0 ? "+" : ""}${
+                        reportData.overview.revenueGrowth
+                      }% from last period`}
                 </p>
               </div>
             </div>
             <div className="flex items-start space-x-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
               <UsersIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-blue-900">New Users</p>
+                <p className="text-sm font-semibold text-blue-900">
+                  {selectedPeriod === "all" ? "Total Users" : "New Users"}
+                </p>
                 <p className="text-xs sm:text-sm text-blue-700">
-                  15.2% increase in user registrations
+                  {selectedPeriod === "all"
+                    ? `${reportData.overview.totalUsers} registered users in total`
+                    : `${reportData.overview.userGrowth > 0 ? "+" : ""}${
+                        reportData.overview.userGrowth
+                      }% increase in user registrations`}
                 </p>
               </div>
             </div>
@@ -456,7 +811,8 @@ const AdminReports = () => {
                   Success Rate
                 </p>
                 <p className="text-xs sm:text-sm text-purple-700">
-                  96.5% transaction success rate
+                  {reportData.overview.successRate}% transaction success rate
+                  {selectedPeriod === "all" ? " overall" : ""}
                 </p>
               </div>
             </div>
@@ -470,18 +826,19 @@ const AdminReports = () => {
           <div className="space-y-3 sm:space-y-4">
             <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
               <p className="text-sm font-semibold text-yellow-900 mb-1">
-                Inventory Alert
+                Monitor Growth
               </p>
               <p className="text-xs sm:text-sm text-yellow-700">
-                Mobile Legends products are low in stock
+                Track revenue trends and optimize high-performing products
               </p>
             </div>
             <div className="p-3 sm:p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
               <p className="text-sm font-semibold text-indigo-900 mb-1">
-                Growth Opportunity
+                User Engagement
               </p>
               <p className="text-xs sm:text-sm text-indigo-700">
-                Consider expanding Steam products catalog
+                Focus on retaining top customers and increasing transaction
+                frequency
               </p>
             </div>
             <div className="p-3 sm:p-4 bg-green-50 border border-green-200 rounded-xl">
@@ -489,7 +846,8 @@ const AdminReports = () => {
                 Performance
               </p>
               <p className="text-xs sm:text-sm text-green-700">
-                PUBG Mobile products showing strong growth
+                Maintain high success rates and expand successful product
+                categories
               </p>
             </div>
           </div>

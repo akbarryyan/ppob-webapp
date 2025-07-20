@@ -654,4 +654,300 @@ class AdminController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get reports overview data
+     */
+    public function getReports(Request $request): JsonResponse
+    {
+        try {
+            $period = $request->query('period', '30days');
+            
+            // Calculate date range based on period
+            if ($period === 'all') {
+                // For all time, use earliest possible date
+                $startDate = now()->subYears(10); // Very old date to capture all data
+                $endDate = now();
+                $prevStartDate = now()->subYears(20); // Even older for comparison 
+                $prevEndDate = now()->subYears(10);
+            } else {
+                $days = match($period) {
+                    '7days' => 7,
+                    '30days' => 30,
+                    '90days' => 90,
+                    '365days' => 365,
+                    default => 30
+                };
+
+                $endDate = now();
+                $startDate = now()->subDays($days);
+                $prevStartDate = now()->subDays($days * 2);
+                $prevEndDate = $startDate->copy();
+            }
+
+            // Current period stats
+            $totalRevenue = Transaction::where('status', 'success')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->sum('price') ?? 0;
+
+            $totalTransactions = Transaction::where('status', 'success')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->count();
+
+            $totalUsers = User::where('role', 'user')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->count();
+
+            $successfulTransactions = Transaction::where('status', 'success')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->count();
+            
+            $totalAllTransactions = Transaction::whereBetween('created_at', [$startDate, $endDate])
+                ->count();
+
+            $successRate = $totalAllTransactions > 0 ? ($successfulTransactions / $totalAllTransactions) * 100 : 0;
+
+            // Previous period stats for growth calculation
+            $prevRevenue = Transaction::where('status', 'success')
+                ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+                ->sum('price') ?? 0;
+
+            $prevTransactions = Transaction::where('status', 'success')
+                ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+                ->count();
+
+            $prevUsers = User::where('role', 'user')
+                ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+                ->count();
+
+            $prevSuccessfulTransactions = Transaction::where('status', 'success')
+                ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+                ->count();
+            
+            $prevTotalAllTransactions = Transaction::whereBetween('created_at', [$prevStartDate, $prevEndDate])
+                ->count();
+
+            $prevSuccessRate = $prevTotalAllTransactions > 0 ? ($prevSuccessfulTransactions / $prevTotalAllTransactions) * 100 : 0;
+
+            // Calculate growth percentages
+            $revenueGrowth = $prevRevenue > 0 ? (($totalRevenue - $prevRevenue) / $prevRevenue) * 100 : ($totalRevenue > 0 ? 100 : 0);
+            $transactionGrowth = $prevTransactions > 0 ? (($totalTransactions - $prevTransactions) / $prevTransactions) * 100 : ($totalTransactions > 0 ? 100 : 0);
+            $userGrowth = $prevUsers > 0 ? (($totalUsers - $prevUsers) / $prevUsers) * 100 : ($totalUsers > 0 ? 100 : 0);
+            $successRateChange = $prevSuccessRate > 0 ? $successRate - $prevSuccessRate : 0;
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'overview' => [
+                        'totalRevenue' => (float) $totalRevenue,
+                        'totalTransactions' => (int) $totalTransactions,
+                        'totalUsers' => (int) $totalUsers,
+                        'successRate' => round($successRate, 1),
+                        'revenueGrowth' => round($revenueGrowth, 1),
+                        'transactionGrowth' => round($transactionGrowth, 1),
+                        'userGrowth' => round($userGrowth, 1),
+                        'successRateChange' => round($successRateChange, 1),
+                    ]
+                ],
+                'message' => 'Reports data retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching reports: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch reports',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get top selling products
+     */
+    public function getTopProducts(Request $request): JsonResponse
+    {
+        try {
+            $period = $request->query('period', '30days');
+            $limit = $request->query('limit', 10);
+            
+            // Calculate date range based on period
+            if ($period === 'all') {
+                // For all time, use earliest possible date
+                $startDate = now()->subYears(10); // Very old date to capture all data
+                $endDate = now();
+            } else {
+                $days = match($period) {
+                    '7days' => 7,
+                    '30days' => 30,
+                    '90days' => 90,
+                    '365days' => 365,
+                    default => 30
+                };
+
+                $startDate = now()->subDays($days);
+                $endDate = now();
+            }
+
+            // Get top products by transaction count and revenue
+            $topProducts = Transaction::selectRaw('
+                    product_code,
+                    product_name,
+                    COUNT(*) as sales,
+                    SUM(price) as revenue
+                ')
+                ->where('status', 'success')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('product_code', 'product_name')
+                ->orderBy('revenue', 'desc')
+                ->limit($limit)
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'product' => $item->product_name,
+                        'sales' => (int) $item->sales,
+                        'revenue' => (float) $item->revenue,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $topProducts,
+                'message' => 'Top products retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching top products: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch top products',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get top users by spending
+     */
+    public function getTopUsers(Request $request): JsonResponse
+    {
+        try {
+            $period = $request->query('period', '30days');
+            $limit = $request->query('limit', 10);
+            
+            // Calculate date range based on period
+            if ($period === 'all') {
+                // For all time, use earliest possible date
+                $startDate = now()->subYears(10); // Very old date to capture all data
+                $endDate = now();
+            } else {
+                $days = match($period) {
+                    '7days' => 7,
+                    '30days' => 30,
+                    '90days' => 90,
+                    '365days' => 365,
+                    default => 30
+                };
+
+                $startDate = now()->subDays($days);
+                $endDate = now();
+            }
+
+            // Get top users by total spending
+            $topUsers = Transaction::selectRaw('
+                    users.name,
+                    COUNT(transactions.id) as transactions,
+                    SUM(transactions.price) as spent
+                ')
+                ->join('users', 'transactions.user_id', '=', 'users.id')
+                ->where('transactions.status', 'success')
+                ->whereBetween('transactions.created_at', [$startDate, $endDate])
+                ->groupBy('users.id', 'users.name')
+                ->orderBy('spent', 'desc')
+                ->limit($limit)
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'name' => $item->name,
+                        'transactions' => (int) $item->transactions,
+                        'spent' => (float) $item->spent,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $topUsers,
+                'message' => 'Top users retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching top users: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch top users',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get daily revenue data
+     */
+    public function getDailyRevenue(Request $request): JsonResponse
+    {
+        try {
+            $period = $request->query('period', '30days');
+            
+            // Calculate date range based on period
+            if ($period === 'all') {
+                // For all time, use earliest possible date but limit to recent data for daily view
+                $startDate = now()->subDays(30); // Show last 30 days even for "all" period for readability
+                $endDate = now();
+            } else {
+                $days = match($period) {
+                    '7days' => 7,
+                    '30days' => 30,
+                    '90days' => 90,
+                    '365days' => 365,
+                    default => 30
+                };
+
+                $startDate = now()->subDays($days);
+                $endDate = now();
+            }
+
+            // Get daily revenue data
+            $dailyRevenue = Transaction::selectRaw('
+                    DATE(created_at) as date,
+                    COUNT(*) as transactions,
+                    SUM(price) as revenue
+                ')
+                ->where('status', 'success')
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('date')
+                ->orderBy('date', 'asc')
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'date' => $item->date,
+                        'transactions' => (int) $item->transactions,
+                        'revenue' => (float) $item->revenue,
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $dailyRevenue,
+                'message' => 'Daily revenue data retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching daily revenue: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch daily revenue',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

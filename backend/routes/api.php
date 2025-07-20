@@ -52,6 +52,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{id}', [AdminController::class, 'updateUser']);
         Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
 
+        // Reports routes
+        Route::get('/reports', [AdminController::class, 'getReports']);
+        Route::get('/reports/products', [AdminController::class, 'getTopProducts']);
+        Route::get('/reports/users', [AdminController::class, 'getTopUsers']);
+        Route::get('/reports/daily', [AdminController::class, 'getDailyRevenue']);
+
         // Digiflazz Admin Settings routes
         Route::prefix('digiflazz')->group(function () {
             Route::get('/settings', [DigiflazzController::class, 'getSettings']);

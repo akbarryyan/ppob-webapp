@@ -12,6 +12,7 @@ adminApi.interceptors.request.use((config) => {
   const token =
     localStorage.getItem("adminAuthToken") ||
     sessionStorage.getItem("adminAuthToken");
+  console.log("Admin token:", token ? "Token found" : "No token found");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -171,6 +172,55 @@ const adminService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching price lists:", error);
+      throw error;
+    }
+  },
+
+  // Reports methods
+  getReports: async (period = "30days") => {
+    try {
+      const response = await adminApi.get("/admin/reports", {
+        params: { period },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+      throw error;
+    }
+  },
+
+  getTopProducts: async (period = "30days", limit = 10) => {
+    try {
+      const response = await adminApi.get("/admin/reports/products", {
+        params: { period, limit },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching top products:", error);
+      throw error;
+    }
+  },
+
+  getTopUsers: async (period = "30days", limit = 10) => {
+    try {
+      const response = await adminApi.get("/admin/reports/users", {
+        params: { period, limit },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching top users:", error);
+      throw error;
+    }
+  },
+
+  getDailyRevenue: async (period = "30days") => {
+    try {
+      const response = await adminApi.get("/admin/reports/daily", {
+        params: { period },
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching daily revenue:", error);
       throw error;
     }
   },
