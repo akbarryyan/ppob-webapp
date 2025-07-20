@@ -330,7 +330,7 @@ class AdminController extends Controller
             }
 
             $totalTransactions = $query->count();
-            $totalValue = $query->sum('price');
+            $totalValue = $query->whereIn('status', ['success', 'completed'])->sum('price'); // Only successful transactions
             $successCount = $query->whereIn('status', ['success', 'completed'])->count();
             $pendingCount = $query->whereIn('status', ['pending', 'processing'])->count();
             $failedCount = $query->where('status', 'failed')->count();

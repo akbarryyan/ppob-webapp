@@ -171,8 +171,6 @@ const AdminTransactions = () => {
 
       const response = await adminService.getTransactionStats(params);
 
-      console.log("Stats API Response:", response); // Debug log
-
       if (response.success) {
         const statsData = {
           total_transactions: response.data.total_transactions || 0,
@@ -182,7 +180,6 @@ const AdminTransactions = () => {
           pending_count: response.data.pending_count || 0,
           failed_count: response.data.failed_count || 0,
         };
-        console.log("Setting stats to:", statsData); // Debug log
         setStats(statsData);
       } else {
         console.error("Stats API error:", response.message);
@@ -627,7 +624,10 @@ const AdminTransactions = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 mb-1">
-                Total Value
+                Total Revenue
+              </p>
+              <p className="text-xs text-gray-500 mb-2">
+                (Successful transactions only)
               </p>
               <p className="text-2xl font-bold text-gray-900">
                 {formatCurrency(stats.total_value)}
