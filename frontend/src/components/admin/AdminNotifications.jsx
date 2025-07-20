@@ -15,6 +15,7 @@ import {
   ClockIcon,
 } from "@heroicons/react/24/outline";
 import "../../styles/scrollbar.css";
+import adminService from "../../services/adminService";
 
 const AdminNotifications = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -82,7 +83,7 @@ const AdminNotifications = () => {
   // Fetch data on component mount and when filters change
   React.useEffect(() => {
     fetchNotifications();
-  }, [searchTerm, filterType, filterStatus, pagination.current_page]);
+  }, [searchTerm, filterType, filterStatus]);
 
   const typeConfig = {
     info: {
