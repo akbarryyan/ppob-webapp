@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   HomeIcon,
   UsersIcon,
@@ -22,6 +22,8 @@ const AdminSidebar = ({
   menuItems,
   onLogout,
 }) => {
+  const navigate = useNavigate();
+
   const iconMap = {
     HomeIcon,
     UsersIcon,
@@ -103,7 +105,7 @@ const AdminSidebar = ({
               <button
                 key={item.key}
                 onClick={() => {
-                  setActiveTab(item.key);
+                  navigate(`/admin/${item.key}`);
                   // Auto close sidebar on mobile after selection
                   if (window.innerWidth < 1024) {
                     setSidebarOpen(false);

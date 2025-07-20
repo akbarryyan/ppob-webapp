@@ -33,12 +33,13 @@ const AdminDashboard = () => {
     { icon: "Cog6ToothIcon", label: "Settings", key: "settings" },
   ];
 
-  // Update URL when tab changes
+  // Sync activeTab with URL section parameter - URL is the source of truth
   useEffect(() => {
-    if (activeTab !== section) {
-      navigate(`/admin/${activeTab}`, { replace: true });
+    const currentSection = section || "overview";
+    if (currentSection !== activeTab) {
+      setActiveTab(currentSection);
     }
-  }, [activeTab, section, navigate]);
+  }, [section]); // Only depend on section parameter
 
   // Scroll to top when tab changes
   useEffect(() => {

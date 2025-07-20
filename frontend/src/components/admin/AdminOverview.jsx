@@ -88,11 +88,11 @@ const AdminOverview = () => {
 
   const [quickActions] = useState([
     {
-      title: "Add New Product",
-      description: "Add games, vouchers, or digital products to your catalog",
-      icon: ShoppingBagIcon,
+      title: "Manage Users",
+      description: "Handle user accounts, roles, and permissions",
+      icon: UsersIcon,
       color: "from-blue-500 to-cyan-500",
-      action: "/admin/products",
+      action: "/admin/users",
     },
     {
       title: "Monitor Transactions",
@@ -102,11 +102,18 @@ const AdminOverview = () => {
       action: "/admin/transactions",
     },
     {
-      title: "Manage Users",
-      description: "Handle user accounts, roles, and permissions",
-      icon: UsersIcon,
+      title: "Manage Products",
+      description: "Add games, vouchers, or digital products to your catalog",
+      icon: ShoppingBagIcon,
       color: "from-purple-500 to-pink-500",
-      action: "/admin/users",
+      action: "/admin/products",
+    },
+    {
+      title: "Price Sync",
+      description: "Synchronize product prices with external providers",
+      icon: ServerIcon,
+      color: "from-indigo-500 to-blue-500",
+      action: "/admin/price-sync",
     },
     {
       title: "Analytics & Reports",
@@ -114,13 +121,6 @@ const AdminOverview = () => {
       icon: ChartBarIcon,
       color: "from-orange-500 to-red-500",
       action: "/admin/reports",
-    },
-    {
-      title: "System Settings",
-      description: "Configure platform settings and integrations",
-      icon: ServerIcon,
-      color: "from-indigo-500 to-purple-500",
-      action: "/admin/settings",
     },
     {
       title: "Notifications",
@@ -211,10 +211,9 @@ const AdminOverview = () => {
   };
 
   const handleQuickAction = (actionPath) => {
-    // For now, we'll show an alert since the routes might not be fully implemented
-    // In a real app, you would use: navigate(actionPath);
+    // Extract section from path and navigate
     const sectionName = actionPath.split("/").pop();
-    alert(`Navigating to ${sectionName} section... (Route: ${actionPath})`);
+    navigate(`/admin/${sectionName}`);
   };
 
   const StatCard = ({
