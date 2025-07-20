@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CreditCardIcon,
   MagnifyingGlassIcon,
@@ -14,6 +14,7 @@ import {
   UserIcon,
   ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
+import adminService from "../../services/adminService";
 import "../../styles/scrollbar.css";
 
 const AdminTransactions = () => {
@@ -24,101 +25,142 @@ const AdminTransactions = () => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
 
-  const [transactions] = useState([
-    {
-      id: "TXN-2024-001234",
-      userId: 1,
-      userName: "Budi Santoso",
-      userEmail: "budi.santoso@email.com",
-      productName: "PUBG Mobile UC 1800",
-      productCategory: "Game Top Up",
-      amount: 250000,
-      fee: 2500,
-      totalAmount: 252500,
-      status: "completed",
-      paymentMethod: "E-Wallet",
-      paymentChannel: "GoPay",
-      createdAt: "2024-01-20T10:30:00",
-      completedAt: "2024-01-20T10:32:15",
-      reference: "GP240120103000001",
-      notes: "Auto-processed via payment gateway",
-    },
-    {
-      id: "TXN-2024-001235",
-      userId: 2,
-      userName: "Sari Melati",
-      userEmail: "sari.melati@email.com",
-      productName: "Steam Wallet 500K",
-      productCategory: "Game Voucher",
-      amount: 500000,
-      fee: 5000,
-      totalAmount: 505000,
-      status: "pending",
-      paymentMethod: "Bank Transfer",
-      paymentChannel: "BCA",
-      createdAt: "2024-01-20T11:15:00",
-      completedAt: null,
-      reference: "BCA240120111500001",
-      notes: "Waiting for payment confirmation",
-    },
-    {
-      id: "TXN-2024-001236",
-      userId: 3,
-      userName: "Andi Prakoso",
-      userEmail: "andi.prakoso@email.com",
-      productName: "Free Fire Diamond 2180",
-      productCategory: "Game Top Up",
-      amount: 300000,
-      fee: 3000,
-      totalAmount: 303000,
-      status: "failed",
-      paymentMethod: "E-Wallet",
-      paymentChannel: "OVO",
-      createdAt: "2024-01-20T09:45:00",
-      completedAt: null,
-      reference: "OV240120094500001",
-      notes: "Payment declined by provider",
-    },
-    {
-      id: "TXN-2024-001237",
-      userId: 4,
-      userName: "Maya Sari",
-      userEmail: "maya.sari@email.com",
-      productName: "Mobile Legends Diamond 5000",
-      productCategory: "Game Top Up",
-      amount: 750000,
-      fee: 7500,
-      totalAmount: 757500,
-      status: "processing",
-      paymentMethod: "Credit Card",
-      paymentChannel: "Visa",
-      createdAt: "2024-01-20T11:45:00",
-      completedAt: null,
-      reference: "VS240120114500001",
-      notes: "Processing payment authorization",
-    },
-    {
-      id: "TXN-2024-001238",
-      userId: 1,
-      userName: "Budi Santoso",
-      userEmail: "budi.santoso@email.com",
-      productName: "Genshin Impact Genesis Crystal 6480",
-      productCategory: "Game Top Up",
-      amount: 1499000,
-      fee: 14990,
-      totalAmount: 1513990,
-      status: "completed",
-      paymentMethod: "E-Wallet",
-      paymentChannel: "Dana",
-      createdAt: "2024-01-19T16:20:00",
-      completedAt: "2024-01-19T16:22:30",
-      reference: "DN240119162000001",
-      notes: "Auto-processed via payment gateway",
-    },
-  ]);
+  // Add state for API data
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    per_page: 50,
+    total: 0,
+    last_page: 1,
+  });
+
+  // Add debounce effect for search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchTransactions();
+    }, 500); // Debounce search by 500ms
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  // Separate effect for other filters (no debounce needed)
+  useEffect(() => {
+    fetchTransactions();
+  }, [filterStatus, filterType, filterDateRange, pagination.current_page]);
+
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params = {
+        page: pagination.current_page,
+        per_page: pagination.per_page,
+      };
+
+      if (searchTerm) params.search = searchTerm;
+      if (filterStatus !== "all") params.status = filterStatus;
+      if (filterType !== "all") params.type = filterType;
+
+      // Add date range filter
+      if (filterDateRange !== "all") {
+        const now = new Date();
+        let dateFrom;
+
+        switch (filterDateRange) {
+          case "today":
+            dateFrom = new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate()
+            );
+            break;
+          case "week":
+            dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case "month":
+            dateFrom = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          default:
+            dateFrom = null;
+        }
+
+        if (dateFrom) {
+          params.date_from = dateFrom.toISOString().split("T")[0];
+          params.date_to = now.toISOString().split("T")[0];
+        }
+      }
+
+      const response = await adminService.getTransactions(params);
+
+      if (response.success) {
+        setTransactions(response.data.data);
+        setPagination({
+          current_page: response.data.current_page,
+          per_page: response.data.per_page,
+          total: response.data.total,
+          last_page: response.data.last_page,
+        });
+      } else {
+        setError(response.message || "Failed to fetch transactions");
+      }
+    } catch (err) {
+      setError(err.message || "An error occurred while fetching transactions");
+      console.error("Error fetching transactions:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (transactionId, newStatus, notes = "") => {
+    try {
+      const response = await adminService.updateTransactionStatus(
+        transactionId,
+        {
+          status: newStatus,
+          notes,
+        }
+      );
+
+      if (response.success) {
+        // Refresh transactions list
+        fetchTransactions();
+        setShowTransactionModal(false);
+      } else {
+        alert("Failed to update transaction status: " + response.message);
+      }
+    } catch (err) {
+      alert("Error updating transaction status: " + err.message);
+      console.error("Error updating transaction status:", err);
+    }
+  };
+
+  const handleViewTransaction = async (transactionId) => {
+    try {
+      const response = await adminService.getTransaction(transactionId);
+
+      if (response.success) {
+        setSelectedTransaction(response.data);
+        setShowTransactionModal(true);
+      } else {
+        alert("Failed to fetch transaction details: " + response.message);
+      }
+    } catch (err) {
+      alert("Error fetching transaction details: " + err.message);
+      console.error("Error fetching transaction details:", err);
+    }
+  };
 
   const statusConfig = {
     completed: {
+      label: "Completed",
+      color: "bg-green-100 text-green-800 border-green-200",
+      icon: CheckCircleIcon,
+      iconColor: "text-green-600",
+    },
+    success: {
       label: "Completed",
       color: "bg-green-100 text-green-800 border-green-200",
       icon: CheckCircleIcon,
@@ -133,7 +175,7 @@ const AdminTransactions = () => {
     processing: {
       label: "Processing",
       color: "bg-blue-100 text-blue-800 border-blue-200",
-      icon: ClockIcon,
+      icon: ArrowDownTrayIcon,
       iconColor: "text-blue-600",
     },
     failed: {
@@ -142,6 +184,11 @@ const AdminTransactions = () => {
       icon: XCircleIcon,
       iconColor: "text-red-600",
     },
+  };
+
+  // Helper function to get status config with fallback
+  const getStatusConfig = (status) => {
+    return statusConfig[status] || statusConfig.pending; // Fallback to pending if status not found
   };
 
   const formatCurrency = (amount) => {
@@ -173,22 +220,34 @@ const AdminTransactions = () => {
     return `${Math.floor(diffInMinutes / 1440)} days ago`;
   };
 
-  const filteredTransactions = transactions.filter((transaction) => {
-    const matchesSearch =
-      transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.productName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      transaction.reference.toLowerCase().includes(searchTerm.toLowerCase());
+  // Loading and error states
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading transactions...</p>
+        </div>
+      </div>
+    );
+  }
 
-    const matchesStatus =
-      filterStatus === "all" || transaction.status === filterStatus;
-    const matchesType =
-      filterType === "all" || transaction.productCategory === filterType;
-
-    return matchesSearch && matchesStatus && matchesType;
-  });
+  if (error) {
+    return (
+      <div className="p-6 flex items-center justify-center h-64">
+        <div className="text-center">
+          <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={fetchTransactions}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const TransactionModal = ({ transaction, onClose }) => (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -232,16 +291,16 @@ const AdminTransactions = () => {
           <div className="flex items-center justify-center mb-6">
             <div
               className={`flex items-center space-x-2 px-4 py-2 rounded-full border ${
-                statusConfig[transaction.status].color
+                getStatusConfig(transaction.status).color
               }`}
             >
-              {React.createElement(statusConfig[transaction.status].icon, {
+              {React.createElement(getStatusConfig(transaction.status).icon, {
                 className: `w-5 h-5 ${
-                  statusConfig[transaction.status].iconColor
+                  getStatusConfig(transaction.status).iconColor
                 }`,
               })}
               <span className="font-semibold">
-                {statusConfig[transaction.status].label}
+                {getStatusConfig(transaction.status).label}
               </span>
             </div>
           </div>
@@ -305,9 +364,9 @@ const AdminTransactions = () => {
                 </p>
               </div>
               <div className="p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm font-medium text-gray-500 mb-1">Fee</p>
+                <p className="text-sm font-medium text-gray-500 mb-1">Profit</p>
                 <p className="text-lg font-bold text-gray-900">
-                  {formatCurrency(transaction.fee)}
+                  {formatCurrency(transaction.profit || 0)}
                 </p>
               </div>
               <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl">
@@ -394,21 +453,49 @@ const AdminTransactions = () => {
           <div className="flex space-x-3">
             {transaction.status === "pending" && (
               <>
-                <button className="flex-1 bg-green-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors">
+                <button
+                  onClick={() =>
+                    handleStatusChange(
+                      transaction.id,
+                      "success",
+                      "Transaction approved by admin"
+                    )
+                  }
+                  className="flex-1 bg-green-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors"
+                >
                   Approve Transaction
                 </button>
-                <button className="flex-1 bg-red-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors">
+                <button
+                  onClick={() =>
+                    handleStatusChange(
+                      transaction.id,
+                      "failed",
+                      "Transaction rejected by admin"
+                    )
+                  }
+                  className="flex-1 bg-red-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors"
+                >
                   Reject Transaction
                 </button>
               </>
             )}
-            {transaction.status === "completed" && (
+            {(transaction.status === "completed" ||
+              transaction.status === "success") && (
               <button className="flex-1 bg-indigo-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors">
                 Generate Receipt
               </button>
             )}
             {transaction.status === "failed" && (
-              <button className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors">
+              <button
+                onClick={() =>
+                  handleStatusChange(
+                    transaction.id,
+                    "pending",
+                    "Transaction retried by admin"
+                  )
+                }
+                className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+              >
                 Retry Transaction
               </button>
             )}
@@ -482,7 +569,9 @@ const AdminTransactions = () => {
               </p>
               <p className="text-2xl font-bold text-gray-900">
                 {Math.round(
-                  (transactions.filter((t) => t.status === "completed").length /
+                  (transactions.filter(
+                    (t) => t.status === "completed" || t.status === "success"
+                  ).length /
                     transactions.length) *
                     100
                 )}
@@ -538,6 +627,7 @@ const AdminTransactions = () => {
             >
               <option value="all">All Status</option>
               <option value="completed">Completed</option>
+              <option value="success">Success</option>
               <option value="pending">Pending</option>
               <option value="processing">Processing</option>
               <option value="failed">Failed</option>
@@ -563,10 +653,8 @@ const AdminTransactions = () => {
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-700">
               Showing{" "}
-              <span className="font-semibold">
-                {filteredTransactions.length}
-              </span>{" "}
-              transaction{filteredTransactions.length !== 1 ? "s" : ""}
+              <span className="font-semibold">{transactions.length}</span>{" "}
+              transaction{transactions.length !== 1 ? "s" : ""}
               {searchTerm && ` matching "${searchTerm}"`}
               {filterStatus !== "all" && ` with ${filterStatus} status`}
               {filterType !== "all" && ` of type ${filterType}`}
@@ -584,7 +672,7 @@ const AdminTransactions = () => {
         <div className="block lg:hidden">
           <div className="p-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             <div className="space-y-4">
-              {filteredTransactions.map((transaction) => (
+              {transactions.map((transaction) => (
                 <div
                   key={transaction.id}
                   className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200 hover:shadow-md transition-shadow"
@@ -601,19 +689,19 @@ const AdminTransactions = () => {
                     </div>
                     <div className="flex items-center space-x-2 flex-shrink-0">
                       {React.createElement(
-                        statusConfig[transaction.status].icon,
+                        getStatusConfig(transaction.status).icon,
                         {
                           className: `w-4 h-4 ${
-                            statusConfig[transaction.status].iconColor
+                            getStatusConfig(transaction.status).iconColor
                           }`,
                         }
                       )}
                       <span
                         className={`px-2 py-1 rounded-lg text-xs font-semibold border ${
-                          statusConfig[transaction.status].color
+                          getStatusConfig(transaction.status).color
                         }`}
                       >
-                        {statusConfig[transaction.status].label}
+                        {getStatusConfig(transaction.status).label}
                       </span>
                     </div>
                   </div>
@@ -666,10 +754,7 @@ const AdminTransactions = () => {
                   {/* Actions */}
                   <div className="flex items-center justify-end pt-2 border-t border-gray-200">
                     <button
-                      onClick={() => {
-                        setSelectedTransaction(transaction);
-                        setShowTransactionModal(true);
-                      }}
+                      onClick={() => handleViewTransaction(transaction.id)}
                       className="flex items-center space-x-2 px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors text-sm"
                     >
                       <EyeIcon className="w-4 h-4" />
@@ -712,7 +797,7 @@ const AdminTransactions = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredTransactions.map((transaction) => (
+                {transactions.map((transaction) => (
                   <tr
                     key={transaction.id}
                     className="hover:bg-gray-50 transition-colors"
@@ -755,19 +840,19 @@ const AdminTransactions = () => {
                     <td className="px-4 xl:px-6 py-4">
                       <div className="flex items-center space-x-2">
                         {React.createElement(
-                          statusConfig[transaction.status].icon,
+                          getStatusConfig(transaction.status).icon,
                           {
                             className: `w-3.5 h-3.5 xl:w-4 xl:h-4 ${
-                              statusConfig[transaction.status].iconColor
+                              getStatusConfig(transaction.status).iconColor
                             }`,
                           }
                         )}
                         <span
                           className={`px-2 xl:px-2 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${
-                            statusConfig[transaction.status].color
+                            getStatusConfig(transaction.status).color
                           }`}
                         >
-                          {statusConfig[transaction.status].label}
+                          {getStatusConfig(transaction.status).label}
                         </span>
                       </div>
                     </td>
@@ -783,10 +868,7 @@ const AdminTransactions = () => {
                     </td>
                     <td className="px-4 xl:px-6 py-4">
                       <button
-                        onClick={() => {
-                          setSelectedTransaction(transaction);
-                          setShowTransactionModal(true);
-                        }}
+                        onClick={() => handleViewTransaction(transaction.id)}
                         className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                       >
                         <EyeIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
@@ -800,7 +882,7 @@ const AdminTransactions = () => {
         </div>
 
         {/* No Results */}
-        {filteredTransactions.length === 0 && (
+        {transactions.length === 0 && (
           <div className="text-center py-12">
             <CreditCardIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500 text-lg font-medium">
@@ -812,6 +894,91 @@ const AdminTransactions = () => {
           </div>
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {pagination.last_page > 1 && (
+        <div className="bg-white px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="flex items-center text-sm text-gray-700">
+            <span>
+              Showing {(pagination.current_page - 1) * pagination.per_page + 1}{" "}
+              to{" "}
+              {Math.min(
+                pagination.current_page * pagination.per_page,
+                pagination.total
+              )}{" "}
+              of {pagination.total} transactions
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() =>
+                setPagination((prev) => ({
+                  ...prev,
+                  current_page: Math.max(1, prev.current_page - 1),
+                }))
+              }
+              disabled={pagination.current_page === 1}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex items-center space-x-1">
+              {Array.from(
+                { length: Math.min(5, pagination.last_page) },
+                (_, i) => {
+                  let pageNum;
+                  if (pagination.last_page <= 5) {
+                    pageNum = i + 1;
+                  } else if (pagination.current_page <= 3) {
+                    pageNum = i + 1;
+                  } else if (
+                    pagination.current_page >=
+                    pagination.last_page - 2
+                  ) {
+                    pageNum = pagination.last_page - 4 + i;
+                  } else {
+                    pageNum = pagination.current_page - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() =>
+                        setPagination((prev) => ({
+                          ...prev,
+                          current_page: pageNum,
+                        }))
+                      }
+                      className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                        pagination.current_page === pageNum
+                          ? "bg-indigo-600 text-white"
+                          : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                }
+              )}
+            </div>
+
+            <button
+              onClick={() =>
+                setPagination((prev) => ({
+                  ...prev,
+                  current_page: Math.min(prev.last_page, prev.current_page + 1),
+                }))
+              }
+              disabled={pagination.current_page === pagination.last_page}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Transaction Detail Modal */}
       {showTransactionModal && selectedTransaction && (

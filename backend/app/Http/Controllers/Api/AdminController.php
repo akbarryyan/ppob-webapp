@@ -293,6 +293,201 @@ class AdminController extends Controller
     }
 
     /**
+     * Get all transactions with user and product details
+     */
+    public function getTransactions(Request $request): JsonResponse
+    {
+        try {
+            $query = Transaction::with(['user:id,name,email'])
+                               ->orderBy('created_at', 'desc');
+
+            // Apply filters
+            if ($request->has('status') && $request->input('status') !== 'all') {
+                $query->where('status', $request->input('status'));
+            }
+
+            if ($request->has('search')) {
+                $search = $request->input('search');
+                $query->where(function($q) use ($search) {
+                    $q->where('transaction_id', 'LIKE', "%{$search}%")
+                      ->orWhere('product_name', 'LIKE', "%{$search}%")
+                      ->orWhereHas('user', function($userQuery) use ($search) {
+                          $userQuery->where('name', 'LIKE', "%{$search}%")
+                                   ->orWhere('email', 'LIKE', "%{$search}%");
+                      });
+                });
+            }
+
+            if ($request->has('type') && $request->input('type') !== 'all') {
+                $query->where('type', $request->input('type'));
+            }
+
+            // Date range filter
+            if ($request->has('date_from') && $request->has('date_to')) {
+                $query->whereBetween('created_at', [
+                    $request->input('date_from'),
+                    $request->input('date_to')
+                ]);
+            }
+
+            $perPage = $request->input('per_page', 50);
+            $transactions = $query->paginate($perPage);
+
+            // Transform data for frontend
+            $transformedTransactions = $transactions->getCollection()->map(function($transaction) {
+                return [
+                    'id' => $transaction->transaction_id,
+                    'userId' => $transaction->user_id,
+                    'userName' => $transaction->user ? $transaction->user->name : 'Unknown',
+                    'userEmail' => $transaction->user ? $transaction->user->email : 'Unknown',
+                    'productName' => $transaction->product_name,
+                    'productCode' => $transaction->product_code,
+                    'productCategory' => $transaction->type === 'prepaid' ? 'Prepaid' : 'Postpaid',
+                    'amount' => (float) $transaction->price,
+                    'profit' => (float) ($transaction->profit ?? 0),
+                    'totalAmount' => (float) $transaction->price,
+                    'status' => $transaction->status,
+                    'target' => $transaction->target,
+                    'message' => $transaction->message,
+                    'createdAt' => $transaction->created_at->format('c'),
+                    'processedAt' => $transaction->processed_at ? $transaction->processed_at->format('c') : null,
+                    'reference' => $transaction->transaction_id,
+                    'notes' => $transaction->message,
+                ];
+            });
+
+            $transactions->setCollection($transformedTransactions);
+
+            return response()->json([
+                'success' => true,
+                'data' => $transactions,
+                'message' => 'Transactions retrieved successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching transactions: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch transactions',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get single transaction details
+     */
+    public function getTransaction($id): JsonResponse
+    {
+        try {
+            $transaction = Transaction::with(['user:id,name,email'])
+                                    ->where('transaction_id', $id)
+                                    ->first();
+
+            if (!$transaction) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transaction not found'
+                ], 404);
+            }
+
+            $transformedTransaction = [
+                'id' => $transaction->transaction_id,
+                'userId' => $transaction->user_id,
+                'userName' => $transaction->user ? $transaction->user->name : 'Unknown',
+                'userEmail' => $transaction->user ? $transaction->user->email : 'Unknown',
+                'productName' => $transaction->product_name,
+                'productCode' => $transaction->product_code,
+                'productCategory' => $transaction->type === 'prepaid' ? 'Prepaid' : 'Postpaid',
+                'amount' => (float) $transaction->price,
+                'profit' => (float) ($transaction->profit ?? 0),
+                'totalAmount' => (float) $transaction->price,
+                'status' => $transaction->status,
+                'target' => $transaction->target,
+                'message' => $transaction->message,
+                'createdAt' => $transaction->created_at->format('c'),
+                'processedAt' => $transaction->processed_at ? $transaction->processed_at->format('c') : null,
+                'completedAt' => $transaction->processed_at ? $transaction->processed_at->format('c') : null,
+                'reference' => $transaction->transaction_id,
+                'notes' => $transaction->message,
+                'paymentMethod' => 'Digital Payment',
+                'paymentChannel' => 'System',
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $transformedTransaction,
+                'message' => 'Transaction retrieved successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching transaction: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch transaction',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update transaction status
+     */
+    public function updateTransactionStatus(Request $request, $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'status' => 'required|in:pending,success,failed',
+                'notes' => 'nullable|string'
+            ]);
+
+            $transaction = Transaction::where('transaction_id', $id)->first();
+
+            if (!$transaction) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transaction not found'
+                ], 404);
+            }
+
+            $updateData = [
+                'status' => $request->input('status')
+            ];
+
+            if ($request->input('notes')) {
+                $updateData['message'] = $request->input('notes');
+            }
+
+            if ($request->input('status') === 'success' && !$transaction->processed_at) {
+                $updateData['processed_at'] = now();
+            }
+
+            $transaction->update($updateData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transaction status updated successfully',
+                'data' => [
+                    'id' => $transaction->transaction_id,
+                    'status' => $transaction->status,
+                    'processed_at' => $transaction->processed_at
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error updating transaction status: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update transaction status',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get dashboard statistics
      */
     public function getDashboardStats(): JsonResponse
