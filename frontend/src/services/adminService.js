@@ -224,6 +224,77 @@ const adminService = {
       throw error;
     }
   },
+
+  // Notification methods
+  getNotifications: async (params = {}) => {
+    try {
+      const response = await adminApi.get("/admin/notifications", {
+        params,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      throw error;
+    }
+  },
+
+  getNotificationStats: async () => {
+    try {
+      const response = await adminApi.get("/admin/notifications/stats");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching notification stats:", error);
+      throw error;
+    }
+  },
+
+  createNotification: async (notificationData) => {
+    try {
+      const response = await adminApi.post(
+        "/admin/notifications",
+        notificationData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error creating notification:", error);
+      throw error;
+    }
+  },
+
+  updateNotification: async (id, notificationData) => {
+    try {
+      const response = await adminApi.put(
+        `/admin/notifications/${id}`,
+        notificationData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating notification:", error);
+      throw error;
+    }
+  },
+
+  deleteNotification: async (id) => {
+    try {
+      const response = await adminApi.delete(`/admin/notifications/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      throw error;
+    }
+  },
+
+  bulkDeleteNotifications: async (notificationIds) => {
+    try {
+      const response = await adminApi.post("/admin/notifications/bulk-delete", {
+        notification_ids: notificationIds,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error bulk deleting notifications:", error);
+      throw error;
+    }
+  },
 };
 
 export default adminService;

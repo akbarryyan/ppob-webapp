@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DigiflazzController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\AdminNotificationController;
 
 // Public routes
 Route::prefix('auth')->group(function () {
@@ -57,6 +58,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reports/products', [AdminController::class, 'getTopProducts']);
         Route::get('/reports/users', [AdminController::class, 'getTopUsers']);
         Route::get('/reports/daily', [AdminController::class, 'getDailyRevenue']);
+
+        // Notifications management routes
+        Route::get('/notifications', [AdminNotificationController::class, 'index']);
+        Route::get('/notifications/stats', [AdminNotificationController::class, 'stats']);
+        Route::post('/notifications', [AdminNotificationController::class, 'store']);
+        Route::get('/notifications/{notification}', [AdminNotificationController::class, 'show']);
+        Route::put('/notifications/{notification}', [AdminNotificationController::class, 'update']);
+        Route::delete('/notifications/{notification}', [AdminNotificationController::class, 'destroy']);
+        Route::post('/notifications/bulk-delete', [AdminNotificationController::class, 'bulkDelete']);
 
         // Digiflazz Admin Settings routes
         Route::prefix('digiflazz')->group(function () {
