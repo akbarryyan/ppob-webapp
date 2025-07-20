@@ -293,6 +293,74 @@ class AdminController extends Controller
     }
 
     /**
+     * Get transaction statistics
+     */
+    public function getTransactionStats(Request $request): JsonResponse
+    {
+        try {
+            // Apply same filters as getTransactions for consistency
+            $query = Transaction::query();
+
+            if ($request->has('status') && $request->input('status') !== 'all') {
+                $query->where('status', $request->input('status'));
+            }
+
+            if ($request->has('search')) {
+                $search = $request->input('search');
+                $query->where(function($q) use ($search) {
+                    $q->where('transaction_id', 'LIKE', "%{$search}%")
+                      ->orWhere('product_name', 'LIKE', "%{$search}%")
+                      ->orWhereHas('user', function($userQuery) use ($search) {
+                          $userQuery->where('name', 'LIKE', "%{$search}%")
+                                   ->orWhere('email', 'LIKE', "%{$search}%");
+                      });
+                });
+            }
+
+            if ($request->has('type') && $request->input('type') !== 'all') {
+                $query->where('product_category', $request->input('type'));
+            }
+
+            // Date range filter
+            if ($request->has('date_from') && $request->has('date_to')) {
+                $query->whereBetween('created_at', [
+                    $request->input('date_from') . ' 00:00:00',
+                    $request->input('date_to') . ' 23:59:59'
+                ]);
+            }
+
+            $totalTransactions = $query->count();
+            $totalValue = $query->sum('price');
+            $successCount = $query->whereIn('status', ['success', 'completed'])->count();
+            $pendingCount = $query->whereIn('status', ['pending', 'processing'])->count();
+            $failedCount = $query->where('status', 'failed')->count();
+
+            $successRate = $totalTransactions > 0 ? ($successCount / $totalTransactions) * 100 : 0;
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'total_transactions' => $totalTransactions,
+                    'total_value' => $totalValue,
+                    'success_rate' => round($successRate, 1),
+                    'success_count' => $successCount,
+                    'pending_count' => $pendingCount,
+                    'failed_count' => $failedCount,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting transaction stats: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get transaction statistics',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get all transactions with user and product details
      */
     public function getTransactions(Request $request): JsonResponse

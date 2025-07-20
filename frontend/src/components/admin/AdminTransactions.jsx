@@ -31,15 +31,26 @@ const AdminTransactions = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     current_page: 1,
-    per_page: 50,
+    per_page: 100, // Default to 100 transactions per page
     total: 0,
     last_page: 1,
+  });
+
+  // Add state for overall stats
+  const [stats, setStats] = useState({
+    total_transactions: 0,
+    total_value: 0,
+    success_rate: 0,
+    success_count: 0,
+    pending_count: 0,
+    failed_count: 0,
   });
 
   // Add debounce effect for search
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchTransactions();
+      fetchStats(); // Also fetch stats when search changes
     }, 500); // Debounce search by 500ms
 
     return () => clearTimeout(timeoutId);
@@ -48,7 +59,14 @@ const AdminTransactions = () => {
   // Separate effect for other filters (no debounce needed)
   useEffect(() => {
     fetchTransactions();
-  }, [filterStatus, filterType, filterDateRange, pagination.current_page]);
+    fetchStats(); // Also fetch stats when filters change
+  }, [
+    filterStatus,
+    filterType,
+    filterDateRange,
+    pagination.current_page,
+    pagination.per_page,
+  ]);
 
   const fetchTransactions = async () => {
     try {
@@ -114,6 +132,67 @@ const AdminTransactions = () => {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const params = {};
+
+      if (searchTerm) params.search = searchTerm;
+      if (filterStatus !== "all") params.status = filterStatus;
+      if (filterType !== "all") params.type = filterType;
+
+      // Add date range filter
+      if (filterDateRange !== "all") {
+        const now = new Date();
+        let dateFrom;
+
+        switch (filterDateRange) {
+          case "today":
+            dateFrom = new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate()
+            );
+            break;
+          case "week":
+            dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case "month":
+            dateFrom = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          default:
+            dateFrom = null;
+        }
+
+        if (dateFrom) {
+          params.date_from = dateFrom.toISOString().split("T")[0];
+          params.date_to = now.toISOString().split("T")[0];
+        }
+      }
+
+      const response = await adminService.getTransactionStats(params);
+
+      console.log("Stats API Response:", response); // Debug log
+
+      if (response.success) {
+        const statsData = {
+          total_transactions: response.data.total_transactions || 0,
+          total_value: response.data.total_value || 0,
+          success_rate: response.data.success_rate || 0,
+          success_count: response.data.success_count || 0,
+          pending_count: response.data.pending_count || 0,
+          failed_count: response.data.failed_count || 0,
+        };
+        console.log("Setting stats to:", statsData); // Debug log
+        setStats(statsData);
+      } else {
+        console.error("Stats API error:", response.message);
+      }
+    } catch (err) {
+      console.error("Error fetching transaction stats:", err);
+      // Keep default stats values in case of error
+    }
+  };
+
   const handleStatusChange = async (transactionId, newStatus, notes = "") => {
     try {
       const response = await adminService.updateTransactionStatus(
@@ -125,8 +204,9 @@ const AdminTransactions = () => {
       );
 
       if (response.success) {
-        // Refresh transactions list
+        // Refresh transactions list and stats
         fetchTransactions();
+        fetchStats();
         setShowTransactionModal(false);
       } else {
         alert("Failed to update transaction status: " + response.message);
@@ -534,7 +614,7 @@ const AdminTransactions = () => {
                 Total Transactions
               </p>
               <p className="text-2xl font-bold text-gray-900">
-                {transactions.length}
+                {stats.total_transactions.toLocaleString()}
               </p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
@@ -550,9 +630,7 @@ const AdminTransactions = () => {
                 Total Value
               </p>
               <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(
-                  transactions.reduce((sum, t) => sum + t.totalAmount, 0)
-                )}
+                {formatCurrency(stats.total_value)}
               </p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-tr from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
@@ -568,14 +646,7 @@ const AdminTransactions = () => {
                 Success Rate
               </p>
               <p className="text-2xl font-bold text-gray-900">
-                {Math.round(
-                  (transactions.filter(
-                    (t) => t.status === "completed" || t.status === "success"
-                  ).length /
-                    transactions.length) *
-                    100
-                )}
-                %
+                {stats.success_rate}%
               </p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
@@ -589,11 +660,7 @@ const AdminTransactions = () => {
             <div>
               <p className="text-sm font-medium text-gray-600 mb-1">Pending</p>
               <p className="text-2xl font-bold text-gray-900">
-                {
-                  transactions.filter(
-                    (t) => t.status === "pending" || t.status === "processing"
-                  ).length
-                }
+                {stats.pending_count}
               </p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-tr from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
@@ -641,6 +708,22 @@ const AdminTransactions = () => {
               <option value="all">All Types</option>
               <option value="Game Top Up">Game Top Up</option>
               <option value="Game Voucher">Game Voucher</option>
+            </select>
+
+            <select
+              value={pagination.per_page}
+              onChange={(e) =>
+                setPagination((prev) => ({
+                  ...prev,
+                  per_page: parseInt(e.target.value),
+                  current_page: 1, // Reset to first page when changing per_page
+                }))
+              }
+              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            >
+              <option value="50">50 per page</option>
+              <option value="100">100 per page</option>
+              <option value="170">All transactions</option>
             </select>
           </div>
         </div>
