@@ -605,50 +605,277 @@ const AdminReports = () => {
               )}
               {selectedReport === "users" && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-bold text-gray-900">
-                    Top Customers
-                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Top Customers Analytics
+                    </h3>
+                    <div className="text-sm text-gray-600">
+                      {reportData.topUsers.length > 0 && (
+                        <span>
+                          Top {reportData.topUsers.length} customers by spending
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* User Analytics Summary Cards */}
+                  {reportData.topUsers.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-blue-600">
+                              Top Customer Spent
+                            </p>
+                            <p className="text-xl font-bold text-blue-900">
+                              {formatCurrency(
+                                Math.max(
+                                  ...reportData.topUsers.map((u) => u.spent)
+                                )
+                              )}
+                            </p>
+                            <p className="text-xs text-blue-700 mt-1">
+                              {reportData.topUsers[0]?.name || "N/A"}
+                            </p>
+                          </div>
+                          <UsersIcon className="w-8 h-8 text-blue-600" />
+                        </div>
+                      </div>
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-green-600">
+                              Total Customers
+                            </p>
+                            <p className="text-xl font-bold text-green-900">
+                              {reportData.topUsers.length}
+                            </p>
+                            <p className="text-xs text-green-700 mt-1">
+                              Active customers shown
+                            </p>
+                          </div>
+                          <CreditCardIcon className="w-8 h-8 text-green-600" />
+                        </div>
+                      </div>
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-purple-600">
+                              Avg Spending
+                            </p>
+                            <p className="text-xl font-bold text-purple-900">
+                              {formatCurrency(
+                                reportData.topUsers.reduce(
+                                  (sum, user) => sum + user.spent,
+                                  0
+                                ) / reportData.topUsers.length
+                              )}
+                            </p>
+                            <p className="text-xs text-purple-700 mt-1">
+                              Per customer average
+                            </p>
+                          </div>
+                          <CurrencyDollarIcon className="w-8 h-8 text-purple-600" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Top Customers List */}
                   <div className="space-y-3 sm:space-y-4">
                     {reportData.topUsers.length > 0 ? (
-                      reportData.topUsers.map((user, index) => (
-                        <div
-                          key={index}
-                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors space-y-3 sm:space-y-0"
-                        >
-                          <div className="flex items-center space-x-3 sm:space-x-4">
-                            <div className="w-10 h-10 bg-gradient-to-tr from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <span className="text-white font-bold text-sm">
-                                #{index + 1}
-                              </span>
+                      reportData.topUsers.map((user, index) => {
+                        const maxSpent = Math.max(
+                          ...reportData.topUsers.map((u) => u.spent)
+                        );
+                        const spentPercentage =
+                          maxSpent > 0 ? (user.spent / maxSpent) * 100 : 0;
+
+                        // Determine tier based on ranking
+                        const getTierInfo = (idx) => {
+                          if (idx === 0)
+                            return {
+                              tier: "VIP",
+                              color: "from-yellow-500 to-orange-500",
+                              bgColor:
+                                "bg-gradient-to-tr from-yellow-500 to-orange-500",
+                            };
+                          if (idx < 3)
+                            return {
+                              tier: "Gold",
+                              color: "from-yellow-400 to-yellow-600",
+                              bgColor:
+                                "bg-gradient-to-tr from-yellow-400 to-yellow-600",
+                            };
+                          if (idx < 5)
+                            return {
+                              tier: "Silver",
+                              color: "from-gray-400 to-gray-600",
+                              bgColor:
+                                "bg-gradient-to-tr from-gray-400 to-gray-600",
+                            };
+                          return {
+                            tier: "Bronze",
+                            color: "from-orange-400 to-red-500",
+                            bgColor:
+                              "bg-gradient-to-tr from-orange-400 to-red-500",
+                          };
+                        };
+
+                        const tierInfo = getTierInfo(index);
+
+                        return (
+                          <div
+                            key={index}
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors space-y-3 sm:space-y-0"
+                          >
+                            <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+                              <div
+                                className={`w-12 h-12 ${tierInfo.bgColor} rounded-lg flex flex-col items-center justify-center flex-shrink-0 shadow-lg`}
+                              >
+                                <span className="text-white font-bold text-xs">
+                                  #{index + 1}
+                                </span>
+                                <span className="text-white font-bold text-[10px]">
+                                  {tierInfo.tier}
+                                </span>
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                                  {user.name}
+                                </p>
+                                <div className="flex items-center space-x-3 text-xs sm:text-sm text-gray-600">
+                                  <span>
+                                    {user.transactions} transaction
+                                    {user.transactions !== 1 ? "s" : ""}
+                                  </span>
+                                  <span>•</span>
+                                  <span>
+                                    Avg:{" "}
+                                    {formatCurrency(
+                                      user.spent / user.transactions
+                                    )}
+                                  </span>
+                                </div>
+
+                                {/* Customer tier badge */}
+                                <div className="mt-1">
+                                  <span
+                                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${tierInfo.color} text-white`}
+                                  >
+                                    {tierInfo.tier} Customer
+                                  </span>
+                                </div>
+                              </div>
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                                {user.name}
+
+                            <div className="w-full sm:w-auto sm:text-right sm:min-w-[220px]">
+                              <p className="font-bold text-gray-900 text-sm sm:text-base mb-2">
+                                {formatCurrency(user.spent)}
                               </p>
-                              <p className="text-xs sm:text-sm text-gray-600">
-                                {user.transactions} transactions
-                              </p>
+
+                              {/* Spending progress bar */}
+                              <div className="w-full sm:w-44 bg-gray-200 rounded-full h-2 mb-2">
+                                <div
+                                  className={`bg-gradient-to-r ${tierInfo.color} h-2 rounded-full transition-all duration-500 ease-out`}
+                                  style={{
+                                    width: `${spentPercentage}%`,
+                                  }}
+                                ></div>
+                              </div>
+
+                              <div className="flex justify-between text-xs text-gray-500">
+                                <span>
+                                  {spentPercentage.toFixed(1)}% of top
+                                </span>
+                                <span>
+                                  {(
+                                    (user.spent /
+                                      reportData.topUsers.reduce(
+                                        (sum, u) => sum + u.spent,
+                                        0
+                                      )) *
+                                    100
+                                  ).toFixed(1)}
+                                  % share
+                                </span>
+                              </div>
                             </div>
                           </div>
-                          <div className="text-left sm:text-right">
-                            <p className="font-bold text-gray-900 text-sm sm:text-base">
-                              {formatCurrency(user.spent)}
-                            </p>
-                            <p className="text-xs sm:text-sm text-gray-600">
-                              {formatCurrency(user.spent / user.transactions)}{" "}
-                              avg
-                            </p>
-                          </div>
-                        </div>
-                      ))
+                        );
+                      })
                     ) : (
-                      <div className="text-center py-8">
-                        <p className="text-gray-500">
-                          No user data available for this period
+                      <div className="text-center py-12">
+                        <UsersIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 text-lg mb-2">
+                          No customer data available
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          {selectedPeriod === "all"
+                            ? "No customer transaction data found in the database"
+                            : `No customer transactions found for the selected ${
+                                selectedPeriod === "7days"
+                                  ? "week"
+                                  : selectedPeriod === "30days"
+                                  ? "month"
+                                  : selectedPeriod === "90days"
+                                  ? "3 months"
+                                  : selectedPeriod === "365days"
+                                  ? "year"
+                                  : "period"
+                              }`}
                         </p>
                       </div>
                     )}
                   </div>
+
+                  {/* Customer Insights */}
+                  {reportData.topUsers.length > 0 && (
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-4 sm:p-6 mt-6">
+                      <h4 className="text-lg font-bold text-indigo-900 mb-4">
+                        Customer Insights
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="text-center p-3">
+                          <p className="text-2xl font-bold text-indigo-600">
+                            {reportData.topUsers.reduce(
+                              (sum, user) => sum + user.transactions,
+                              0
+                            )}
+                          </p>
+                          <p className="text-sm text-indigo-700 mt-1">
+                            Total Transactions
+                          </p>
+                        </div>
+                        <div className="text-center p-3">
+                          <p className="text-2xl font-bold text-indigo-600">
+                            {formatCurrency(
+                              reportData.topUsers.reduce(
+                                (sum, user) => sum + user.spent,
+                                0
+                              )
+                            )}
+                          </p>
+                          <p className="text-sm text-indigo-700 mt-1">
+                            Total Revenue
+                          </p>
+                        </div>
+                        <div className="text-center p-3">
+                          <p className="text-2xl font-bold text-indigo-600">
+                            {(
+                              reportData.topUsers.reduce(
+                                (sum, user) => sum + user.transactions,
+                                0
+                              ) / reportData.topUsers.length
+                            ).toFixed(1)}
+                          </p>
+                          <p className="text-sm text-indigo-700 mt-1">
+                            Avg Transactions per Customer
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </>
