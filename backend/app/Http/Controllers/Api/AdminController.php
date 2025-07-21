@@ -1057,9 +1057,14 @@ class AdminController extends Controller
             
             // Calculate date range based on period
             if ($period === 'all') {
-                // For all time, use earliest possible date but limit to recent data for daily view
-                $startDate = now()->subDays(30); // Show last 30 days even for "all" period for readability
-                $endDate = now();
+                // For all time, get the earliest transaction date
+                $earliestTransaction = Transaction::where('status', 'success')->oldest('created_at')->first();
+                if ($earliestTransaction) {
+                    $startDate = $earliestTransaction->created_at->startOfDay();
+                } else {
+                    $startDate = now()->subDays(30); // Fallback if no transactions
+                }
+                $endDate = now()->endOfDay();
             } else {
                 $days = match($period) {
                     '7days' => 7,
@@ -1069,8 +1074,8 @@ class AdminController extends Controller
                     default => 30
                 };
 
-                $startDate = now()->subDays($days);
-                $endDate = now();
+                $startDate = now()->subDays($days)->startOfDay();
+                $endDate = now()->endOfDay();
             }
 
             // Get daily revenue data
