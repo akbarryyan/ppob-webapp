@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
+import { useSettings } from "../../contexts/SettingsContext";
 import adminService from "../../services/adminService";
 import {
   Cog6ToothIcon,
@@ -24,6 +25,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 const AdminSettings = () => {
+  const { settings: globalSettings, updateSettings: updateGlobalSettings } =
+    useSettings();
   const [activeSection, setActiveSection] = useState("general");
   const [showPassword, setShowPassword] = useState({});
   const [digiflazzLoading, setDigiflazzLoading] = useState(false);
@@ -171,16 +174,21 @@ const AdminSettings = () => {
     try {
       const response = await adminService.getGeneralSettings();
       if (response.success && response.data) {
+        const generalSettings = {
+          siteName: response.data.siteName || "",
+          siteDescription: response.data.siteDescription || "",
+          adminEmail: response.data.adminEmail || "",
+          supportEmail: response.data.supportEmail || "",
+          maintenanceMode: response.data.maintenanceMode || false,
+        };
+
         setSettings((prev) => ({
           ...prev,
-          general: {
-            siteName: response.data.siteName || "",
-            siteDescription: response.data.siteDescription || "",
-            adminEmail: response.data.adminEmail || "",
-            supportEmail: response.data.supportEmail || "",
-            maintenanceMode: response.data.maintenanceMode || false,
-          },
+          general: generalSettings,
         }));
+
+        // Update global settings context (this will update the document title)
+        updateGlobalSettings(generalSettings);
       } else {
         console.error("Failed to load general settings:", response.message);
       }
@@ -273,11 +281,15 @@ const AdminSettings = () => {
 
       const response = await adminService.saveGeneralSettings(currentSettings);
       if (response.success) {
-        // Update state with current form values
+        // Update local state with current form values
         setSettings((prev) => ({
           ...prev,
           general: currentSettings,
         }));
+
+        // Update global settings context (this will update the document title)
+        updateGlobalSettings(currentSettings);
+
         toast.success("General settings saved successfully");
       } else {
         toast.error(response.message || "Failed to save general settings");

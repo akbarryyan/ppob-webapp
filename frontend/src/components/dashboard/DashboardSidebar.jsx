@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useSettings } from "../../contexts/SettingsContext";
 import {
   HomeIcon,
   CreditCardIcon,
@@ -23,6 +24,7 @@ const DashboardSidebar = ({
   onLogout,
 }) => {
   const { user } = useAuth();
+  const { settings } = useSettings();
   const menuItems = [
     { icon: HomeIcon, label: "Overview", key: "overview" },
     { icon: CreditCardIcon, label: "Transaksi", key: "transactions" },
@@ -64,7 +66,9 @@ const DashboardSidebar = ({
             <div className="w-9 h-9 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
               <CreditCardIcon className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-800">Bayaraja</span>
+            <span className="text-xl font-bold text-gray-800">
+              {settings.siteName || "Bayaraja"}
+            </span>
           </Link>
 
           {/* Mobile Close Button */}

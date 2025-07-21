@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../contexts/AuthContext";
+import { useSettings } from "../../contexts/SettingsContext";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -18,6 +19,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 const LoginForm = () => {
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -127,7 +129,9 @@ const LoginForm = () => {
               <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                 <CreditCardIcon className="w-7 h-7 text-white" />
               </div>
-              <span className="text-3xl font-bold">Bayaraja</span>
+              <span className="text-3xl font-bold">
+                {settings.siteName || "Bayaraja"}
+              </span>
             </Link>
           </div>
 
@@ -237,7 +241,7 @@ const LoginForm = () => {
                 <CreditCardIcon className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Bayaraja
+                {settings.siteName || "Bayaraja"}
               </span>
             </Link>
           </div>

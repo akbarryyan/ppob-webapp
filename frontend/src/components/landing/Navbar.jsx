@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useSettings } from "../../contexts/SettingsContext";
 import {
   Bars3Icon,
   XMarkIcon,
@@ -7,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 const Navbar = () => {
+  const { settings } = useSettings();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
 
@@ -33,7 +35,7 @@ const Navbar = () => {
               <CreditCardIcon className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Bayaraja
+              {settings.siteName || "Bayaraja"}
             </span>
           </div>
 

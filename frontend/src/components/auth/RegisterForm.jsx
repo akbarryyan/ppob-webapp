@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useSettings } from "../../contexts/SettingsContext";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -21,6 +22,7 @@ import {
 import { authService } from "../../services/authService";
 
 const RegisterForm = () => {
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -161,7 +163,9 @@ const RegisterForm = () => {
               <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                 <CreditCardIcon className="w-7 h-7 text-white" />
               </div>
-              <span className="text-3xl font-bold">Bayaraja</span>
+              <span className="text-3xl font-bold">
+                {settings.siteName || "Bayaraja"}
+              </span>
             </Link>
           </div>
 
@@ -227,7 +231,7 @@ const RegisterForm = () => {
             {/* Features List */}
             <div className="space-y-4">
               <h3 className="font-semibold text-white text-lg">
-                Mengapa Memilih Bayaraja?
+                Mengapa Memilih {settings.siteName || "Bayaraja"}?
               </h3>
               <div className="space-y-3">
                 {features.map((feature, index) => (
@@ -279,7 +283,7 @@ const RegisterForm = () => {
                 <CreditCardIcon className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Bayaraja
+                {settings.siteName || "Bayaraja"}
               </span>
             </Link>
           </div>
