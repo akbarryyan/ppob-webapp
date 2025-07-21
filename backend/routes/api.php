@@ -21,6 +21,9 @@ Route::prefix('admin')->group(function () {
 // Debug route (public for now)
 Route::get('/digiflazz/test-api', [DigiflazzController::class, 'testApi']);
 
+// Public settings route
+Route::get('/public/settings/general', [AdminController::class, 'getGeneralSettings']);
+
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('auth')->group(function () {
@@ -78,6 +81,12 @@ Route::middleware('auth:sanctum')->group(function () {
             // Admin routes for syncing data
             Route::post('/sync-prepaid-price-list', [DigiflazzController::class, 'syncPrepaidPriceList']);
             Route::post('/sync-postpaid-price-list', [DigiflazzController::class, 'syncPostpaidPriceList']);
+        });
+
+        // General Settings routes
+        Route::prefix('settings')->group(function () {
+            Route::get('/general', [AdminController::class, 'getGeneralSettings']);
+            Route::post('/general', [AdminController::class, 'saveGeneralSettings']);
         });
     });
 

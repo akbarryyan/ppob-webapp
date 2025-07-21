@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import adminService from "../../services/adminService";
 import {
   Cog6ToothIcon,
   ShieldCheckIcon,
@@ -26,8 +27,11 @@ const AdminSettings = () => {
   const [activeSection, setActiveSection] = useState("general");
   const [showPassword, setShowPassword] = useState({});
   const [digiflazzLoading, setDigiflazzLoading] = useState(false);
+  const [generalLoading, setGeneralLoading] = useState(false);
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [hasExistingData, setHasExistingData] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(true); // Start with true to prevent loading screen
+  const [dataLoaded, setDataLoaded] = useState(false); // Track if data is loaded
   const [digiflazzSettings, setDigiflazzSettings] = useState({
     username: "",
     api_key: "",
@@ -97,10 +101,29 @@ const AdminSettings = () => {
     );
   };
 
-  // Load Digiflazz settings on component mount
-  useEffect(() => {
-    loadDigiflazzSettings();
-  }, []);
+  // Load general settings from database
+  const loadGeneralSettings = async () => {
+    if (dataLoaded) return; // Prevent multiple loads
+
+    try {
+      const response = await adminService.getGeneralSettings();
+      if (response.success && response.data) {
+        setSettings((prev) => ({
+          ...prev,
+          general: {
+            ...prev.general, // Keep existing values as fallback
+            ...response.data, // Override with database values
+          },
+        }));
+      } else {
+        console.error("Failed to load general settings:", response.message);
+      }
+    } catch (error) {
+      console.error("Failed to load general settings:", error);
+    } finally {
+      setDataLoaded(true); // Mark data as loaded
+    }
+  };
 
   const loadDigiflazzSettings = async () => {
     try {
@@ -141,6 +164,62 @@ const AdminSettings = () => {
     } catch (error) {
       console.error("Failed to load Digiflazz settings:", error);
       setHasExistingData(false);
+    }
+  };
+
+  // Load Digiflazz settings on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      if (!dataLoaded) {
+        await Promise.all([loadDigiflazzSettings(), loadGeneralSettings()]);
+      }
+    };
+
+    loadData();
+  }, []); // Only run once
+
+  // Save general settings to database
+  const saveGeneralSettings = async () => {
+    setGeneralLoading(true);
+    try {
+      // Get current values from form elements
+      const siteName =
+        document.querySelector('input[key="siteName-input"]')?.value ||
+        settings.general.siteName;
+      const siteDescription =
+        document.querySelector('textarea[key="siteDescription-input"]')
+          ?.value || settings.general.siteDescription;
+      const adminEmail =
+        document.querySelector('input[key="adminEmail-input"]')?.value ||
+        settings.general.adminEmail;
+      const supportEmail =
+        document.querySelector('input[key="supportEmail-input"]')?.value ||
+        settings.general.supportEmail;
+
+      const currentSettings = {
+        siteName,
+        siteDescription,
+        adminEmail,
+        supportEmail,
+        maintenanceMode: settings.general.maintenanceMode,
+      };
+
+      const response = await adminService.saveGeneralSettings(currentSettings);
+      if (response.success) {
+        // Update state with current form values
+        setSettings((prev) => ({
+          ...prev,
+          general: currentSettings,
+        }));
+        toast.success("General settings saved successfully");
+      } else {
+        toast.error(response.message || "Failed to save general settings");
+      }
+    } catch (error) {
+      console.error("Failed to save general settings:", error);
+      toast.error("Failed to save general settings");
+    } finally {
+      setGeneralLoading(false);
     }
   };
 
@@ -344,9 +423,10 @@ const AdminSettings = () => {
                       Site Name
                     </label>
                     <input
+                      key="siteName-input"
                       type="text"
-                      value={settings.general.siteName}
-                      onChange={(e) =>
+                      defaultValue={settings.general.siteName}
+                      onBlur={(e) =>
                         handleSettingChange(
                           "general",
                           "siteName",
@@ -361,9 +441,10 @@ const AdminSettings = () => {
                       Site Description
                     </label>
                     <textarea
+                      key="siteDescription-input"
                       rows={3}
-                      value={settings.general.siteDescription}
-                      onChange={(e) =>
+                      defaultValue={settings.general.siteDescription}
+                      onBlur={(e) =>
                         handleSettingChange(
                           "general",
                           "siteDescription",
@@ -388,9 +469,10 @@ const AdminSettings = () => {
                     <div className="relative">
                       <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
+                        key="adminEmail-input"
                         type="email"
-                        value={settings.general.adminEmail}
-                        onChange={(e) =>
+                        defaultValue={settings.general.adminEmail}
+                        onBlur={(e) =>
                           handleSettingChange(
                             "general",
                             "adminEmail",
@@ -408,9 +490,10 @@ const AdminSettings = () => {
                     <div className="relative">
                       <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
+                        key="supportEmail-input"
                         type="email"
-                        value={settings.general.supportEmail}
-                        onChange={(e) =>
+                        defaultValue={settings.general.supportEmail}
+                        onBlur={(e) =>
                           handleSettingChange(
                             "general",
                             "supportEmail",
@@ -437,6 +520,41 @@ const AdminSettings = () => {
                   description="Temporarily disable the site for maintenance"
                 />
               </SettingCard>
+
+              {/* Save Button for General Settings */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200/50 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">
+                      Save Changes
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Don't forget to save your changes to apply them.
+                    </p>
+                  </div>
+                  <button
+                    onClick={saveGeneralSettings}
+                    disabled={generalLoading}
+                    className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                      generalLoading
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800"
+                    } text-white shadow-lg`}
+                  >
+                    {generalLoading ? (
+                      <>
+                        <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircleIcon className="w-5 h-5" />
+                        <span>Save Settings</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

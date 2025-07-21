@@ -295,6 +295,27 @@ const adminService = {
       throw error;
     }
   },
+
+  // General Settings methods
+  getGeneralSettings: async () => {
+    try {
+      const response = await adminApi.get("/admin/settings/general");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching general settings:", error);
+      throw error;
+    }
+  },
+
+  saveGeneralSettings: async (settings) => {
+    try {
+      const response = await adminApi.post("/admin/settings/general", settings);
+      return response.data;
+    } catch (error) {
+      console.error("Error saving general settings:", error);
+      throw error;
+    }
+  },
 };
 
 export default adminService;

@@ -1112,4 +1112,71 @@ class AdminController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get general settings
+     */
+    public function getGeneralSettings()
+    {
+        try {
+            $settings = \App\Models\Setting::getBySection('general');
+            
+            // Provide default values if settings don't exist
+            $defaultSettings = [
+                'siteName' => 'Bayaraja',
+                'siteDescription' => 'Rajanya Pembayaran Digital - Platform top-up game dan voucher terpercaya',
+                'adminEmail' => 'admin@bayaraja.com',
+                'supportEmail' => 'support@bayaraja.com',
+                'maintenanceMode' => false,
+            ];
+
+            // Merge with defaults
+            $settings = array_merge($defaultSettings, $settings->toArray());
+
+            return response()->json([
+                'success' => true,
+                'data' => $settings
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching general settings: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load general settings',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save general settings
+     */
+    public function saveGeneralSettings(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'siteName' => 'required|string|max:255',
+                'siteDescription' => 'required|string|max:1000',
+                'adminEmail' => 'required|email|max:255',
+                'supportEmail' => 'required|email|max:255',
+                'maintenanceMode' => 'boolean',
+            ]);
+
+            // Save each setting
+            \App\Models\Setting::setForSection('general', $validatedData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'General settings saved successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error saving general settings: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save general settings',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
