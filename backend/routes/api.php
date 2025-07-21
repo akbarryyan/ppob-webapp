@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Dashboard stats route
         Route::get('/dashboard/stats', [AdminController::class, 'getDashboardStats']);
+        Route::get('/recent-activity', [AdminController::class, 'getRecentActivity']);
 
         // Transactions management routes
         Route::get('/transactions', [AdminController::class, 'getTransactions']);

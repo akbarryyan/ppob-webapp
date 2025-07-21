@@ -255,6 +255,28 @@ export const adminAuthService = {
       };
     }
   },
+
+  // Get recent activity data
+  async getRecentActivity() {
+    try {
+      console.log("Making API call to /admin/recent-activity");
+      const response = await adminApiClient.get("/admin/recent-activity");
+      console.log("Recent activity API response:", response.data);
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error) {
+      console.error("Recent activity error:", error);
+      console.error("Error response:", error.response?.data);
+      return {
+        success: false,
+        message:
+          error.response?.data?.message || "Failed to fetch recent activity",
+      };
+    }
+  },
 };
 
 // Export the configured axios instance for other admin services

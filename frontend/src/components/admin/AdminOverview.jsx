@@ -36,48 +36,9 @@ const AdminOverview = () => {
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [statsError, setStatsError] = useState(null);
 
-  const [recentActivity] = useState([
-    {
-      id: 1,
-      type: "user",
-      title: "New user registration",
-      description: "User budi.santoso@email.com registered",
-      time: "2 minutes ago",
-      icon: UsersIcon,
-      iconBg: "bg-blue-100",
-      iconColor: "text-blue-600",
-    },
-    {
-      id: 2,
-      type: "transaction",
-      title: "High-value transaction",
-      description: "Rp 500,000 transaction completed",
-      time: "5 minutes ago",
-      icon: CreditCardIcon,
-      iconBg: "bg-green-100",
-      iconColor: "text-green-600",
-    },
-    {
-      id: 3,
-      type: "product",
-      title: "New product added",
-      description: "Steam Wallet 250K added to catalog",
-      time: "15 minutes ago",
-      icon: ShoppingBagIcon,
-      iconBg: "bg-purple-100",
-      iconColor: "text-purple-600",
-    },
-    {
-      id: 4,
-      type: "system",
-      title: "System backup completed",
-      description: "Daily backup successfully completed",
-      time: "1 hour ago",
-      icon: ServerIcon,
-      iconBg: "bg-gray-100",
-      iconColor: "text-gray-600",
-    },
-  ]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [isLoadingActivity, setIsLoadingActivity] = useState(true);
+  const [activityError, setActivityError] = useState(null);
 
   const [systemHealth] = useState({
     uptime: "99.9%",
@@ -154,8 +115,29 @@ const AdminOverview = () => {
     }
   };
 
+  // Fetch recent activity data
+  const fetchRecentActivity = async () => {
+    setIsLoadingActivity(true);
+    setActivityError(null);
+    try {
+      const response = await adminAuthService.getRecentActivity();
+      if (response.success) {
+        setRecentActivity(response.data);
+      } else {
+        console.error("Failed to fetch recent activity:", response.message);
+        setActivityError(response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching recent activity:", error);
+      setActivityError("Network error while fetching recent activity");
+    } finally {
+      setIsLoadingActivity(false);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
+    fetchRecentActivity();
   }, []);
 
   useEffect(() => {
@@ -208,6 +190,17 @@ const AdminOverview = () => {
     }
 
     return new Intl.NumberFormat("id-ID").format(num);
+  };
+
+  // Function to get icon component from string
+  const getIconComponent = (iconName) => {
+    const iconMap = {
+      UsersIcon,
+      CreditCardIcon,
+      ShoppingBagIcon,
+      ServerIcon,
+    };
+    return iconMap[iconName] || ServerIcon;
   };
 
   const handleQuickAction = (actionPath) => {
@@ -540,48 +533,98 @@ const AdminOverview = () => {
 
         {/* Scrollable activity list */}
         <div className="max-h-[400px] sm:max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          <div className="divide-y divide-gray-100">
-            {recentActivity.map((activity) => (
-              <div
-                key={activity.id}
-                className="p-4 sm:p-6 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div
-                    className={`w-8 h-8 sm:w-10 sm:h-10 ${activity.iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}
-                  >
-                    <activity.icon
-                      className={`w-4 h-4 sm:w-5 sm:h-5 ${activity.iconColor}`}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 leading-tight">
-                      {activity.title}
-                    </p>
-                    <p className="text-sm text-gray-600 mt-1 leading-relaxed">
-                      {activity.description}
-                    </p>
-                    <div className="flex items-center mt-2 space-x-2">
-                      <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
-                      <span className="text-xs text-gray-500 truncate">
-                        {activity.time}
-                      </span>
+          {activityError ? (
+            <div className="p-6 text-center">
+              <ExclamationTriangleIcon className="mx-auto h-12 w-12 text-red-400" />
+              <h3 className="mt-2 text-sm font-semibold text-red-900">
+                Unable to load recent activity
+              </h3>
+              <p className="mt-1 text-sm text-red-600">{activityError}</p>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={fetchRecentActivity}
+                  className="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500"
+                >
+                  Try again
+                </button>
+              </div>
+            </div>
+          ) : isLoadingActivity ? (
+            <div className="divide-y divide-gray-100">
+              {[...Array(4)].map((_, index) => (
+                <div key={index} className="p-4 sm:p-6 animate-pulse">
+                  <div className="flex items-start space-x-3 sm:space-x-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 rounded-lg flex-shrink-0"></div>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-full"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                     </div>
                   </div>
-                  <button className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0">
-                    <DocumentTextIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  </button>
                 </div>
-              </div>
-            ))}
-
-            {/* Load more placeholder - for future implementation */}
-            <div className="p-4 sm:p-6 text-center border-t border-gray-100 bg-gray-50">
-              <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
-                Load More Activities
-              </button>
+              ))}
             </div>
-          </div>
+          ) : recentActivity.length === 0 ? (
+            <div className="p-6 text-center">
+              <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                No recent activity
+              </h3>
+              <p className="mt-1 text-sm text-gray-600">
+                Recent activity will appear here when available.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {recentActivity.map((activity) => {
+                const IconComponent = getIconComponent(activity.icon);
+                return (
+                  <div
+                    key={activity.id}
+                    className="p-4 sm:p-6 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-start space-x-3 sm:space-x-4">
+                      <div
+                        className={`w-8 h-8 sm:w-10 sm:h-10 ${activity.iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}
+                      >
+                        <IconComponent
+                          className={`w-4 h-4 sm:w-5 sm:h-5 ${activity.iconColor}`}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 leading-tight">
+                          {activity.title}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                          {activity.description}
+                        </p>
+                        <div className="flex items-center mt-2 space-x-2">
+                          <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
+                          <span className="text-xs text-gray-500 truncate">
+                            {activity.time}
+                          </span>
+                        </div>
+                      </div>
+                      <button className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0">
+                        <DocumentTextIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Load more placeholder - for future implementation */}
+              <div className="p-4 sm:p-6 text-center border-t border-gray-100 bg-gray-50">
+                <button
+                  onClick={fetchRecentActivity}
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                >
+                  Refresh Activity
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

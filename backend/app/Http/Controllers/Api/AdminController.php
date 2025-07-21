@@ -656,6 +656,132 @@ class AdminController extends Controller
     }
 
     /**
+     * Get recent activity data for dashboard
+     */
+    public function getRecentActivity(): JsonResponse
+    {
+        try {
+            $activities = collect();
+
+            // Recent user registrations (last 5)
+            $recentUsers = User::where('role', 'user')
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get();
+            
+            foreach ($recentUsers as $user) {
+                $activities->push([
+                    'id' => 'user_' . $user->id,
+                    'type' => 'user',
+                    'title' => 'New user registration',
+                    'description' => "User {$user->email} registered",
+                    'time' => $user->created_at->diffForHumans(),
+                    'created_at' => $user->created_at,
+                ]);
+            }
+
+            // Recent high-value transactions (last 5)
+            $recentTransactions = Transaction::where('price', '>=', 100000)
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->with('user')
+                ->get();
+            
+            foreach ($recentTransactions as $transaction) {
+                $activities->push([
+                    'id' => 'transaction_' . $transaction->id,
+                    'type' => 'transaction',
+                    'title' => 'High-value transaction',
+                    'description' => "Rp " . number_format($transaction->price, 0, ',', '.') . " transaction " . ($transaction->status === 'success' ? 'completed' : 'processed'),
+                    'time' => $transaction->created_at->diffForHumans(),
+                    'created_at' => $transaction->created_at,
+                ]);
+            }
+
+            // Recent product additions (last 3)
+            $recentProducts = PriceList::orderBy('created_at', 'desc')
+                ->limit(3)
+                ->get();
+            
+            foreach ($recentProducts as $product) {
+                $activities->push([
+                    'id' => 'product_' . $product->id,
+                    'type' => 'product',
+                    'title' => 'New product added',
+                    'description' => "{$product->product_name} added to catalog",
+                    'time' => $product->created_at->diffForHumans(),
+                    'created_at' => $product->created_at,
+                ]);
+            }
+
+            // Add some system activities (simulate)
+            $activities->push([
+                'id' => 'system_backup',
+                'type' => 'system',
+                'title' => 'System backup completed',
+                'description' => 'Daily backup successfully completed',
+                'time' => now()->subHours(2)->diffForHumans(),
+                'created_at' => now()->subHours(2),
+            ]);
+
+            // Sort by created_at desc and limit to 15 most recent
+            $sortedActivities = $activities->sortByDesc('created_at')->take(15)->values();
+
+            // Add icon and styling information for frontend
+            $formattedActivities = $sortedActivities->map(function ($activity) {
+                $iconData = $this->getActivityIconData($activity['type']);
+                return array_merge($activity, $iconData);
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $formattedActivities->all(),
+                'message' => 'Recent activity retrieved successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error fetching recent activity: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch recent activity',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get icon data for activity types
+     */
+    private function getActivityIconData(string $type): array
+    {
+        $iconMap = [
+            'user' => [
+                'icon' => 'UsersIcon',
+                'iconBg' => 'bg-blue-100',
+                'iconColor' => 'text-blue-600',
+            ],
+            'transaction' => [
+                'icon' => 'CreditCardIcon',
+                'iconBg' => 'bg-green-100',
+                'iconColor' => 'text-green-600',
+            ],
+            'product' => [
+                'icon' => 'ShoppingBagIcon',
+                'iconBg' => 'bg-purple-100',
+                'iconColor' => 'text-purple-600',
+            ],
+            'system' => [
+                'icon' => 'ServerIcon',
+                'iconBg' => 'bg-gray-100',
+                'iconColor' => 'text-gray-600',
+            ],
+        ];
+
+        return $iconMap[$type] ?? $iconMap['system'];
+    }
+
+    /**
      * Get reports overview data
      */
     public function getReports(Request $request): JsonResponse
