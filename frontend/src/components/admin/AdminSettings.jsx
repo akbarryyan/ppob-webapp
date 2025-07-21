@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import adminService from "../../services/adminService";
 import {
@@ -32,14 +32,9 @@ const AdminSettings = () => {
   const [hasExistingData, setHasExistingData] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false); // Start with false to show loading
   const [dataLoaded, setDataLoaded] = useState(false); // Track if data is loaded
-  const [digiflazzSettings, setDigiflazzSettings] = useState({
-    username: "",
-    api_key: "",
-    whitelist_ips: "",
-    current_balance: null,
-    balance_updated_at: null,
-  });
-  const [settings, setSettings] = useState({
+
+  // Use refs to prevent re-renders
+  const settingsRef = useRef({
     general: {
       siteName: "",
       siteDescription: "",
@@ -77,22 +72,84 @@ const AdminSettings = () => {
     },
   });
 
-  const handleSettingChange = (section, key, value) => {
-    setSettings((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [key]: value,
-      },
-    }));
-  };
+  const [settings, setSettings] = useState(settingsRef.current);
+  const [digiflazzSettings, setDigiflazzSettings] = useState({
+    username: "",
+    api_key: "",
+    whitelist_ips: "",
+    current_balance: null,
+    balance_updated_at: null,
+  });
 
-  const togglePassword = (field) => {
+  // Use refs to track input values directly without triggering re-renders
+  const inputRefs = useRef({
+    general: {
+      siteName: null,
+      siteDescription: null,
+      adminEmail: null,
+      supportEmail: null,
+    },
+    security: {
+      sessionTimeout: null,
+      maxLoginAttempts: null,
+      apiRateLimit: null,
+    },
+    payment: {
+      paymentTimeout: null,
+      transactionFee: null,
+      minimumTopup: null,
+      maximumTopup: null,
+    },
+    system: {
+      logRetention: null,
+      cacheTimeout: null,
+      apiVersion: null,
+      backupFrequency: null,
+    },
+  });
+
+  // Simple stable handler functions that don't cause re-renders
+  const handleSettingChange = useCallback((section, key, value) => {
+    // Update the ref directly to prevent re-renders
+    if (settingsRef.current[section]) {
+      settingsRef.current[section][key] = value;
+    }
+
+    // Only update state for toggles and critical updates
+    if (
+      key === "maintenanceMode" ||
+      key === "twoFactorAuth" ||
+      key === "autoProcessPayment" ||
+      key === "emailNotifications" ||
+      key === "smsNotifications" ||
+      key === "pushNotifications" ||
+      key === "adminAlerts" ||
+      key === "userUpdates" ||
+      key === "debugMode"
+    ) {
+      setSettings((prev) => ({
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [key]: value,
+        },
+      }));
+    }
+  }, []);
+
+  const handleDigiflazzSettingChange = useCallback((key, value) => {
+    setDigiflazzSettings((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  }, []);
+
+  const togglePassword = useCallback((field) => {
     setShowPassword((prev) => ({
       ...prev,
       [field]: !prev[field],
     }));
-  };
+  }, []);
 
   const getAuthToken = () => {
     return (
@@ -318,13 +375,6 @@ const AdminSettings = () => {
     }
   };
 
-  const handleDigiflazzSettingChange = (key, value) => {
-    setDigiflazzSettings((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
   const settingSections = [
     { key: "general", label: "General", icon: Cog6ToothIcon },
     { key: "digiflazz", label: "Digiflazz", icon: CloudIcon },
@@ -435,9 +485,10 @@ const AdminSettings = () => {
                     </label>
                     <input
                       key="siteName-input"
+                      ref={(el) => (inputRefs.current.general.siteName = el)}
                       type="text"
-                      value={settings.general.siteName}
-                      onChange={(e) =>
+                      defaultValue={settings.general.siteName || ""}
+                      onBlur={(e) =>
                         handleSettingChange(
                           "general",
                           "siteName",
@@ -453,9 +504,12 @@ const AdminSettings = () => {
                     </label>
                     <textarea
                       key="siteDescription-input"
+                      ref={(el) =>
+                        (inputRefs.current.general.siteDescription = el)
+                      }
                       rows={3}
-                      value={settings.general.siteDescription}
-                      onChange={(e) =>
+                      defaultValue={settings.general.siteDescription || ""}
+                      onBlur={(e) =>
                         handleSettingChange(
                           "general",
                           "siteDescription",
@@ -481,9 +535,12 @@ const AdminSettings = () => {
                       <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
                         key="adminEmail-input"
+                        ref={(el) =>
+                          (inputRefs.current.general.adminEmail = el)
+                        }
                         type="email"
-                        value={settings.general.adminEmail}
-                        onChange={(e) =>
+                        defaultValue={settings.general.adminEmail || ""}
+                        onBlur={(e) =>
                           handleSettingChange(
                             "general",
                             "adminEmail",
@@ -502,9 +559,12 @@ const AdminSettings = () => {
                       <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
                         key="supportEmail-input"
+                        ref={(el) =>
+                          (inputRefs.current.general.supportEmail = el)
+                        }
                         type="email"
-                        value={settings.general.supportEmail}
-                        onChange={(e) =>
+                        defaultValue={settings.general.supportEmail || ""}
+                        onBlur={(e) =>
                           handleSettingChange(
                             "general",
                             "supportEmail",
@@ -583,6 +643,7 @@ const AdminSettings = () => {
                     <div className="relative">
                       <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
+                        key="digiflazz-username-input"
                         type={
                           showPassword.digiflazz_username
                             ? "text"
@@ -632,6 +693,7 @@ const AdminSettings = () => {
                     <div className="relative">
                       <KeyIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
+                        key="digiflazz-apikey-input"
                         type={
                           showPassword.digiflazz_api_key ? "text" : "password"
                         }
@@ -675,6 +737,7 @@ const AdminSettings = () => {
                     <div className="relative">
                       <GlobeAltIcon className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                       <textarea
+                        key="digiflazz-whitelist-input"
                         rows={3}
                         value={digiflazzSettings.whitelist_ips}
                         onChange={(e) =>
@@ -835,13 +898,17 @@ const AdminSettings = () => {
                         Session Timeout (minutes)
                       </label>
                       <input
+                        key="sessionTimeout-input"
+                        ref={(el) =>
+                          (inputRefs.current.security.sessionTimeout = el)
+                        }
                         type="number"
-                        value={settings.security.sessionTimeout}
-                        onChange={(e) =>
+                        defaultValue={settings.security.sessionTimeout || ""}
+                        onBlur={(e) =>
                           handleSettingChange(
                             "security",
                             "sessionTimeout",
-                            parseInt(e.target.value)
+                            parseInt(e.target.value) || 0
                           )
                         }
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -852,13 +919,17 @@ const AdminSettings = () => {
                         Max Login Attempts
                       </label>
                       <input
+                        key="maxLoginAttempts-input"
+                        ref={(el) =>
+                          (inputRefs.current.security.maxLoginAttempts = el)
+                        }
                         type="number"
-                        value={settings.security.maxLoginAttempts}
-                        onChange={(e) =>
+                        defaultValue={settings.security.maxLoginAttempts || ""}
+                        onBlur={(e) =>
                           handleSettingChange(
                             "security",
                             "maxLoginAttempts",
-                            parseInt(e.target.value)
+                            parseInt(e.target.value) || 0
                           )
                         }
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -878,13 +949,17 @@ const AdminSettings = () => {
                       API Rate Limit (requests/hour)
                     </label>
                     <input
+                      key="apiRateLimit-input"
+                      ref={(el) =>
+                        (inputRefs.current.security.apiRateLimit = el)
+                      }
                       type="number"
-                      value={settings.security.apiRateLimit}
-                      onChange={(e) =>
+                      defaultValue={settings.security.apiRateLimit || ""}
+                      onBlur={(e) =>
                         handleSettingChange(
                           "security",
                           "apiRateLimit",
-                          parseInt(e.target.value)
+                          parseInt(e.target.value) || 0
                         )
                       }
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -921,13 +996,17 @@ const AdminSettings = () => {
                         Payment Timeout (minutes)
                       </label>
                       <input
+                        key="paymentTimeout-input"
+                        ref={(el) =>
+                          (inputRefs.current.payment.paymentTimeout = el)
+                        }
                         type="number"
-                        value={settings.payment.paymentTimeout}
-                        onChange={(e) =>
+                        defaultValue={settings.payment.paymentTimeout || ""}
+                        onBlur={(e) =>
                           handleSettingChange(
                             "payment",
                             "paymentTimeout",
-                            parseInt(e.target.value)
+                            parseInt(e.target.value) || 0
                           )
                         }
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -938,13 +1017,17 @@ const AdminSettings = () => {
                         Transaction Fee (IDR)
                       </label>
                       <input
+                        key="transactionFee-input"
+                        ref={(el) =>
+                          (inputRefs.current.payment.transactionFee = el)
+                        }
                         type="number"
-                        value={settings.payment.transactionFee}
-                        onChange={(e) =>
+                        defaultValue={settings.payment.transactionFee || ""}
+                        onBlur={(e) =>
                           handleSettingChange(
                             "payment",
                             "transactionFee",
-                            parseInt(e.target.value)
+                            parseInt(e.target.value) || 0
                           )
                         }
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -964,13 +1047,17 @@ const AdminSettings = () => {
                       Minimum Top-up (IDR)
                     </label>
                     <input
+                      key="minimumTopup-input"
+                      ref={(el) =>
+                        (inputRefs.current.payment.minimumTopup = el)
+                      }
                       type="number"
-                      value={settings.payment.minimumTopup}
-                      onChange={(e) =>
+                      defaultValue={settings.payment.minimumTopup || ""}
+                      onBlur={(e) =>
                         handleSettingChange(
                           "payment",
                           "minimumTopup",
-                          parseInt(e.target.value)
+                          parseInt(e.target.value) || 0
                         )
                       }
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -981,13 +1068,17 @@ const AdminSettings = () => {
                       Maximum Top-up (IDR)
                     </label>
                     <input
+                      key="maximumTopup-input"
+                      ref={(el) =>
+                        (inputRefs.current.payment.maximumTopup = el)
+                      }
                       type="number"
-                      value={settings.payment.maximumTopup}
-                      onChange={(e) =>
+                      defaultValue={settings.payment.maximumTopup || ""}
+                      onBlur={(e) =>
                         handleSettingChange(
                           "payment",
                           "maximumTopup",
-                          parseInt(e.target.value)
+                          parseInt(e.target.value) || 0
                         )
                       }
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -1082,8 +1173,12 @@ const AdminSettings = () => {
                       Backup Frequency
                     </label>
                     <select
-                      value={settings.system.backupFrequency}
-                      onChange={(e) =>
+                      key="backupFrequency-select"
+                      ref={(el) =>
+                        (inputRefs.current.system.backupFrequency = el)
+                      }
+                      defaultValue={settings.system.backupFrequency || ""}
+                      onBlur={(e) =>
                         handleSettingChange(
                           "system",
                           "backupFrequency",
@@ -1105,13 +1200,17 @@ const AdminSettings = () => {
                         Log Retention (days)
                       </label>
                       <input
+                        key="logRetention-input"
+                        ref={(el) =>
+                          (inputRefs.current.system.logRetention = el)
+                        }
                         type="number"
-                        value={settings.system.logRetention}
-                        onChange={(e) =>
+                        defaultValue={settings.system.logRetention || ""}
+                        onBlur={(e) =>
                           handleSettingChange(
                             "system",
                             "logRetention",
-                            parseInt(e.target.value)
+                            parseInt(e.target.value) || 0
                           )
                         }
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -1122,13 +1221,17 @@ const AdminSettings = () => {
                         Cache Timeout (seconds)
                       </label>
                       <input
+                        key="cacheTimeout-input"
+                        ref={(el) =>
+                          (inputRefs.current.system.cacheTimeout = el)
+                        }
                         type="number"
-                        value={settings.system.cacheTimeout}
-                        onChange={(e) =>
+                        defaultValue={settings.system.cacheTimeout || ""}
+                        onBlur={(e) =>
                           handleSettingChange(
                             "system",
                             "cacheTimeout",
-                            parseInt(e.target.value)
+                            parseInt(e.target.value) || 0
                           )
                         }
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
@@ -1157,9 +1260,11 @@ const AdminSettings = () => {
                       API Version
                     </label>
                     <input
+                      key="apiVersion-input"
+                      ref={(el) => (inputRefs.current.system.apiVersion = el)}
                       type="text"
-                      value={settings.system.apiVersion}
-                      onChange={(e) =>
+                      defaultValue={settings.system.apiVersion || ""}
+                      onBlur={(e) =>
                         handleSettingChange(
                           "system",
                           "apiVersion",
