@@ -257,18 +257,17 @@ const AdminSettings = () => {
   const saveGeneralSettings = async () => {
     setGeneralLoading(true);
     try {
-      // Get current values from form elements
+      // Get current values from refs instead of document.querySelector
       const siteName =
-        document.querySelector('input[key="siteName-input"]')?.value ||
-        settings.general.siteName;
+        inputRefs.current.general.siteName?.value || settings.general.siteName;
       const siteDescription =
-        document.querySelector('textarea[key="siteDescription-input"]')
-          ?.value || settings.general.siteDescription;
+        inputRefs.current.general.siteDescription?.value ||
+        settings.general.siteDescription;
       const adminEmail =
-        document.querySelector('input[key="adminEmail-input"]')?.value ||
+        inputRefs.current.general.adminEmail?.value ||
         settings.general.adminEmail;
       const supportEmail =
-        document.querySelector('input[key="supportEmail-input"]')?.value ||
+        inputRefs.current.general.supportEmail?.value ||
         settings.general.supportEmail;
 
       const currentSettings = {
@@ -278,6 +277,8 @@ const AdminSettings = () => {
         supportEmail,
         maintenanceMode: settings.general.maintenanceMode,
       };
+
+      console.log("Saving settings:", currentSettings); // Debug log
 
       const response = await adminService.saveGeneralSettings(currentSettings);
       if (response.success) {
