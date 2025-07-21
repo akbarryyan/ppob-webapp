@@ -26,28 +26,74 @@ export const SettingsProvider = ({ children }) => {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const response = await adminService.getGeneralSettings();
-        if (response.success && response.data) {
-          setSettings((prevSettings) => ({
-            ...prevSettings,
-            ...response.data,
-          }));
+        // Check if we're on an admin page before calling admin API
+        const currentPath = window.location.pathname;
+        const isAdminPage = currentPath.startsWith("/admin");
 
-          // Update document title
-          updateDocumentTitle(
-            response.data.siteName,
-            response.data.siteDescription
-          );
+        if (isAdminPage) {
+          // Only call admin API if we have admin token
+          const adminToken =
+            localStorage.getItem("adminAuthToken") ||
+            sessionStorage.getItem("adminAuthToken");
+
+          if (adminToken) {
+            const response = await adminService.getGeneralSettings();
+            if (response.success && response.data) {
+              setSettings((prevSettings) => ({
+                ...prevSettings,
+                ...response.data,
+              }));
+
+              // Update document title
+              updateDocumentTitle(
+                response.data.siteName,
+                response.data.siteDescription
+              );
+            }
+          } else {
+            // Use default settings if no admin token
+            updateDocumentTitle(settings.siteName, settings.siteDescription);
+          }
+        } else {
+          // For non-admin pages, use public API
+          try {
+            const response = await fetch(
+              "http://localhost:8000/api/public/settings/general"
+            );
+            const data = await response.json();
+
+            if (data.success && data.data) {
+              setSettings((prevSettings) => ({
+                ...prevSettings,
+                ...data.data,
+              }));
+
+              // Update document title
+              updateDocumentTitle(
+                data.data.siteName,
+                data.data.siteDescription
+              );
+            } else {
+              // Fallback to default
+              updateDocumentTitle(settings.siteName, settings.siteDescription);
+            }
+          } catch (fetchError) {
+            console.error("Failed to load public settings:", fetchError);
+            // Use fallback settings
+            updateDocumentTitle(settings.siteName, settings.siteDescription);
+          }
         }
       } catch (error) {
         console.error("Failed to load settings:", error);
+        // Use fallback settings
+        updateDocumentTitle(settings.siteName, settings.siteDescription);
       } finally {
         setIsLoading(false);
       }
     };
 
     loadSettings();
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
 
   const updateDocumentTitle = (siteName, siteDescription) => {
     const title =
