@@ -435,62 +435,168 @@ const AdminReports = () => {
                     )}
                   </div>
                 </div>
-              )}{" "}
+              )}
               {selectedReport === "revenue" && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-bold text-gray-900">
-                    Daily Revenue Trend
-                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Daily Revenue Trend
+                    </h3>
+                    <div className="text-sm text-gray-600">
+                      {reportData.daily.length > 0 && (
+                        <span>
+                          Showing {reportData.daily.length} days of data
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Revenue Summary Cards */}
+                  {reportData.daily.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-blue-600">
+                              Total Revenue
+                            </p>
+                            <p className="text-xl font-bold text-blue-900">
+                              {formatCurrency(
+                                reportData.daily.reduce(
+                                  (sum, day) => sum + day.revenue,
+                                  0
+                                )
+                              )}
+                            </p>
+                          </div>
+                          <CurrencyDollarIcon className="w-8 h-8 text-blue-600" />
+                        </div>
+                      </div>
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-green-600">
+                              Total Transactions
+                            </p>
+                            <p className="text-xl font-bold text-green-900">
+                              {reportData.daily
+                                .reduce((sum, day) => sum + day.transactions, 0)
+                                .toLocaleString()}
+                            </p>
+                          </div>
+                          <CreditCardIcon className="w-8 h-8 text-green-600" />
+                        </div>
+                      </div>
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-purple-600">
+                              Daily Average
+                            </p>
+                            <p className="text-xl font-bold text-purple-900">
+                              {formatCurrency(
+                                reportData.daily.reduce(
+                                  (sum, day) => sum + day.revenue,
+                                  0
+                                ) / reportData.daily.length
+                              )}
+                            </p>
+                          </div>
+                          <ChartBarIcon className="w-8 h-8 text-purple-600" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Daily Revenue List */}
                   <div className="space-y-3 sm:space-y-4">
                     {reportData.daily.length > 0 ? (
-                      reportData.daily.map((day, index) => (
-                        <div
-                          key={index}
-                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl space-y-3 sm:space-y-0"
-                        >
-                          <div className="flex items-center space-x-3 sm:space-x-4">
-                            <CalendarDaysIcon className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 flex-shrink-0" />
-                            <div>
-                              <p className="font-semibold text-gray-900 text-sm sm:text-base">
-                                {formatDate(day.date)}
-                              </p>
-                              <p className="text-xs sm:text-sm text-gray-600">
-                                {day.transactions} transactions
-                              </p>
+                      reportData.daily
+                        .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort by date descending (newest first)
+                        .map((day, index) => {
+                          const maxRevenue = Math.max(
+                            ...reportData.daily.map((d) => d.revenue)
+                          );
+                          const percentageWidth =
+                            maxRevenue > 0
+                              ? (day.revenue / maxRevenue) * 100
+                              : 0;
+
+                          return (
+                            <div
+                              key={day.date}
+                              className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors space-y-3 sm:space-y-0"
+                            >
+                              <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+                                <div className="w-10 h-10 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                  <CalendarDaysIcon className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                                    {new Date(day.date).toLocaleDateString(
+                                      "id-ID",
+                                      {
+                                        weekday: "short",
+                                        year: "numeric",
+                                        month: "short",
+                                        day: "numeric",
+                                      }
+                                    )}
+                                  </p>
+                                  <p className="text-xs sm:text-sm text-gray-600">
+                                    {day.transactions} transaction
+                                    {day.transactions !== 1 ? "s" : ""}
+                                    {day.transactions > 0 && (
+                                      <span className="ml-2">
+                                        • Avg:{" "}
+                                        {formatCurrency(
+                                          day.revenue / day.transactions
+                                        )}
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="w-full sm:w-auto sm:text-right sm:min-w-[200px]">
+                                <p className="font-bold text-gray-900 text-sm sm:text-base mb-2">
+                                  {formatCurrency(day.revenue)}
+                                </p>
+                                <div className="w-full sm:w-40 bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-500 ease-out"
+                                    style={{
+                                      width: `${percentageWidth}%`,
+                                    }}
+                                  ></div>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1 text-right">
+                                  {percentageWidth.toFixed(1)}% of max day
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                          <div className="w-full sm:w-auto sm:text-right">
-                            <p className="font-bold text-gray-900 text-sm sm:text-base mb-2">
-                              {formatCurrency(day.revenue)}
-                            </p>
-                            <div className="w-full sm:w-32 bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-                                style={{
-                                  width: `${
-                                    reportData.daily.length > 0 &&
-                                    Math.max(
-                                      ...reportData.daily.map((d) => d.revenue)
-                                    ) > 0
-                                      ? (day.revenue /
-                                          Math.max(
-                                            ...reportData.daily.map(
-                                              (d) => d.revenue
-                                            )
-                                          )) *
-                                        100
-                                      : 0
-                                  }%`,
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
+                          );
+                        })
                     ) : (
-                      <div className="text-center py-8">
-                        <p className="text-gray-500">
-                          No revenue data available for this period
+                      <div className="text-center py-12">
+                        <CalendarDaysIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 text-lg mb-2">
+                          No revenue data available
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          {selectedPeriod === "all"
+                            ? "No transaction data found in the database"
+                            : `No transactions found for the selected ${
+                                selectedPeriod === "7days"
+                                  ? "week"
+                                  : selectedPeriod === "30days"
+                                  ? "month"
+                                  : selectedPeriod === "90days"
+                                  ? "3 months"
+                                  : selectedPeriod === "365days"
+                                  ? "year"
+                                  : "period"
+                              }`}
                         </p>
                       </div>
                     )}
