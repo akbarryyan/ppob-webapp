@@ -30,7 +30,7 @@ const AdminSettings = () => {
   const [generalLoading, setGeneralLoading] = useState(false);
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [hasExistingData, setHasExistingData] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(true); // Start with true to prevent loading screen
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false); // Start with false to show loading
   const [dataLoaded, setDataLoaded] = useState(false); // Track if data is loaded
   const [digiflazzSettings, setDigiflazzSettings] = useState({
     username: "",
@@ -41,10 +41,10 @@ const AdminSettings = () => {
   });
   const [settings, setSettings] = useState({
     general: {
-      siteName: "BayarAja",
-      siteDescription: "Platform top-up game dan voucher terpercaya",
-      adminEmail: "admin@bayaraja.com",
-      supportEmail: "support@bayaraja.com",
+      siteName: "",
+      siteDescription: "",
+      adminEmail: "",
+      supportEmail: "",
       maintenanceMode: false,
     },
     security: {
@@ -111,8 +111,11 @@ const AdminSettings = () => {
         setSettings((prev) => ({
           ...prev,
           general: {
-            ...prev.general, // Keep existing values as fallback
-            ...response.data, // Override with database values
+            siteName: response.data.siteName || "",
+            siteDescription: response.data.siteDescription || "",
+            adminEmail: response.data.adminEmail || "",
+            supportEmail: response.data.supportEmail || "",
+            maintenanceMode: response.data.maintenanceMode || false,
           },
         }));
       } else {
@@ -122,6 +125,7 @@ const AdminSettings = () => {
       console.error("Failed to load general settings:", error);
     } finally {
       setDataLoaded(true); // Mark data as loaded
+      setInitialLoadComplete(true); // Mark initial load as complete
     }
   };
 
@@ -411,7 +415,14 @@ const AdminSettings = () => {
 
         {/* Settings Content */}
         <div className="lg:col-span-3 space-y-6">
-          {activeSection === "general" && (
+          {!initialLoadComplete && (
+            <div className="flex justify-center items-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              <span className="ml-2 text-gray-600">Loading settings...</span>
+            </div>
+          )}
+
+          {initialLoadComplete && activeSection === "general" && (
             <div className="space-y-6">
               <SettingCard
                 title="Site Information"
@@ -425,8 +436,8 @@ const AdminSettings = () => {
                     <input
                       key="siteName-input"
                       type="text"
-                      defaultValue={settings.general.siteName}
-                      onBlur={(e) =>
+                      value={settings.general.siteName}
+                      onChange={(e) =>
                         handleSettingChange(
                           "general",
                           "siteName",
@@ -443,8 +454,8 @@ const AdminSettings = () => {
                     <textarea
                       key="siteDescription-input"
                       rows={3}
-                      defaultValue={settings.general.siteDescription}
-                      onBlur={(e) =>
+                      value={settings.general.siteDescription}
+                      onChange={(e) =>
                         handleSettingChange(
                           "general",
                           "siteDescription",
@@ -471,8 +482,8 @@ const AdminSettings = () => {
                       <input
                         key="adminEmail-input"
                         type="email"
-                        defaultValue={settings.general.adminEmail}
-                        onBlur={(e) =>
+                        value={settings.general.adminEmail}
+                        onChange={(e) =>
                           handleSettingChange(
                             "general",
                             "adminEmail",
@@ -492,8 +503,8 @@ const AdminSettings = () => {
                       <input
                         key="supportEmail-input"
                         type="email"
-                        defaultValue={settings.general.supportEmail}
-                        onBlur={(e) =>
+                        value={settings.general.supportEmail}
+                        onChange={(e) =>
                           handleSettingChange(
                             "general",
                             "supportEmail",
