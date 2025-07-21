@@ -106,6 +106,11 @@ const AdminSettings = () => {
       apiVersion: null,
       backupFrequency: null,
     },
+    digiflazz: {
+      username: null,
+      api_key: null,
+      whitelist_ips: null,
+    },
   });
 
   // Simple stable handler functions that don't cause re-renders
@@ -138,6 +143,7 @@ const AdminSettings = () => {
   }, []);
 
   const handleDigiflazzSettingChange = useCallback((key, value) => {
+    // Always update digiflazz settings state since it's used for saving
     setDigiflazzSettings((prev) => ({
       ...prev,
       [key]: value,
@@ -644,6 +650,9 @@ const AdminSettings = () => {
                       <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
                         key="digiflazz-username-input"
+                        ref={(el) =>
+                          (inputRefs.current.digiflazz.username = el)
+                        }
                         type={
                           showPassword.digiflazz_username
                             ? "text"
@@ -651,8 +660,8 @@ const AdminSettings = () => {
                             ? "password"
                             : "text"
                         }
-                        value={digiflazzSettings.username}
-                        onChange={(e) =>
+                        defaultValue={digiflazzSettings.username}
+                        onBlur={(e) =>
                           handleDigiflazzSettingChange(
                             "username",
                             e.target.value
@@ -694,11 +703,12 @@ const AdminSettings = () => {
                       <KeyIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
                         key="digiflazz-apikey-input"
+                        ref={(el) => (inputRefs.current.digiflazz.api_key = el)}
                         type={
                           showPassword.digiflazz_api_key ? "text" : "password"
                         }
-                        value={digiflazzSettings.api_key}
-                        onChange={(e) =>
+                        defaultValue={digiflazzSettings.api_key}
+                        onBlur={(e) =>
                           handleDigiflazzSettingChange(
                             "api_key",
                             e.target.value
@@ -738,9 +748,12 @@ const AdminSettings = () => {
                       <GlobeAltIcon className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                       <textarea
                         key="digiflazz-whitelist-input"
+                        ref={(el) =>
+                          (inputRefs.current.digiflazz.whitelist_ips = el)
+                        }
                         rows={3}
-                        value={digiflazzSettings.whitelist_ips}
-                        onChange={(e) =>
+                        defaultValue={digiflazzSettings.whitelist_ips}
+                        onBlur={(e) =>
                           handleDigiflazzSettingChange(
                             "whitelist_ips",
                             e.target.value
