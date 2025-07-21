@@ -28,6 +28,7 @@ const AdminTransactions = () => {
   // Add state for API data
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     current_page: 1,
@@ -49,7 +50,7 @@ const AdminTransactions = () => {
   // Add debounce effect for search
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      fetchTransactions();
+      fetchTransactions(true); // Pass true to indicate this is a search/filter operation
       fetchStats(); // Also fetch stats when search changes
     }, 500); // Debounce search by 500ms
 
@@ -58,7 +59,7 @@ const AdminTransactions = () => {
 
   // Separate effect for other filters (no debounce needed)
   useEffect(() => {
-    fetchTransactions();
+    fetchTransactions(true); // Pass true to indicate this is a filter operation
     fetchStats(); // Also fetch stats when filters change
   }, [
     filterStatus,
@@ -68,9 +69,20 @@ const AdminTransactions = () => {
     pagination.per_page,
   ]);
 
-  const fetchTransactions = async () => {
+  // Initial load effect
+  useEffect(() => {
+    fetchTransactions(false); // Pass false for initial load
+    fetchStats();
+  }, []); // Empty dependency array for initial load only
+
+  const fetchTransactions = async (isFilter = false) => {
     try {
-      setLoading(true);
+      // Use different loading states for initial load vs filter/search
+      if (isFilter) {
+        setTransactionsLoading(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
 
       const params = {
@@ -128,7 +140,12 @@ const AdminTransactions = () => {
       setError(err.message || "An error occurred while fetching transactions");
       console.error("Error fetching transactions:", err);
     } finally {
-      setLoading(false);
+      // Reset the appropriate loading state
+      if (isFilter) {
+        setTransactionsLoading(false);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
@@ -297,7 +314,7 @@ const AdminTransactions = () => {
     return `${Math.floor(diffInMinutes / 1440)} days ago`;
   };
 
-  // Loading and error states
+  // Loading and error states - only for initial load
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center h-64">
@@ -309,14 +326,14 @@ const AdminTransactions = () => {
     );
   }
 
-  if (error) {
+  if (error && !transactionsLoading) {
     return (
       <div className="p-6 flex items-center justify-center h-64">
         <div className="text-center">
           <ExclamationTriangleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <p className="text-red-600 mb-4">{error}</p>
           <button
-            onClick={fetchTransactions}
+            onClick={() => fetchTransactions(false)}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
           >
             Retry
@@ -751,230 +768,265 @@ const AdminTransactions = () => {
           </div>
         </div>
 
-        {/* Mobile Card View */}
-        <div className="block lg:hidden">
-          <div className="p-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            <div className="space-y-4">
-              {transactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200 hover:shadow-md transition-shadow"
-                >
-                  {/* Transaction Header */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 truncate text-sm">
-                        {transaction.id}
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        {transaction.paymentChannel}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2 flex-shrink-0">
-                      {React.createElement(
-                        getStatusConfig(transaction.status).icon,
-                        {
-                          className: `w-4 h-4 ${
-                            getStatusConfig(transaction.status).iconColor
-                          }`,
-                        }
-                      )}
-                      <span
-                        className={`px-2 py-1 rounded-lg text-xs font-semibold border ${
-                          getStatusConfig(transaction.status).color
-                        }`}
-                      >
-                        {getStatusConfig(transaction.status).label}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Customer & Product Info */}
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <UserIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-gray-900 text-sm truncate">
-                          {transaction.userName}
-                        </p>
-                        <p className="text-xs text-gray-600 truncate">
-                          {transaction.userEmail}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <ShoppingBagIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-gray-900 text-sm truncate">
-                          {transaction.productName}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {transaction.productCategory}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Transaction Details Grid */}
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-gray-500 text-xs">Amount</p>
-                      <p className="font-semibold text-gray-900">
-                        {formatCurrency(transaction.totalAmount)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 text-xs">Date</p>
-                      <p className="font-semibold text-gray-900 text-xs">
-                        {formatDateTime(transaction.createdAt)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {getTimeAgo(transaction.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center justify-end pt-2 border-t border-gray-200">
-                    <button
-                      onClick={() => handleViewTransaction(transaction.id)}
-                      className="flex items-center space-x-2 px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors text-sm"
-                    >
-                      <EyeIcon className="w-4 h-4" />
-                      <span>View Details</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
+        {/* Loading State for Transactions */}
+        {transactionsLoading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-3"></div>
+              <p className="text-gray-600 text-sm">Loading transactions...</p>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Desktop Table View */}
-        <div className="hidden lg:block">
-          <div className="overflow-x-auto overflow-y-auto max-h-[70vh] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            <table className="w-full min-w-[1000px]">
-              <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
-                <tr>
-                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[180px]">
-                    Transaction
-                  </th>
-                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[180px]">
-                    Customer
-                  </th>
-                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[200px]">
-                    Product
-                  </th>
-                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
-                    Amount
-                  </th>
-                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
-                    Status
-                  </th>
-                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[150px]">
-                    Date
-                  </th>
-                  <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[100px]">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {transactions.map((transaction) => (
-                  <tr
-                    key={transaction.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-4 xl:px-6 py-4">
-                      <div>
-                        <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
-                          {transaction.id}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {transaction.paymentChannel}
-                        </p>
+        {/* Error State for Transactions (when filtering/searching) */}
+        {error &&
+          transactionsLoading === false &&
+          transactions.length === 0 && (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <ExclamationTriangleIcon className="h-8 w-8 text-red-500 mx-auto mb-3" />
+                <p className="text-red-600 text-sm mb-3">{error}</p>
+                <button
+                  onClick={() => fetchTransactions(true)}
+                  className="px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+
+        {/* Show content only when not loading */}
+        {!transactionsLoading && (
+          <>
+            {/* Mobile Card View */}
+            <div className="block lg:hidden">
+              <div className="p-4 max-h-[70vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                <div className="space-y-4">
+                  {transactions.map((transaction) => (
+                    <div
+                      key={transaction.id}
+                      className="bg-gray-50 rounded-xl p-4 space-y-3 border border-gray-200 hover:shadow-md transition-shadow"
+                    >
+                      {/* Transaction Header */}
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 truncate text-sm">
+                            {transaction.id}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            {transaction.paymentChannel}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2 flex-shrink-0">
+                          {React.createElement(
+                            getStatusConfig(transaction.status).icon,
+                            {
+                              className: `w-4 h-4 ${
+                                getStatusConfig(transaction.status).iconColor
+                              }`,
+                            }
+                          )}
+                          <span
+                            className={`px-2 py-1 rounded-lg text-xs font-semibold border ${
+                              getStatusConfig(transaction.status).color
+                            }`}
+                          >
+                            {getStatusConfig(transaction.status).label}
+                          </span>
+                        </div>
                       </div>
-                    </td>
-                    <td className="px-4 xl:px-6 py-4">
-                      <div>
-                        <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
-                          {transaction.userName}
-                        </p>
-                        <p className="text-xs text-gray-600 truncate">
-                          {transaction.userEmail}
-                        </p>
+
+                      {/* Customer & Product Info */}
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <UserIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 text-sm truncate">
+                              {transaction.userName}
+                            </p>
+                            <p className="text-xs text-gray-600 truncate">
+                              {transaction.userEmail}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <ShoppingBagIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 text-sm truncate">
+                              {transaction.productName}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {transaction.productCategory}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </td>
-                    <td className="px-4 xl:px-6 py-4">
-                      <div>
-                        <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
-                          {transaction.productName}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {transaction.productCategory}
-                        </p>
+
+                      {/* Transaction Details Grid */}
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <p className="text-gray-500 text-xs">Amount</p>
+                          <p className="font-semibold text-gray-900">
+                            {formatCurrency(transaction.totalAmount)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Date</p>
+                          <p className="font-semibold text-gray-900 text-xs">
+                            {formatDateTime(transaction.createdAt)}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {getTimeAgo(transaction.createdAt)}
+                          </p>
+                        </div>
                       </div>
-                    </td>
-                    <td className="px-4 xl:px-6 py-4">
-                      <p className="text-xs xl:text-sm font-semibold text-gray-900 whitespace-nowrap">
-                        {formatCurrency(transaction.totalAmount)}
-                      </p>
-                    </td>
-                    <td className="px-4 xl:px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        {React.createElement(
-                          getStatusConfig(transaction.status).icon,
-                          {
-                            className: `w-3.5 h-3.5 xl:w-4 xl:h-4 ${
-                              getStatusConfig(transaction.status).iconColor
-                            }`,
-                          }
-                        )}
-                        <span
-                          className={`px-2 xl:px-2 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${
-                            getStatusConfig(transaction.status).color
-                          }`}
+
+                      {/* Actions */}
+                      <div className="flex items-center justify-end pt-2 border-t border-gray-200">
+                        <button
+                          onClick={() => handleViewTransaction(transaction.id)}
+                          className="flex items-center space-x-2 px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors text-sm"
                         >
-                          {getStatusConfig(transaction.status).label}
-                        </span>
+                          <EyeIcon className="w-4 h-4" />
+                          <span>View Details</span>
+                        </button>
                       </div>
-                    </td>
-                    <td className="px-4 xl:px-6 py-4">
-                      <div>
-                        <p className="text-xs xl:text-sm font-semibold text-gray-900 whitespace-nowrap">
-                          {formatDateTime(transaction.createdAt)}
-                        </p>
-                        <p className="text-xs text-gray-500 whitespace-nowrap">
-                          {getTimeAgo(transaction.createdAt)}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-4 xl:px-6 py-4">
-                      <button
-                        onClick={() => handleViewTransaction(transaction.id)}
-                        className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                      >
-                        <EyeIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-        {/* No Results */}
-        {transactions.length === 0 && (
-          <div className="text-center py-12">
-            <CreditCardIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg font-medium">
-              No transactions found
-            </p>
-            <p className="text-gray-400 text-sm">
-              Try adjusting your search or filter criteria
-            </p>
-          </div>
+            {/* Desktop Table View */}
+            <div className="hidden lg:block">
+              <div className="overflow-x-auto overflow-y-auto max-h-[70vh] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                <table className="w-full min-w-[1000px]">
+                  <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[180px]">
+                        Transaction
+                      </th>
+                      <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[180px]">
+                        Customer
+                      </th>
+                      <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[200px]">
+                        Product
+                      </th>
+                      <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                        Amount
+                      </th>
+                      <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[120px]">
+                        Status
+                      </th>
+                      <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[150px]">
+                        Date
+                      </th>
+                      <th className="px-4 xl:px-6 py-4 text-left text-xs xl:text-sm font-semibold text-gray-900 min-w-[100px]">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {transactions.map((transaction) => (
+                      <tr
+                        key={transaction.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-4 xl:px-6 py-4">
+                          <div>
+                            <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
+                              {transaction.id}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {transaction.paymentChannel}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-4 xl:px-6 py-4">
+                          <div>
+                            <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
+                              {transaction.userName}
+                            </p>
+                            <p className="text-xs text-gray-600 truncate">
+                              {transaction.userEmail}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-4 xl:px-6 py-4">
+                          <div>
+                            <p className="text-xs xl:text-sm font-semibold text-gray-900 truncate">
+                              {transaction.productName}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {transaction.productCategory}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-4 xl:px-6 py-4">
+                          <p className="text-xs xl:text-sm font-semibold text-gray-900 whitespace-nowrap">
+                            {formatCurrency(transaction.totalAmount)}
+                          </p>
+                        </td>
+                        <td className="px-4 xl:px-6 py-4">
+                          <div className="flex items-center space-x-2">
+                            {React.createElement(
+                              getStatusConfig(transaction.status).icon,
+                              {
+                                className: `w-3.5 h-3.5 xl:w-4 xl:h-4 ${
+                                  getStatusConfig(transaction.status).iconColor
+                                }`,
+                              }
+                            )}
+                            <span
+                              className={`px-2 xl:px-2 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${
+                                getStatusConfig(transaction.status).color
+                              }`}
+                            >
+                              {getStatusConfig(transaction.status).label}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 xl:px-6 py-4">
+                          <div>
+                            <p className="text-xs xl:text-sm font-semibold text-gray-900 whitespace-nowrap">
+                              {formatDateTime(transaction.createdAt)}
+                            </p>
+                            <p className="text-xs text-gray-500 whitespace-nowrap">
+                              {getTimeAgo(transaction.createdAt)}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-4 xl:px-6 py-4">
+                          <button
+                            onClick={() =>
+                              handleViewTransaction(transaction.id)
+                            }
+                            className="p-1.5 xl:p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          >
+                            <EyeIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* No Results */}
+            {transactions.length === 0 && (
+              <div className="text-center py-12">
+                <CreditCardIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg font-medium">
+                  No transactions found
+                </p>
+                <p className="text-gray-400 text-sm">
+                  Try adjusting your search or filter criteria
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
