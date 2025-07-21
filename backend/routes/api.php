@@ -34,7 +34,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout-all', [AuthController::class, 'logoutAll']);
     });
 
-        // Admin routes requiring authentication
+    // User transactions route
+    Route::get('/transactions', [AuthController::class, 'getTransactions']);
+
+    // Admin routes requiring authentication
     Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
         // Admin authentication routes
         Route::get('/profile', [AdminController::class, 'profile']);

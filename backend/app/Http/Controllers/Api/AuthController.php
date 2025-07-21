@@ -335,4 +335,76 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get user transactions
+     */
+    public function getTransactions(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $perPage = $request->input('per_page', 15);
+            $status = $request->input('status');
+            $type = $request->input('type');
+            $search = $request->input('search');
+
+            $query = $user->transactions()->orderBy('created_at', 'desc');
+
+            // Filter by status
+            if ($status && $status !== 'all') {
+                $query->where('status', $status);
+            }
+
+            // Filter by type
+            if ($type && $type !== 'all') {
+                $query->where('type', 'like', '%' . $type . '%');
+            }
+
+            // Search functionality
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('transaction_id', 'like', '%' . $search . '%')
+                      ->orWhere('product_name', 'like', '%' . $search . '%')
+                      ->orWhere('target', 'like', '%' . $search . '%');
+                });
+            }
+
+            $transactions = $query->paginate($perPage);
+
+            // Transform data for frontend consistency
+            $transformedTransactions = $transactions->map(function ($transaction) {
+                return [
+                    'id' => $transaction->id,
+                    'transaction_code' => $transaction->transaction_id,
+                    'product_name' => $transaction->product_name,
+                    'type' => $transaction->type,
+                    'amount' => $transaction->price,
+                    'status' => $transaction->status,
+                    'target_number' => $transaction->target,
+                    'message' => $transaction->message,
+                    'created_at' => $transaction->created_at,
+                    'processed_at' => $transaction->processed_at,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $transformedTransactions,
+                'pagination' => [
+                    'current_page' => $transactions->currentPage(),
+                    'last_page' => $transactions->lastPage(),
+                    'per_page' => $transactions->perPage(),
+                    'total' => $transactions->total(),
+                ],
+                'message' => 'Transactions retrieved successfully'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve transactions',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

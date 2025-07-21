@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { toast } from "react-toastify";
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -15,9 +17,14 @@ import {
   SparklesIcon,
   DocumentArrowDownIcon,
   AdjustmentsHorizontalIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
-const TransactionsList = ({ recentTransactions }) => {
+const TransactionsList = () => {
+  const { user } = useAuth();
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterType, setFilterType] = useState("all");
@@ -26,6 +33,104 @@ const TransactionsList = ({ recentTransactions }) => {
   const [isTypeFilterOpen, setIsTypeFilterOpen] = useState(false);
   const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState("card"); // 'card' atau 'table'
+
+  // Function to get auth token
+  const getAuthToken = () => {
+    // Check multiple possible token keys for debugging
+    const tokenKeys = ["token", "authToken", "access_token", "bearerToken"];
+    const storageTypes = [localStorage, sessionStorage];
+
+    console.log("=== Token Debug Info ===");
+    for (const storage of storageTypes) {
+      const storageName =
+        storage === localStorage ? "localStorage" : "sessionStorage";
+      console.log(`${storageName} contents:`);
+      for (let i = 0; i < storage.length; i++) {
+        const key = storage.key(i);
+        const value = storage.getItem(key);
+        console.log(`  ${key}: ${value?.substring(0, 20)}...`);
+      }
+    }
+    console.log("========================");
+
+    return localStorage.getItem("token") || sessionStorage.getItem("token");
+  };
+
+  // Fetch transactions from API
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const token = getAuthToken();
+      console.log("Token found:", token ? "✓ Yes" : "✗ No"); // Debug log
+      console.log("Token value:", token?.substring(0, 10) + "..."); // Debug log (first 10 chars)
+
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      console.log("Fetching transactions for user:", user?.name); // Debug log
+
+      const response = await fetch("http://localhost:8000/api/transactions", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("API Response status:", response.status); // Debug log
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("API Response data:", data); // Debug log
+
+      if (data.success) {
+        // Transform API data to match our component structure
+        const transformedTransactions = data.data.map((transaction) => ({
+          id: transaction.transaction_code || transaction.id,
+          type: transaction.product_name || transaction.type || "Unknown",
+          amount: parseFloat(transaction.amount) || 0,
+          status: transaction.status || "pending",
+          date: new Date(transaction.created_at).toLocaleString("id-ID", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          target: transaction.target_number || transaction.customer_id || "N/A",
+          description: transaction.message || "",
+          fee: transaction.admin_fee || 0,
+          total: transaction.total_amount || transaction.amount,
+        }));
+
+        console.log("Transformed transactions:", transformedTransactions); // Debug log
+        setTransactions(transformedTransactions);
+      } else {
+        throw new Error(data.message || "Failed to fetch transactions");
+      }
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+      setError(error.message);
+      toast.error("Gagal memuat data transaksi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load transactions on component mount
+  useEffect(() => {
+    if (user) {
+      fetchTransactions();
+    } else {
+      console.log("No user found, skipping transaction fetch");
+    }
+  }, [user]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -48,25 +153,25 @@ const TransactionsList = ({ recentTransactions }) => {
     {
       value: "all",
       label: "Semua Status",
-      count: recentTransactions.length,
+      count: transactions.length,
       color: "bg-gray-100",
     },
     {
       value: "success",
       label: "Berhasil",
-      count: recentTransactions.filter((t) => t.status === "success").length,
+      count: transactions.filter((t) => t.status === "success").length,
       color: "bg-emerald-100",
     },
     {
       value: "pending",
       label: "Pending",
-      count: recentTransactions.filter((t) => t.status === "pending").length,
+      count: transactions.filter((t) => t.status === "pending").length,
       color: "bg-amber-100",
     },
     {
       value: "failed",
       label: "Gagal",
-      count: recentTransactions.filter((t) => t.status === "failed").length,
+      count: transactions.filter((t) => t.status === "failed").length,
       color: "bg-red-100",
     },
   ];
@@ -88,7 +193,7 @@ const TransactionsList = ({ recentTransactions }) => {
     { value: "custom", label: "Periode Kustom" },
   ];
 
-  const filteredTransactions = recentTransactions.filter((transaction) => {
+  const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =
       transaction.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
       transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -160,6 +265,47 @@ const TransactionsList = ({ recentTransactions }) => {
         return ClockIcon;
     }
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-6 lg:p-8 text-white shadow-2xl">
+          <div className="flex items-center justify-center py-12">
+            <div className="flex flex-col items-center space-y-4">
+              <ArrowPathIcon className="w-12 h-12 text-white animate-spin" />
+              <p className="text-white/90 text-lg font-medium">
+                Memuat data transaksi...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-gradient-to-br from-red-600 via-pink-600 to-red-700 rounded-3xl p-6 lg:p-8 text-white shadow-2xl">
+          <div className="flex flex-col items-center justify-center py-12 space-y-4">
+            <XCircleIcon className="w-16 h-16 text-white/90" />
+            <div className="text-center">
+              <h3 className="text-xl font-bold mb-2">Gagal Memuat Data</h3>
+              <p className="text-white/90 mb-6">{error}</p>
+              <button
+                onClick={fetchTransactions}
+                className="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-xl font-semibold transition-colors border border-white/30"
+              >
+                Coba Lagi
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -470,7 +616,7 @@ const TransactionsList = ({ recentTransactions }) => {
               </h3>
               <p className="text-gray-500 text-xs sm:text-sm mt-1">
                 Menampilkan {filteredTransactions.length} dari{" "}
-                {recentTransactions.length} transaksi
+                {transactions.length} transaksi
               </p>
             </div>
             {filteredTransactions.length > 0 && (
